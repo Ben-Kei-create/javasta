@@ -5,66 +5,65 @@ struct ExplanationView: View {
     var onDismiss: () -> Void
 
     var body: some View {
-        ZStack {
-            Color.jbBackground.ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack {
+                Color.jbBackground.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                headerBar
-                Divider().background(Color.jbBorder)
+                VStack(spacing: 0) {
+                    headerBar
+                    Divider().background(Color.jbBorder)
 
-                // Code panel ~40% height
-                CodePanelView(
-                    code: vm.explanation.initialCode,
-                    highlightLines: vm.currentStep.highlightLines
-                )
-                .frame(maxHeight: UIScreen.main.bounds.height * 0.38)
-                .background(Color.jbBackground)
+                    CodePanelView(
+                        code: vm.explanation.initialCode,
+                        highlightLines: vm.currentStep.highlightLines
+                    )
+                    .frame(maxHeight: geo.size.height * 0.38)
+                    .background(Color.jbBackground)
 
-                Divider().background(Color.jbBorder)
+                    Divider().background(Color.jbBorder)
 
-                // Variable panel
-                VariablePanelView(
-                    variables: vm.currentStep.variables,
-                    previousVariables: vm.previousStep?.variables ?? [],
-                    callStack: vm.currentStep.callStack
-                )
-                .background(Color.jbCard)
+                    VariablePanelView(
+                        variables: vm.currentStep.variables,
+                        previousVariables: vm.previousStep?.variables ?? [],
+                        callStack: vm.currentStep.callStack
+                    )
+                    .background(Color.jbCard)
 
-                Divider().background(Color.jbBorder)
+                    Divider().background(Color.jbBorder)
 
-                // Narration + predict
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        Text(vm.currentStep.narration)
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.jbText)
-                            .lineSpacing(5)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
+                            Text(vm.currentStep.narration)
+                                .font(.system(size: 15))
+                                .foregroundStyle(Color.jbText)
+                                .lineSpacing(5)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                        if let predict = vm.currentStep.predict {
-                            PredictView(
-                                predict: predict,
-                                selectedIndex: vm.predictSelectedIndex,
-                                isAnswered: vm.predictAnswered,
-                                showHint: vm.showPredictHint,
-                                onSelect: { vm.selectPredict(index: $0) },
-                                onHint: { vm.showPredictHint = true }
-                            )
-                            .transition(.push(from: .bottom))
-                        }
-
-                        if vm.isComplete && !vm.isPredictBlocking {
-                            completionBanner
+                            if let predict = vm.currentStep.predict {
+                                PredictView(
+                                    predict: predict,
+                                    selectedIndex: vm.predictSelectedIndex,
+                                    isAnswered: vm.predictAnswered,
+                                    showHint: vm.showPredictHint,
+                                    onSelect: { vm.selectPredict(index: $0) },
+                                    onHint: { vm.showPredictHint = true }
+                                )
                                 .transition(.push(from: .bottom))
-                        }
-                    }
-                    .padding(Spacing.md)
-                    .animation(.jbSpring, value: vm.currentStepIndex)
-                }
-                .background(Color.jbBackground)
+                            }
 
-                Divider().background(Color.jbBorder)
-                navigationBar
+                            if vm.isComplete && !vm.isPredictBlocking {
+                                completionBanner
+                                    .transition(.push(from: .bottom))
+                            }
+                        }
+                        .padding(Spacing.md)
+                        .animation(.jbSpring, value: vm.currentStepIndex)
+                    }
+                    .background(Color.jbBackground)
+
+                    Divider().background(Color.jbBorder)
+                    navigationBar
+                }
             }
         }
         .preferredColorScheme(.dark)
