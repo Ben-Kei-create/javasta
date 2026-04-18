@@ -105,6 +105,7 @@ struct CodePanelView: View {
     let code: String
     let highlightLines: [Int]
     var predictLines: Set<Int> = []
+    var zoom: Double = 1.0
 
     private var lines: [[CodeToken]] { JavaTokenizer.tokenize(code) }
 
@@ -117,7 +118,8 @@ struct CodePanelView: View {
                             lineNumber: idx + 1,
                             tokens: tokens,
                             isHighlighted: highlightLines.contains(idx + 1),
-                            hasPredict: predictLines.contains(idx + 1)
+                            hasPredict: predictLines.contains(idx + 1),
+                            zoom: zoom
                         )
                         .id(idx + 1)
                     }
@@ -142,10 +144,11 @@ private struct CodeLineView: View {
     let tokens: [CodeToken]
     let isHighlighted: Bool
     let hasPredict: Bool
+    let zoom: Double
 
     var body: some View {
         HStack(spacing: 0) {
-            GutterView(lineNumber: lineNumber, isHighlighted: isHighlighted, hasPredict: hasPredict)
+            GutterView(lineNumber: lineNumber, isHighlighted: isHighlighted, hasPredict: hasPredict, zoom: zoom)
 
             Rectangle()
                 .fill(Color.jbBorder)
@@ -154,7 +157,7 @@ private struct CodeLineView: View {
             HStack(spacing: 0) {
                 ForEach(Array(tokens.enumerated()), id: \.offset) { _, token in
                     Text(token.text)
-                        .font(.codeFont(13))
+                        .font(.codeFont(13 * zoom))
                         .foregroundStyle(tokenColor(token.kind))
                 }
             }
@@ -163,7 +166,7 @@ private struct CodeLineView: View {
 
             Spacer(minLength: 0)
         }
-        .frame(height: 26)
+        .frame(height: 26 * zoom)
         .background(isHighlighted ? Color.jbAccent.opacity(0.07) : Color.clear)
         .animation(.jbFast, value: isHighlighted)
     }
@@ -187,18 +190,19 @@ private struct GutterView: View {
     let lineNumber: Int
     let isHighlighted: Bool
     let hasPredict: Bool
+    let zoom: Double
 
     var body: some View {
         HStack(spacing: Spacing.xs) {
             Group {
                 if isHighlighted {
                     Image(systemName: "arrowtriangle.right.fill")
-                        .font(.system(size: 8))
+                        .font(.system(size: 8 * zoom))
                         .foregroundStyle(Color.jbAccent)
                 } else if hasPredict {
                     Circle()
                         .fill(Color.jbWarning)
-                        .frame(width: 5, height: 5)
+                        .frame(width: 5 * zoom, height: 5 * zoom)
                 } else {
                     Color.clear.frame(width: 8, height: 8)
                 }
@@ -206,11 +210,11 @@ private struct GutterView: View {
             .frame(width: 10)
 
             Text("\(lineNumber)")
-                .font(.codeFont(11))
+                .font(.codeFont(11 * zoom))
                 .foregroundStyle(isHighlighted ? Color.jbAccent : Color.jbSubtext)
-                .frame(width: 28, alignment: .trailing)
+                .frame(width: 28 * max(zoom, 1.0), alignment: .trailing)
         }
-        .frame(width: 52)
+        .frame(width: 52 * max(zoom, 1.0))
         .padding(.leading, Spacing.sm)
     }
 }

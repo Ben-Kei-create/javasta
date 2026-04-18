@@ -216,6 +216,7 @@ struct QuizSheetView: View {
     let quiz: Quiz
     @State private var quizVM: QuizViewModel
     @State private var activeExplanation: Explanation?
+    @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
 
     init(quiz: Quiz) {
@@ -225,7 +226,7 @@ struct QuizSheetView: View {
 
     var body: some View {
         NavigationStack {
-            QuizView(vm: quizVM, onShowExplanation: {
+            QuizView(vm: quizVM, codeZoom: codeZoom, onShowExplanation: {
                 activeExplanation = Explanation.sample(for: quiz.explanationRef)
             })
             .navigationTitle(quiz.categoryDisplayName)
@@ -236,12 +237,17 @@ struct QuizSheetView: View {
                         .foregroundStyle(Color.jbSubtext)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    LevelBadgeView(level: quiz.level)
+                    LevelBadgeView(
+                        level: quiz.level,
+                        zoomPercent: CodeZoom.percent(codeZoom),
+                        onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
+                    )
                 }
             }
+            .sensoryFeedback(.selection, trigger: codeZoom)
         }
         .fullScreenCover(item: $activeExplanation) { explanation in
-            ExplanationView(explanation: explanation, onDismiss: { activeExplanation = nil })
+            ExplanationView(explanation: explanation, level: quiz.level, onDismiss: { activeExplanation = nil })
         }
     }
 }

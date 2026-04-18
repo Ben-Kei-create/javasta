@@ -2,6 +2,7 @@ import SwiftUI
 
 struct QuizView: View {
     @State var vm: QuizViewModel
+    var codeZoom: Double = 1.0
     var onShowExplanation: () -> Void
 
     var body: some View {
@@ -49,7 +50,7 @@ struct QuizView: View {
 
             Divider().background(Color.jbBorder)
 
-            CodePanelView(code: vm.quiz.code, highlightLines: [])
+            CodePanelView(code: vm.quiz.code, highlightLines: [], zoom: codeZoom)
                 .frame(maxHeight: 220)
         }
         .background(

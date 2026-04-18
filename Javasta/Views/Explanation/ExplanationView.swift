@@ -2,10 +2,13 @@ import SwiftUI
 
 struct ExplanationView: View {
     @State private var vm: ExplanationViewModel
+    @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
+    let level: JavaLevel
     var onDismiss: () -> Void
 
-    init(explanation: Explanation, onDismiss: @escaping () -> Void) {
+    init(explanation: Explanation, level: JavaLevel, onDismiss: @escaping () -> Void) {
         self._vm = State(wrappedValue: ExplanationViewModel(explanation: explanation))
+        self.level = level
         self.onDismiss = onDismiss
     }
 
@@ -20,7 +23,8 @@ struct ExplanationView: View {
 
                     CodePanelView(
                         code: vm.explanation.initialCode,
-                        highlightLines: vm.currentStep.highlightLines
+                        highlightLines: vm.currentStep.highlightLines,
+                        zoom: codeZoom
                     )
                     .frame(maxHeight: geo.size.height * 0.38)
                     .background(Color.jbBackground)
@@ -72,12 +76,13 @@ struct ExplanationView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .sensoryFeedback(.selection, trigger: codeZoom)
     }
 
     // MARK: Header
 
     private var headerBar: some View {
-        HStack {
+        HStack(spacing: Spacing.sm) {
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
                     .font(.system(size: 13, weight: .semibold))
@@ -99,6 +104,12 @@ struct ExplanationView: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Color.jbSubtext)
                 .monospacedDigit()
+
+            LevelBadgeView(
+                level: level,
+                zoomPercent: CodeZoom.percent(codeZoom),
+                onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
+            )
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)
