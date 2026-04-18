@@ -1,8 +1,13 @@
 import SwiftUI
 
 struct ExplanationView: View {
-    @State var vm: ExplanationViewModel
+    @State private var vm: ExplanationViewModel
     var onDismiss: () -> Void
+
+    init(explanation: Explanation, onDismiss: @escaping () -> Void) {
+        self._vm = State(wrappedValue: ExplanationViewModel(explanation: explanation))
+        self.onDismiss = onDismiss
+    }
 
     var body: some View {
         GeometryReader { geo in

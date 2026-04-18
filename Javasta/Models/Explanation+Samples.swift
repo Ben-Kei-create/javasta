@@ -5,6 +5,7 @@ extension Explanation {
         switch ref {
         case "explain-silver-overload-001":  return silverOverload001
         case "explain-silver-exception-001": return silverException001
+        case "explain-gold-generics-001":    return goldGenerics001
         default: return nil
         }
     }
@@ -135,6 +136,113 @@ public class Test {
                  highlightLines: [10],
                  variables: [],
                  callStack: [CallStackFrame(method: "main", line: 10)],
+                 heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Gold: ジェネリクス（上限境界ワイルドカード）
+
+    static let goldGenerics001 = Explanation(
+        id: "explain-gold-generics-001",
+        initialCode: """
+import java.util.*;
+
+public class Test {
+    static double sum(List<? extends Number> list) {
+        double total = 0;
+        for (Number n : list) {
+            total += n.doubleValue();
+        }
+        return total;
+    }
+    public static void main(String[] args) {
+        List<Integer> ints = Arrays.asList(1, 2, 3);
+        System.out.println(sum(ints));
+    }
+}
+""",
+        steps: [
+            Step(index: 0,
+                 narration: "mainメソッドから実行開始。Arrays.asList(1, 2, 3) で List<Integer> を作成します。",
+                 highlightLines: [12],
+                 variables: [Variable(name: "ints", type: "List<Integer>", value: "[1, 2, 3]", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 12)],
+                 heap: [], predict: nil),
+
+            Step(index: 1,
+                 narration: "sum(ints) を呼び出します。引数は List<Integer> ですが、メソッドは List<? extends Number> を受け取ります。型システムはこれを許可するでしょうか？",
+                 highlightLines: [13],
+                 variables: [Variable(name: "ints", type: "List<Integer>", value: "[1, 2, 3]", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 13)],
+                 heap: [],
+                 predict: PredictPrompt(
+                    question: "List<Integer> を List<? extends Number> として渡せる？",
+                    choices: ["渡せる（IntegerはNumberのサブタイプ）", "渡せない（型不一致）"],
+                    answerIndex: 0,
+                    hint: "<? extends Number> は Number のサブタイプを受け入れる",
+                    afterExplanation: "上限境界ワイルドカード <? extends Number> は、Number またはそのサブタイプ（Integer, Long, Double等）のリストを受け取れます。"
+                 )),
+
+            Step(index: 2,
+                 narration: "sum メソッド内に入ります。total が 0.0 で初期化されます。",
+                 highlightLines: [5],
+                 variables: [
+                    Variable(name: "list", type: "List<? ext Number>", value: "[1, 2, 3]", scope: "sum"),
+                    Variable(name: "total", type: "double", value: "0.0", scope: "sum"),
+                 ],
+                 callStack: [
+                    CallStackFrame(method: "main", line: 13),
+                    CallStackFrame(method: "sum", line: 5),
+                 ],
+                 heap: [], predict: nil),
+
+            Step(index: 3,
+                 narration: "for-eachループ1回目。n = 1（Integer→Numberとして扱う）。doubleValue() で 1.0 に変換して total に加算します。",
+                 highlightLines: [7],
+                 variables: [
+                    Variable(name: "list", type: "List<? ext Number>", value: "[1, 2, 3]", scope: "sum"),
+                    Variable(name: "n", type: "Number", value: "1", scope: "sum"),
+                    Variable(name: "total", type: "double", value: "1.0", scope: "sum"),
+                 ],
+                 callStack: [
+                    CallStackFrame(method: "main", line: 13),
+                    CallStackFrame(method: "sum", line: 7),
+                 ],
+                 heap: [], predict: nil),
+
+            Step(index: 4,
+                 narration: "ループ2回目。n = 2、total = 1.0 + 2.0 = 3.0",
+                 highlightLines: [7],
+                 variables: [
+                    Variable(name: "list", type: "List<? ext Number>", value: "[1, 2, 3]", scope: "sum"),
+                    Variable(name: "n", type: "Number", value: "2", scope: "sum"),
+                    Variable(name: "total", type: "double", value: "3.0", scope: "sum"),
+                 ],
+                 callStack: [
+                    CallStackFrame(method: "main", line: 13),
+                    CallStackFrame(method: "sum", line: 7),
+                 ],
+                 heap: [], predict: nil),
+
+            Step(index: 5,
+                 narration: "ループ3回目。n = 3、total = 3.0 + 3.0 = 6.0",
+                 highlightLines: [7],
+                 variables: [
+                    Variable(name: "list", type: "List<? ext Number>", value: "[1, 2, 3]", scope: "sum"),
+                    Variable(name: "n", type: "Number", value: "3", scope: "sum"),
+                    Variable(name: "total", type: "double", value: "6.0", scope: "sum"),
+                 ],
+                 callStack: [
+                    CallStackFrame(method: "main", line: 13),
+                    CallStackFrame(method: "sum", line: 7),
+                 ],
+                 heap: [], predict: nil),
+
+            Step(index: 6,
+                 narration: "sumが 6.0 を返してmainに戻ります。System.out.println(6.0) が実行され、\"6.0\" が出力されます。\n\n出力結果: \"6.0\"",
+                 highlightLines: [13],
+                 variables: [Variable(name: "ints", type: "List<Integer>", value: "[1, 2, 3]", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 13)],
                  heap: [], predict: nil),
         ]
     )

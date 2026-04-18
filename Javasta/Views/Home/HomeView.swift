@@ -215,8 +215,7 @@ struct QuizCardView: View {
 struct QuizSheetView: View {
     let quiz: Quiz
     @State private var quizVM: QuizViewModel
-    @State private var showExplanation = false
-    @State private var explanationVM: ExplanationViewModel?
+    @State private var activeExplanation: Explanation?
     @Environment(\.dismiss) private var dismiss
 
     init(quiz: Quiz) {
@@ -227,10 +226,7 @@ struct QuizSheetView: View {
     var body: some View {
         NavigationStack {
             QuizView(vm: quizVM, onShowExplanation: {
-                if let exp = Explanation.sample(for: quiz.explanationRef) {
-                    explanationVM = ExplanationViewModel(explanation: exp)
-                    showExplanation = true
-                }
+                activeExplanation = Explanation.sample(for: quiz.explanationRef)
             })
             .navigationTitle(quiz.categoryDisplayName)
             .navigationBarTitleDisplayMode(.inline)
@@ -244,10 +240,8 @@ struct QuizSheetView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showExplanation) {
-            if let vm = explanationVM {
-                ExplanationView(vm: vm, onDismiss: { showExplanation = false })
-            }
+        .fullScreenCover(item: $activeExplanation) { explanation in
+            ExplanationView(explanation: explanation, onDismiss: { activeExplanation = nil })
         }
     }
 }
