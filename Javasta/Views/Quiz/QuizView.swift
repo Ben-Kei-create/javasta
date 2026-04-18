@@ -4,6 +4,7 @@ struct QuizView: View {
     @State var vm: QuizViewModel
     var codeZoom: Double = 1.0
     var onShowExplanation: () -> Void
+    var onNextQuiz: (() -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -91,12 +92,25 @@ struct QuizView: View {
                         .fill(Color.jbBackground)
                 )
 
+            actionButtons
+        }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.md)
+                .fill(Color.jbCard)
+        )
+    }
+
+    // MARK: Action buttons
+
+    private var actionButtons: some View {
+        HStack(spacing: Spacing.sm) {
             Button(action: onShowExplanation) {
-                HStack(spacing: Spacing.sm) {
+                HStack(spacing: 6) {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 17))
-                    Text("コードの実行を追う")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 15))
+                    Text("実行を追う")
+                        .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundStyle(Color.jbAccent)
                 .frame(maxWidth: .infinity)
@@ -106,12 +120,25 @@ struct QuizView: View {
                         .stroke(Color.jbAccent, lineWidth: 1.5)
                 )
             }
+
+            if let onNextQuiz {
+                Button(action: onNextQuiz) {
+                    HStack(spacing: 6) {
+                        Text("次の問題")
+                            .font(.system(size: 14, weight: .bold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .fill(Color.jbAccent)
+                    )
+                }
+            }
         }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-        )
     }
 }
 

@@ -232,23 +232,29 @@ struct QuizCardView: View {
 // MARK: - QuizSheetView
 
 struct QuizSheetView: View {
-    let quiz: Quiz
+    @State private var currentQuiz: Quiz
     @State private var quizVM: QuizViewModel
     @State private var activeExplanation: Explanation?
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
 
     init(quiz: Quiz) {
-        self.quiz = quiz
+        self._currentQuiz = State(initialValue: quiz)
         self._quizVM = State(wrappedValue: QuizViewModel(quiz: quiz))
     }
 
     var body: some View {
         NavigationStack {
-            QuizView(vm: quizVM, codeZoom: codeZoom, onShowExplanation: {
-                activeExplanation = Explanation.sample(for: quiz.explanationRef)
-            })
-            .navigationTitle(quiz.categoryDisplayName)
+            QuizView(
+                vm: quizVM,
+                codeZoom: codeZoom,
+                onShowExplanation: {
+                    activeExplanation = Explanation.sample(for: currentQuiz.explanationRef)
+                },
+                onNextQuiz: { goToNextQuiz() }
+            )
+            .id(currentQuiz.id)
+            .navigationTitle(currentQuiz.categoryDisplayName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -257,7 +263,7 @@ struct QuizSheetView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     LevelBadgeView(
-                        level: quiz.level,
+                        level: currentQuiz.level,
                         zoomPercent: CodeZoom.percent(codeZoom),
                         onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
                     )
@@ -266,7 +272,16 @@ struct QuizSheetView: View {
             .sensoryFeedback(.selection, trigger: codeZoom)
         }
         .fullScreenCover(item: $activeExplanation) { explanation in
-            ExplanationView(explanation: explanation, level: quiz.level, onDismiss: { activeExplanation = nil })
+            ExplanationView(explanation: explanation, level: currentQuiz.level, onDismiss: { activeExplanation = nil })
         }
+    }
+
+    private func goToNextQuiz() {
+        let pool = Quiz.samples.filter { $0.level == currentQuiz.level }
+        guard !pool.isEmpty else { return }
+        let idx = pool.firstIndex(where: { $0.id == currentQuiz.id }) ?? -1
+        let next = pool[(idx + 1) % pool.count]
+        currentQuiz = next
+        quizVM = QuizViewModel(quiz: next)
     }
 }
