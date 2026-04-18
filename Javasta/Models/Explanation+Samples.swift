@@ -14,6 +14,7 @@ extension Explanation {
 
     static let silverOverload001 = Explanation(
         id: "explain-silver-overload-001",
+        relatedLessonId: "lesson-overload-resolution",
         initialCode: """
 public class Test {
     static void print(int x) {
@@ -82,6 +83,7 @@ public class Test {
 
     static let silverException001 = Explanation(
         id: "explain-silver-exception-001",
+        relatedLessonId: "lesson-finally-and-return",
         initialCode: """
 public class Test {
     static int calc() {
@@ -144,6 +146,7 @@ public class Test {
 
     static let goldGenerics001 = Explanation(
         id: "explain-gold-generics-001",
+        relatedLessonId: "lesson-bounded-wildcards",
         initialCode: """
 import java.util.*;
 

@@ -2,6 +2,7 @@ import Foundation
 
 struct Explanation: Codable, Identifiable {
     let id: String
+    var relatedLessonId: String? = nil
     let initialCode: String
     let steps: [Step]
 
