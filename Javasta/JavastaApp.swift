@@ -9,9 +9,23 @@ import SwiftUI
 
 @main
 struct JavastaApp: App {
+    @State private var splashFinished = false
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ZStack {
+                if splashFinished {
+                    ContentView()
+                        .transition(.opacity)
+                } else {
+                    SplashView(onFinish: {
+                        withAnimation(.easeInOut(duration: 0.35)) {
+                            splashFinished = true
+                        }
+                    })
+                    .transition(.opacity)
+                }
+            }
         }
     }
 }
