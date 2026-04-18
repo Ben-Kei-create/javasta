@@ -28,6 +28,8 @@ enum QuizCategory: String, Codable {
     case inheritance        = "inheritance"
     case controlFlow        = "control-flow"
     case dataTypes          = "data-types"
+    case string             = "string"
+    case optionalApi        = "optional-api"
 
     var displayName: String {
         switch self {
@@ -39,6 +41,8 @@ enum QuizCategory: String, Codable {
         case .inheritance:        return "継承・ポリモーフィズム"
         case .controlFlow:        return "制御フロー"
         case .dataTypes:          return "データ型・演算子"
+        case .string:             return "文字列"
+        case .optionalApi:        return "Optional"
         }
     }
 }
