@@ -6,6 +6,13 @@ struct LessonDetailView: View {
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
 
+    @State private var glossaryRoot: GlossaryRoot? = nil
+    @State private var glossaryPath: [String] = []
+
+    private struct GlossaryRoot: Identifiable, Hashable {
+        let id: String
+    }
+
     var body: some View {
         ZStack {
             Color.jbBackground.ignoresSafeArea()
@@ -42,6 +49,44 @@ struct LessonDetailView: View {
         }
         .sensoryFeedback(.selection, trigger: codeZoom)
         .preferredColorScheme(.dark)
+        .environment(\.openURL, OpenURLAction { url in
+            if let id = GlossaryTerm.parse(url: url) {
+                glossaryRoot = GlossaryRoot(id: id)
+                return .handled
+            }
+            return .systemAction
+        })
+        .sheet(item: $glossaryRoot, onDismiss: { glossaryPath.removeAll() }) { root in
+            glossarySheet(rootId: root.id)
+        }
+    }
+
+    @ViewBuilder
+    private func glossarySheet(rootId: String) -> some View {
+        if let term = GlossaryTerm.lookup(rootId) {
+            NavigationStack(path: $glossaryPath) {
+                GlossaryDetailView(term: term)
+                    .navigationDestination(for: String.self) { id in
+                        if let next = GlossaryTerm.lookup(id) {
+                            GlossaryDetailView(term: next)
+                        }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("閉じる") { glossaryRoot = nil }
+                                .foregroundStyle(Color.jbSubtext)
+                        }
+                    }
+            }
+            .preferredColorScheme(.dark)
+            .environment(\.openURL, OpenURLAction { url in
+                if let id = GlossaryTerm.parse(url: url) {
+                    glossaryPath.append(id)
+                    return .handled
+                }
+                return .systemAction
+            })
+        }
     }
 
     // MARK: Header
@@ -83,6 +128,18 @@ struct LessonDetailView: View {
         )
     }
 
+    // MARK: Markdown helper
+
+    private func markdownBody(_ source: String) -> Text {
+        let opts = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace
+        )
+        if let attr = try? AttributedString(markdown: source, options: opts) {
+            return Text(attr)
+        }
+        return Text(source)
+    }
+
     // MARK: Section
 
     private func sectionView(_ section: Lesson.Section, index: Int) -> some View {
@@ -98,10 +155,11 @@ struct LessonDetailView: View {
                     .foregroundStyle(Color.jbText)
             }
 
-            Text(section.body)
+            markdownBody(section.body)
                 .font(.system(size: 14))
                 .foregroundStyle(Color.jbText)
                 .lineSpacing(5)
+                .tint(Color.jbAccent)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let code = section.code {

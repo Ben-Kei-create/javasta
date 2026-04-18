@@ -148,7 +148,9 @@ struct ExplanationView: View {
             }
             .disabled(!vm.canGoBack)
 
-            Button(action: vm.goForward) {
+            Button(action: {
+                if vm.isComplete { onDismiss() } else { vm.goForward() }
+            }) {
                 HStack(spacing: 4) {
                     Text(vm.isComplete ? "完了" : "進む")
                     Image(systemName: vm.isComplete ? "checkmark" : "chevron.right")

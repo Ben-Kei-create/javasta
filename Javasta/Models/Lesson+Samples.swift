@@ -24,7 +24,7 @@ extension Lesson {
             Section(
                 id: "s1",
                 heading: "オーバーロードとは",
-                body: "同じクラス内で、名前は同じだが引数の型や数が違うメソッドを定義することをオーバーロードと呼びます。コンパイラはコンパイル時に静的に呼び先を決定します（静的束縛）。",
+                body: "同じクラス内で、名前は同じだが引数の型や数が違うメソッドを定義することを[オーバーロード](javasta://term/overload)と呼びます。[コンパイラ](javasta://term/compile)はコンパイル時に静的に呼び先を決定します（[静的束縛](javasta://term/static-binding)）。",
                 code: nil,
                 highlightLines: [],
                 callout: nil
@@ -32,7 +32,7 @@ extension Lesson {
             Section(
                 id: "s2",
                 heading: "解決ルールの優先順位",
-                body: "Javaは次の順番でオーバーロードを試します。1) 完全一致、2) 型昇格（int→long→float→double）、3) ボクシング（int→Integer）、4) 可変長引数。上位で見つかった時点で確定し、下位は試しません。",
+                body: "Javaは次の順番で[オーバーロード](javasta://term/overload)を試します。1) 完全一致、2) [型昇格](javasta://term/type-promotion)（int→long→float→double）、3) [ボクシング](javasta://term/boxing)（int→Integer）、4) [可変長引数](javasta://term/varargs)。上位で見つかった時点で確定し、下位は試しません。",
                 code: nil,
                 highlightLines: [],
                 callout: Callout(
@@ -64,7 +64,7 @@ public class Test {
             Section(
                 id: "s4",
                 heading: "型昇格 vs ボクシング",
-                body: "print(int) を消して print(long) と print(Integer) だけ残すと、5 はまず型昇格で long に揃えられて print(long) が呼ばれます。ボクシングは型昇格より優先度が低い点に注意。",
+                body: "print(int) を消して print(long) と print(Integer) だけ残すと、5 はまず[型昇格](javasta://term/type-promotion)で long に揃えられて print(long) が呼ばれます。[ボクシング](javasta://term/boxing)は型昇格より優先度が低い点に注意。",
                 code: nil,
                 highlightLines: [],
                 callout: Callout(
@@ -152,7 +152,7 @@ static int calc() {
             Section(
                 id: "s1",
                 heading: "ジェネリクスは不変",
-                body: "List<Integer> は List<Number> のサブタイプ ではありません。Integer が Number のサブタイプでも、ジェネリクス型自体は不変（invariant）だからです。これが Java ジェネリクスの最大の落とし穴。",
+                body: "List<Integer> は List<Number> のサブタイプ ではありません。Integer が Number のサブタイプでも、ジェネリクス型自体は[不変（invariant）](javasta://term/generics-invariance)だからです。これが Java ジェネリクスの最大の落とし穴。",
                 code: """
 List<Integer> ints = ...;
 List<Number> nums = ints;  // ❌ コンパイルエラー
