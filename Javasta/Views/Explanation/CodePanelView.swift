@@ -60,7 +60,7 @@ enum JavaTokenizer {
 
         while i < text.endIndex {
             let c = text[i]
-            if c == '"' || c == '\'' {
+            if c == "\"" || c == "'" {
                 flush()
                 let quote = c
                 var s = String(c)
