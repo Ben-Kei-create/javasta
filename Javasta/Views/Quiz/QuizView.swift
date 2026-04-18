@@ -35,32 +35,7 @@ struct QuizView: View {
     // MARK: Code block
 
     private var codeBlock: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 6) {
-                Circle().fill(Color(hex: "FF5F57")).frame(width: 9, height: 9)
-                Circle().fill(Color(hex: "FEBC2E")).frame(width: 9, height: 9)
-                Circle().fill(Color(hex: "28C840")).frame(width: 9, height: 9)
-                Spacer()
-                Text("Java")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.jbSubtext)
-            }
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.sm)
-
-            Divider().background(Color.jbBorder)
-
-            CodePanelView(code: vm.quiz.code, highlightLines: [], zoom: codeZoom)
-                .frame(maxHeight: 220)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
+        CodeBlockView(code: vm.quiz.code, zoom: codeZoom)
     }
 
     // MARK: Question

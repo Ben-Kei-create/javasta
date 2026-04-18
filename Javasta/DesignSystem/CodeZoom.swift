@@ -1,7 +1,7 @@
 import Foundation
 
 enum CodeZoom {
-    static let levels: [Double] = [1.0, 1.15, 1.3, 0.85]
+    static let levels: [Double] = [1.0, 1.15, 0.85, 0.7]
     static let `default`: Double = 1.0
 
     static func next(after current: Double) -> Double {
