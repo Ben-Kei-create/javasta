@@ -23,8 +23,170 @@ extension Quiz {
         goldClasses001,
         goldConcurrency001,
         goldPathNormalize001,
+        silverException002,
     ]
 
+    // MARK: - Silver: 例外処理 (try-with-resources)
+        static let silverException002 = Quiz(
+            id: "silver-exception-002",
+            level: .silver,
+            category: "exception-handling",
+            tags: ["try-with-resources", "AutoCloseable", "リソース解放"],
+            code: """
+    public class Test {
+        static class Resource implements AutoCloseable {
+            String name;
+            Resource(String name) { this.name = name; }
+            public void close() { System.out.print(name + " "); }
+        }
+
+        public static void main(String[] args) {
+            try (Resource r1 = new Resource("A");
+                 Resource r2 = new Resource("B")) {
+                System.out.print("Run ");
+            }
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "Run A B",
+                       correct: false, misconception: "宣言した順にクローズされると誤解",
+                       explanation: "try-with-resources文では、リソースは宣言された順序とは逆（LIFO: 後入れ先出し）の順にクローズされます。"),
+                Choice(id: "b", text: "Run B A",
+                       correct: true, misconception: nil,
+                       explanation: "tryブロック内の処理が実行された後、r2、r1の順（宣言の逆順）で自動的にclose()メソッドが呼び出されます。"),
+                Choice(id: "c", text: "A B Run",
+                       correct: false, misconception: "tryブロックの前にクローズされると誤解",
+                       explanation: "リソースのクローズは、tryブロックの処理（または例外発生時）の後に行われます。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: "catchやfinallyブロックが必須であると誤解",
+                       explanation: "try-with-resources文では、catchブロックやfinallyブロックは省略可能です。"),
+            ],
+            explanationRef: "explain-silver-exception-002",
+            designIntent: "try-with-resources文における、複数リソースの自動クローズの実行順序（逆順）を見抜かせる。"
+        )
+
+        // MARK: - Silver: コレクション (List.of)
+        static let silverCollections001 = Quiz(
+            id: "silver-collections-001",
+            level: .silver,
+            category: "collections",
+            tags: ["List.of", "NullPointerException", "不変コレクション"],
+            code: """
+    import java.util.List;
+
+    public class Test {
+        public static void main(String[] args) {
+            try {
+                var list = List.of("Apple", null, "Banana");
+                System.out.println(list.size());
+            } catch (NullPointerException e) {
+                System.out.println("NPE");
+            } catch (UnsupportedOperationException e) {
+                System.out.println("UOE");
+            }
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "3",
+                       correct: false, misconception: "nullを要素として許容すると誤解",
+                       explanation: "List.of() はnullを要素として追加することを許可していません。"),
+                Choice(id: "b", text: "2",
+                       correct: false, misconception: "nullが無視されてリストが生成されると誤解",
+                       explanation: "nullを無視する仕様はなく、実行時に例外がスローされます。"),
+                Choice(id: "c", text: "NPE",
+                       correct: true, misconception: nil,
+                       explanation: "List.of() の引数にnullを渡すと、オブジェクト生成の時点で NullPointerException がスローされます。"),
+                Choice(id: "d", text: "UOE",
+                       correct: false, misconception: "不変コレクション関連の例外と混同",
+                       explanation: "UnsupportedOperationException は生成後のリストに add() や set() を行った場合に発生します。生成時のnullチェックはNPEです。"),
+            ],
+            explanationRef: "explain-silver-collections-001",
+            designIntent: "Java 9で導入された不変コレクションファクトリ(List.of等)がnullを許容しない仕様を確認する。"
+        )
+
+        // MARK: - Gold: 並行処理 (ExecutorService)
+        static let goldConcurrency001 = Quiz(
+            id: "gold-concurrency-001",
+            level: .gold,
+            category: "concurrency",
+            tags: ["ExecutorService", "submit", "Future"],
+            code: """
+    import java.util.concurrent.*;
+
+    public class Test {
+        public static void main(String[] args) throws InterruptedException {
+            ExecutorService es = Executors.newSingleThreadExecutor();
+            Future<?> future = es.submit(() -> {
+                throw new RuntimeException("Error!");
+            });
+            
+            Thread.sleep(100); // 確実な実行待ち
+            System.out.println("Done");
+            es.shutdown();
+        }
+    }
+    """,
+            question: "このコードを実行したときの挙動として正しいものはどれか？",
+            choices: [
+                Choice(id: "a", text: "スタックトレースが出力され、Done が表示されずにプログラムが異常終了する",
+                       correct: false, misconception: "別スレッドの例外がメインスレッドを停止させると誤解",
+                       explanation: "submit()内で発生した例外はFutureオブジェクトにキャッチされ、メインスレッドには影響しません。"),
+                Choice(id: "b", text: "スタックトレースが出力された後、Done が表示される",
+                       correct: false, misconception: "例外がコンソールに自動出力されると誤解",
+                       explanation: "submit()では例外は自動で標準エラー出力には出ません。execute()メソッドの場合は出力されます。"),
+                Choice(id: "c", text: "コンパイルエラー",
+                       correct: false, misconception: "Runnableが例外をスローできないと誤解",
+                       explanation: "非チェック例外(RuntimeException)はスロー可能です。Callableとしても解釈可能です。"),
+                Choice(id: "d", text: "例外はコンソールに出力されず、Done が表示される",
+                       correct: true, misconception: nil,
+                       explanation: "submit()でタスクを投げた場合、発生した例外はFuture内に保持されます。future.get()を呼び出さない限り、例外は表に出ません。"),
+            ],
+            explanationRef: "explain-gold-concurrency-001",
+            designIntent: "ExecutorServiceのsubmit()メソッドにおける例外のハンドリング仕様（Futureの挙動）を見抜かせる。"
+        )
+
+        // MARK: - Gold: 入出力 (NIO.2 Path)
+        static let goldIo001 = Quiz(
+            id: "gold-io-001",
+            level: .gold,
+            category: "io",
+            tags: ["NIO.2", "Path", "resolve"],
+            code: """
+    import java.nio.file.Path;
+
+    public class Test {
+        public static void main(String[] args) {
+            Path p1 = Path.of("/app/logs");
+            Path p2 = Path.of("/backup/data");
+            Path result = p1.resolve(p2);
+            
+            System.out.println(result.getNameCount());
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "2",
+                       correct: true, misconception: nil,
+                       explanation: "resolve()の引数に「絶対パス」を渡した場合、引数の絶対パスがそのまま返されます。/backup/data のルートを除く要素数は backup と data の「2」です。"),
+                Choice(id: "b", text: "4",
+                       correct: false, misconception: "パスが単純に連結されると誤解",
+                       explanation: "/app/logs/backup/data と連結されるのは、引数が相対パス（例: backup/data）の場合です。"),
+                Choice(id: "c", text: "実行時エラー",
+                       correct: false, misconception: "異なるルートディレクトリの解決は例外になると誤解",
+                       explanation: "引数が絶対パスの場合は、例外は出ずに引数のパスに置き換わります。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: "Pathインターフェースの使い方の誤解",
+                       explanation: "Path.of() や resolve() の使用方法は構文的に正しいです。"),
+            ],
+            explanationRef: "explain-gold-io-001",
+            designIntent: "NIO.2 の Path.resolve() において、引数が絶対パスの場合の特殊な挙動と、getNameCount()の数え方を同時に確認する。"
+        )
+    
     static let silverOverload001 = Quiz(
         id: "silver-overload-001",
         level: .silver,
@@ -648,7 +810,7 @@ public class Test {
 
     // MARK: - Gold: AtomicInteger
 
-    static let goldConcurrency001 = Quiz(
+    static let goldConcurrency002 = Quiz(
         id: "gold-concurrency-001",
         level: .gold,
         category: "concurrency",

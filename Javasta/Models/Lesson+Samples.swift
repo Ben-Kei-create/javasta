@@ -220,6 +220,88 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
 
     private static let quickLessons: [Lesson] = [
         
+        // MARK: - Silver: 例外処理
+                quickLesson(
+                    id: "lesson-silver-try-with-resources",
+                    level: .silver,
+                    category: .exceptionHandling,
+                    title: "try-with-resourcesのクローズ順序",
+                    summary: "複数リソースの自動解放における優先順序",
+                    estimatedMinutes: 5,
+                    focus: "try-with-resources文で複数のリソースを宣言した場合、クローズ(closeメソッドの呼び出し)は「宣言した順序の逆（下から上）」に行われます。",
+                    examTip: "AとBの順番で宣言した場合、B -> A の順でcloseされます。実行結果を問う問題の定番トラップです。",
+                    code: """
+        try (Reader r1 = new FileReader("file1.txt");
+             Reader r2 = new FileReader("file2.txt")) {
+            // 処理終了時、r2.close() が先によばれ、次に r1.close() が呼ばれる
+        }
+        """,
+                    relatedQuizIds: ["silver-exception-002"]
+                ),
+
+                // MARK: - Silver: コレクション
+                quickLesson(
+                    id: "lesson-silver-list-factory",
+                    level: .silver,
+                    category: .collections,
+                    title: "List.of()とArrays.asList()の違い",
+                    summary: "コレクションのファクトリメソッドの挙動",
+                    estimatedMinutes: 6,
+                    focus: "Java 9の List.of() は「完全な不変(Immutable)リスト」を作り、nullを要素に含めることができず、実行時にNPEになります。一方、Arrays.asList() は「要素の変更(set)のみ可能」でnullも許容します。",
+                    examTip: "List.of() に null を渡すコードを見たら、コンパイルエラーではなく実行時エラー(NPE)になることを疑ってください。",
+                    code: """
+        List<String> list1 = Arrays.asList("A", null); // OK
+        list1.set(0, "B"); // OK
+
+        List<String> list2 = List.of("A", null); // ここでNullPointerException
+        // list2.set(0, "B"); // (もし生成できたとしても) UnsupportedOperationException
+        """,
+                    relatedQuizIds: ["silver-collections-001"]
+                ),
+
+                // MARK: - Gold: 並行処理
+                quickLesson(
+                    id: "lesson-gold-executor-submit",
+                    level: .gold,
+                    category: .concurrency,
+                    title: "submit()とexecute()の例外ハンドリング",
+                    summary: "ExecutorServiceによる非同期タスクの例外",
+                    estimatedMinutes: 7,
+                    focus: "execute() は例外が発生するとスレッドが終了しコンソールにエラーが出力されますが、submit() は例外をキャッチして戻り値の Future に閉じ込めます。",
+                    examTip: "submit() を使った問題で「例外が発生してプログラムが異常終了する」という選択肢はほぼ引っかけです。Future.get() を呼ばない限りエラーは隠蔽されます。",
+                    code: """
+        ExecutorService es = Executors.newSingleThreadExecutor();
+
+        // 例外はコンソールに出力される
+        es.execute(() -> { throw new RuntimeException(); });
+
+        // 例外は隠蔽され、f.get() を呼んだ時に ExecutionException としてスローされる
+        Future<?> f = es.submit(() -> { throw new RuntimeException(); });
+        """,
+                    relatedQuizIds: ["gold-concurrency-001"]
+                ),
+
+                // MARK: - Gold: 入出力
+                quickLesson(
+                    id: "lesson-gold-path-resolve",
+                    level: .gold,
+                    category: .io,
+                    title: "Path.resolve()の絶対パス結合",
+                    summary: "NIO.2 におけるパスの結合ルール",
+                    estimatedMinutes: 5,
+                    focus: "Path.resolve(Path other) メソッドは、引数(other)が「相対パス」の場合は結合したパスを返しますが、引数が「絶対パス」の場合は引数(other)そのものを返します。",
+                    examTip: "Windows環境を想定した C:\\dir などの絶対パスか、/dir などのUNIX系絶対パスが引数に来た場合の挙動を見落とさないように注意してください。",
+                    code: """
+        Path base = Path.of("/app");
+        Path relative = Path.of("logs");
+        Path absolute = Path.of("/backup");
+
+        System.out.println(base.resolve(relative)); // /app/logs
+        System.out.println(base.resolve(absolute)); // /backup (上書きされる)
+        """,
+                    relatedQuizIds: ["gold-io-001"]
+                ),
+        
         // MARK: - Silver: 文字列 (String)
                 quickLesson(
                     id: "lesson-silver-string-pool",
