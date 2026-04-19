@@ -315,7 +315,7 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         System.out.println(s1 == s2); // true (同じ参照)
         System.out.println(s1 == s3); // false (違う参照)
         """,
-                    relatedQuizIds: []
+                    relatedQuizIds: ["silver-string-001"]
                 ),
 
                 // MARK: - Silver: データ型 (var)
@@ -398,7 +398,7 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         final class Circle extends Shape {}
         non-sealed class Square extends Shape {}
         """,
-                    relatedQuizIds: []
+                    relatedQuizIds: ["gold-classes-002"]
                 ),
 
                 // MARK: - Gold: ラムダ式とStream API
@@ -417,7 +417,7 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         long count = stream.count(); // ここで初めて処理される(終端操作)
         // stream.forEach(System.out::println); // 例外発生(再利用不可)
         """,
-                    relatedQuizIds: []
+                    relatedQuizIds: ["gold-stream-003"]
                 ),
 
                 // MARK: - Gold: Optional API
@@ -459,7 +459,7 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
             requires java.logging;
         }
         """,
-                    relatedQuizIds: []
+                    relatedQuizIds: ["gold-module-001"]
                 ),
         
         
@@ -664,7 +664,7 @@ Box() {
             focus: "`static` メンバーはクラスに属し、インスタンスメンバーは各オブジェクトに属します。staticメソッドから直接インスタンス変数へはアクセスできません。",
             examTip: "参照変数経由でstaticメンバーを呼べても、解決先は参照先オブジェクトではなくクラスです。",
             code: nil,
-            relatedQuizIds: []
+            relatedQuizIds: ["silver-classes-002"]
         ),
         quickLesson(
             id: "lesson-silver-dynamic-dispatch",
@@ -703,7 +703,7 @@ Box() {
             relatedQuizIds: ["silver-exception-001"]
         ),
         quickLesson(
-            id: "lesson-silver-try-with-resources",
+            id: "lesson-silver-try-with-resources-basic",
             level: .silver,
             category: .exceptionHandling,
             title: "try-with-resources",
@@ -712,7 +712,7 @@ Box() {
             focus: "try-with-resourcesでは、tryの括弧内で宣言したリソースがブロック終了時に自動でcloseされます。",
             examTip: "複数リソースは宣言の逆順でcloseされます。",
             code: nil,
-            relatedQuizIds: []
+            relatedQuizIds: ["silver-exception-002"]
         ),
         quickLesson(
             id: "lesson-gold-generics-invariance",
@@ -775,7 +775,7 @@ List<Integer> ints = List.of(1);
             focus: "filterやmapなどの中間操作はパイプラインを組み立てるだけです。sum、collect、forEachなどの終端操作で初めて実行されます。",
             examTip: "peekを使った出力順問題は、終端操作の有無を必ず確認します。",
             code: nil,
-            relatedQuizIds: ["gold-stream-001", "gold-stream-002"]
+            relatedQuizIds: ["gold-stream-001", "gold-stream-002", "gold-stream-003"]
         ),
         quickLesson(
             id: "lesson-gold-stream-findfirst",
@@ -799,7 +799,7 @@ List<Integer> ints = List.of(1);
             focus: "`orElse(value)` のvalueは即時評価されます。`orElseGet(supplier)` は値がない場合だけSupplierが実行されます。",
             examTip: "副作用のあるメソッドをorElseに渡すと、Optionalに値があっても実行されます。",
             code: nil,
-            relatedQuizIds: ["gold-optional-001", "gold-optional-002"]
+            relatedQuizIds: ["gold-optional-001", "gold-optional-002", "gold-optional-003"]
         ),
         quickLesson(
             id: "lesson-gold-datetime-immutable",
@@ -814,7 +814,7 @@ List<Integer> ints = List.of(1);
 LocalDate d = LocalDate.of(2026, 4, 19);
 d.plusDays(1); // d 自体は変わらない
 """,
-            relatedQuizIds: []
+            relatedQuizIds: ["gold-date-time-001"]
         ),
         quickLesson(
             id: "lesson-gold-module-basics",
@@ -831,7 +831,7 @@ module app.main {
     exports com.example.api;
 }
 """,
-            relatedQuizIds: []
+            relatedQuizIds: ["gold-module-001", "gold-module-002"]
         ),
         quickLesson(
             id: "lesson-gold-service-loader",
@@ -855,7 +855,7 @@ module app.main {
             focus: "ExecutorServiceにCallableをsubmitするとFutureが返ります。`get()` は結果が出るまで待機し、例外はExecutionExceptionに包まれます。",
             examTip: "shutdownしないExecutorServiceはアプリケーション終了を妨げることがあります。",
             code: nil,
-            relatedQuizIds: []
+            relatedQuizIds: ["gold-concurrency-001", "gold-concurrency-004"]
         ),
         quickLesson(
             id: "lesson-gold-atomic-integer",
@@ -867,7 +867,7 @@ module app.main {
             focus: "AtomicIntegerはCASを使ってスレッドセーフな更新を提供します。`getAndIncrement()` は更新前の値、`incrementAndGet()` は更新後の値を返します。",
             examTip: "名前にAndがあるメソッドは戻り値のタイミングを問われやすいです。",
             code: nil,
-            relatedQuizIds: ["gold-concurrency-001"]
+            relatedQuizIds: ["gold-concurrency-002"]
         ),
         quickLesson(
             id: "lesson-gold-path-normalize",
@@ -891,7 +891,182 @@ module app.main {
             focus: "FilesクラスはPathを使ってファイル操作を行うユーティリティです。小さなテキストならreadString/writeString、コピーや移動にはcopy/moveを使います。",
             examTip: "copyやmoveはオプション指定なしだと既存ファイルで例外になる点に注意します。",
             code: nil,
-            relatedQuizIds: []
+            relatedQuizIds: ["gold-io-001", "gold-io-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-tree-set-comparator",
+            level: .gold,
+            category: .collections,
+            title: "TreeSetとComparatorの重複判定",
+            summary: "Setの重複はequalsだけで決まるとは限らない",
+            estimatedMinutes: 6,
+            focus: "TreeSetは要素の並び順だけでなく、同一要素かどうかもComparatorまたはcompareToの結果で判断します。比較結果が0なら、equalsがfalseでも同じ要素として扱われます。",
+            examTip: "Comparator.comparingInt(String::length) のような比較では、同じ長さの別文字列が重複扱いになります。",
+            code: """
+Set<String> set = new TreeSet<>(Comparator.comparingInt(String::length));
+set.add("aa");
+set.add("bb"); // 長さが同じなので追加されない
+""",
+            relatedQuizIds: ["gold-collections-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-type-erasure-overload",
+            level: .gold,
+            category: .generics,
+            title: "型消去とメソッド衝突",
+            summary: "List<String>とList<Integer>だけではオーバーロードできない",
+            estimatedMinutes: 6,
+            focus: "Javaのジェネリクスはコンパイル後に型引数が消去されます。List<String>もList<Integer>も実行時にはListとして扱われるため、型引数だけが異なるメソッドは同じシグネチャとして衝突します。",
+            examTip: "ジェネリクス絡みのコンパイルエラーでは、型消去後の形を頭の中で作ると判断しやすくなります。",
+            code: """
+void print(List<String> values) {}
+void print(List<Integer> values) {} // 型消去後に衝突
+""",
+            relatedQuizIds: ["gold-generics-003"]
+        ),
+        quickLesson(
+            id: "lesson-gold-stream-reduce-identity",
+            level: .gold,
+            category: .lambdaStreams,
+            title: "reduceのidentity",
+            summary: "畳み込みの初期値は結果に含まれる",
+            estimatedMinutes: 5,
+            focus: "Streamのreduce(identity, accumulator)では、identityが累積処理の初期値として使われます。空ストリームならidentityそのものが返り、要素がある場合もidentityから計算が始まります。",
+            examTip: "合計問題でidentityが0以外のときは、その値を足し忘れないようにします。",
+            code: """
+int result = Stream.of(1, 2, 3).reduce(10, Integer::sum); // 16
+""",
+            relatedQuizIds: ["gold-stream-004"]
+        ),
+        quickLesson(
+            id: "lesson-gold-optional-of-null",
+            level: .gold,
+            category: .optionalApi,
+            title: "Optional.of(null)の扱い",
+            summary: "ofは非null専用、ofNullableはnull許容",
+            estimatedMinutes: 5,
+            focus: "Optional.of(value) はvalueがnullでないことを前提にします。nullの可能性がある値をOptional化するときは Optional.ofNullable(value) を使います。",
+            examTip: "Optional.of(null) はコンパイルエラーではなく、実行時にNullPointerExceptionです。",
+            code: """
+Optional.of("x");       // OK
+Optional.ofNullable(null); // OK: Optional.empty()
+Optional.of(null);      // NullPointerException
+""",
+            relatedQuizIds: ["gold-optional-003"]
+        ),
+        quickLesson(
+            id: "lesson-gold-records",
+            level: .gold,
+            category: .classes,
+            title: "Recordクラスの特性",
+            summary: "データキャリアを短く書く構文と不変性",
+            estimatedMinutes: 6,
+            focus: "recordのコンポーネントからはprivate finalフィールド、同名アクセサ、equals、hashCode、toStringが自動生成されます。コンポーネントの値は再代入できません。",
+            examTip: "recordに通常のインスタンスフィールドを追加することはできません。staticフィールドや独自メソッドは定義できます。",
+            code: """
+record Point(int x, int y) {
+    int sum() { return x + y; }
+}
+""",
+            relatedQuizIds: ["gold-classes-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-requires-transitive",
+            level: .gold,
+            category: .moduleSystem,
+            title: "requires transitive",
+            summary: "依存モジュールの可読性を利用側へ伝播させる",
+            estimatedMinutes: 6,
+            focus: "requires transitive A と宣言したモジュールを別モジュールがrequiresすると、その別モジュールもAを読めるようになります。APIの型として依存先モジュールの型を公開する場合に重要です。",
+            examTip: "exportsはパッケージ公開、requires transitiveはモジュール可読性の伝播です。役割を混同しないようにします。",
+            code: """
+module lib.core {
+    requires transitive java.sql;
+    exports lib.api;
+}
+""",
+            relatedQuizIds: ["gold-module-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-completable-future",
+            level: .gold,
+            category: .concurrency,
+            title: "CompletableFutureのthenApply",
+            summary: "非同期処理の結果を次の処理へ渡す",
+            estimatedMinutes: 6,
+            focus: "CompletableFutureのthenApplyは、前段の結果を受け取って変換し、新しいCompletableFutureを返します。joinは完了を待って値を取り出します。",
+            examTip: "joinはチェック例外を要求しませんが、例外発生時はCompletionExceptionで包まれる点も押さえます。",
+            code: """
+CompletableFuture<Integer> f = CompletableFuture
+    .supplyAsync(() -> 10)
+    .thenApply(n -> n + 5);
+""",
+            relatedQuizIds: ["gold-concurrency-003"]
+        ),
+        quickLesson(
+            id: "lesson-gold-invoke-all-order",
+            level: .gold,
+            category: .concurrency,
+            title: "invokeAllの戻り順",
+            summary: "Futureのリストは完了順ではなく投入順",
+            estimatedMinutes: 6,
+            focus: "ExecutorService.invokeAllはすべてのタスクが完了するまで待機し、渡したタスクの順序と同じ順序でFutureを返します。先に終わったタスクが先頭に並ぶわけではありません。",
+            examTip: "sleepで完了順をずらす問題でも、取得順が入力リスト順か完了順かを切り分けます。",
+            code: """
+List<Future<String>> futures = es.invokeAll(tasks);
+// futuresの順序はtasksの順序と同じ
+""",
+            relatedQuizIds: ["gold-concurrency-004"]
+        ),
+        quickLesson(
+            id: "lesson-gold-path-relativize",
+            level: .gold,
+            category: .io,
+            title: "Path.relativize",
+            summary: "基準パスから対象パスまでの相対パスを作る",
+            estimatedMinutes: 5,
+            focus: "base.relativize(target) は、baseからtargetへ到達するための相対パスを返します。絶対パス同士、相対パス同士のように、比較できる種類を揃える必要があります。",
+            examTip: "normalize、resolve、relativizeは名前が似ていますが、用途がまったく違います。",
+            code: """
+Path base = Path.of("/app/logs");
+Path file = Path.of("/app/logs/2026/app.log");
+Path relative = base.relativize(file); // 2026/app.log
+""",
+            relatedQuizIds: ["gold-io-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-override-annotation",
+            level: .gold,
+            category: .annotations,
+            title: "@Overrideで検出できるミス",
+            summary: "オーバーライドとオーバーロードの取り違えを防ぐ",
+            estimatedMinutes: 5,
+            focus: "@Overrideを付けたメソッドは、親クラスまたはインターフェースのメソッドを実際にオーバーライドしている必要があります。引数が違うだけの同名メソッドはオーバーロードです。",
+            examTip: "名前が同じでも、引数リストが違えば別シグネチャです。@Overrideがあるとコンパイルエラーで気づけます。",
+            code: """
+class Parent { void run() {} }
+class Child extends Parent {
+    @Override void run(String name) {} // エラー
+}
+""",
+            relatedQuizIds: ["gold-annotations-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-preparedstatement-index",
+            level: .gold,
+            category: .jdbc,
+            title: "PreparedStatementの番号",
+            summary: "プレースホルダは1始まり",
+            estimatedMinutes: 5,
+            focus: "JDBCのPreparedStatementで?に値をバインドするとき、parameterIndexは1から始まります。最初の?はsetString(1, value)です。",
+            examTip: "配列やListの感覚で0を指定する選択肢は、JDBCではひっかけです。",
+            code: """
+PreparedStatement ps = con.prepareStatement(
+    "select * from users where name = ?"
+);
+ps.setString(1, "Alice");
+""",
+            relatedQuizIds: ["gold-jdbc-001"]
         ),
         quickLesson(
             id: "lesson-gold-resource-bundle",
@@ -903,7 +1078,7 @@ module app.main {
             focus: "ResourceBundleはベース名とLocaleから最適なリソースを探索します。地域、言語、デフォルトの順でフォールバックを理解します。",
             examTip: "ファイル名の候補順と、存在しないキーを取得した時のMissingResourceExceptionが頻出です。",
             code: nil,
-            relatedQuizIds: []
+            relatedQuizIds: ["gold-localization-001"]
         ),
     ]
 

@@ -7,28 +7,46 @@ extension Quiz {
         silverString001,
         silverAutoboxing001,
         silverSwitch001,
+        silverControlFlow001,
+        silverControlFlow002,
         silverOverload002,
         silverArrayDefaults001,
         silverInheritance001,
         silverMultiFileOverride001,
-        silverControlFlow001,
         silverConstructor001,
         silverStringBuilder001,
-        goldGenerics001,
-        goldStream001,
-        goldOptional001,
-        goldOptional002,
-        goldStream002,
-        goldGenerics002,
-        goldClasses001,
-        goldConcurrency001,
-        goldPathNormalize001,
         silverException002,
+        silverCollections001,
         silverJavaBasics001,
         silverClasses002,
         silverLambda001,
         silverDataTypes002,
-        
+        goldGenerics001,
+        goldGenerics002,
+        goldGenerics003,
+        goldStream001,
+        goldStream002,
+        goldStream003,
+        goldStream004,
+        goldOptional001,
+        goldOptional002,
+        goldOptional003,
+        goldClasses001,
+        goldClasses002,
+        goldDateTime001,
+        goldCollections001,
+        goldConcurrency001,
+        goldConcurrency002,
+        goldConcurrency003,
+        goldConcurrency004,
+        goldIo001,
+        goldPathNormalize001,
+        goldIo002,
+        goldModule001,
+        goldModule002,
+        goldLocalization001,
+        goldAnnotations001,
+        goldJdbc001,
     ]
 
     // MARK: - Silver: Javaの基本 (ローカル変数の初期化)
@@ -1014,7 +1032,7 @@ public class Test {
     // MARK: - Gold: AtomicInteger
 
     static let goldConcurrency002 = Quiz(
-        id: "gold-concurrency-001",
+        id: "gold-concurrency-002",
         level: .gold,
         category: "concurrency",
         tags: ["AtomicInteger", "getAndIncrement", "並行処理"],
@@ -1043,7 +1061,7 @@ public class Test {
                    correct: false, misconception: nil,
                    explanation: "AtomicIntegerとgetAndIncrementはjava.util.concurrent.atomicパッケージの有効なAPIです。"),
         ],
-        explanationRef: "explain-gold-concurrency-001",
+        explanationRef: "explain-gold-concurrency-002",
         designIntent: "AtomicIntegerの更新系メソッドの戻り値を確認する問題。incrementAndGetとの違いが頻出。"
     )
 
@@ -1157,6 +1175,617 @@ public class Test {
         ],
         explanationRef: "explain-gold-classes-001",
         designIntent: "recordのコンポーネントから作られるフィールドがfinalであり、再代入できない仕様を確認する。"
+    )
+
+    // MARK: - Gold: コレクション (TreeSetとComparator)
+
+    static let goldCollections001 = Quiz(
+        id: "gold-collections-001",
+        level: .gold,
+        category: "collections",
+        tags: ["TreeSet", "Comparator", "重複判定"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Set<String> set = new TreeSet<>(Comparator.comparingInt(String::length));
+        set.add("aa");
+        set.add("bb");
+        set.add("c");
+        System.out.println(set.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1",
+                   correct: false, misconception: "最後に追加した要素だけが残ると誤解",
+                   explanation: "長さ1の\"c\"と長さ2の\"aa\"はComparator上は別要素です。"),
+            Choice(id: "b", text: "2",
+                   correct: true, misconception: nil,
+                   explanation: "TreeSetの重複判定はComparatorの比較結果で決まります。\"aa\"と\"bb\"は長さが同じで比較結果0となるため、片方だけが保持されます。"),
+            Choice(id: "c", text: "3",
+                   correct: false, misconception: "equalsだけで重複判定されると誤解",
+                   explanation: "TreeSetではequalsではなく、自然順序または指定Comparatorによる比較結果0が重複扱いになります。"),
+            Choice(id: "d", text: "ClassCastException",
+                   correct: false, misconception: "TreeSetでは必ずComparableが必要だと誤解",
+                   explanation: "ここではComparatorを渡しているため、Stringの自然順序ではなく長さで比較できます。"),
+        ],
+        explanationRef: "explain-gold-collections-001",
+        designIntent: "TreeSetの要素重複はequalsではなくComparator/compareToの結果0で判断される点を確認する。"
+    )
+
+    // MARK: - Gold: ジェネリクス (型消去)
+
+    static let goldGenerics003 = Quiz(
+        id: "gold-generics-003",
+        level: .gold,
+        category: "generics",
+        tags: ["型消去", "オーバーロード", "List"],
+        code: """
+import java.util.*;
+
+public class Test {
+    static void print(List<String> values) {
+        System.out.println("String");
+    }
+    static void print(List<Integer> values) {
+        System.out.println("Integer");
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる",
+                   correct: false, misconception: "型引数の違いだけでオーバーロードできると誤解",
+                   explanation: "ジェネリクスの型引数は型消去されるため、どちらもprint(List)として扱われます。"),
+            Choice(id: "b", text: "List<String>側だけが有効になる",
+                   correct: false, misconception: "先に書いたメソッドが優先されると誤解",
+                   explanation: "同じ消去後シグネチャを持つメソッドは同時に宣言できないため、優先順位ではなくコンパイルエラーです。"),
+            Choice(id: "c", text: "コンパイルエラー",
+                   correct: true, misconception: nil,
+                   explanation: "List<String>とList<Integer>は型消去後にどちらもListになるため、メソッドシグネチャが衝突します。"),
+            Choice(id: "d", text: "実行時にClassCastExceptionが発生する",
+                   correct: false, misconception: "ジェネリクスの問題は実行時まで遅れると誤解",
+                   explanation: "この衝突はコンパイル時に検出されるため、実行時には到達しません。"),
+        ],
+        explanationRef: "explain-gold-generics-003",
+        designIntent: "型消去により、型引数だけが異なるメソッドをオーバーロードできないことを確認する。"
+    )
+
+    // MARK: - Gold: Stream API (peekの遅延評価)
+
+    static let goldStream003 = Quiz(
+        id: "gold-stream-003",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "peek", "遅延評価"],
+        code: """
+import java.util.stream.Stream;
+
+public class Test {
+    public static void main(String[] args) {
+        Stream.of("A", "B").peek(System.out::print);
+        System.out.print("X");
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "ABX",
+                   correct: false, misconception: "peekがその場ですぐ実行されると誤解",
+                   explanation: "peekは中間操作です。終端操作がないため、AやBを出力する処理は実行されません。"),
+            Choice(id: "b", text: "X",
+                   correct: true, misconception: nil,
+                   explanation: "Streamの中間操作は遅延評価されます。終端操作がないためpeekは動かず、最後のSystem.out.print(\"X\")だけが実行されます。"),
+            Choice(id: "c", text: "XAB",
+                   correct: false, misconception: "ストリーム処理が後から自動実行されると誤解",
+                   explanation: "終端操作が呼ばれない限り、ストリームパイプラインは実行されません。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "戻り値のStreamを受け取らないとエラーになると誤解",
+                   explanation: "戻り値を使わないメソッド呼び出し式として文法上は有効です。"),
+        ],
+        explanationRef: "explain-gold-stream-003",
+        designIntent: "peekを含む中間操作は終端操作がないと実行されない、というStreamの遅延評価を見抜かせる。"
+    )
+
+    // MARK: - Gold: Stream API (reduce)
+
+    static let goldStream004 = Quiz(
+        id: "gold-stream-004",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "reduce", "identity"],
+        code: """
+import java.util.stream.Stream;
+
+public class Test {
+    public static void main(String[] args) {
+        int result = Stream.of(1, 2, 3)
+            .reduce(10, Integer::sum);
+        System.out.println(result);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "6",
+                   correct: false, misconception: "identityが初期値として加算されないと誤解",
+                   explanation: "reduceのidentityは畳み込みの初期値です。1+2+3だけではありません。"),
+            Choice(id: "b", text: "10",
+                   correct: false, misconception: "ストリーム要素が無視されると誤解",
+                   explanation: "要素が存在する場合、identityから始めて各要素を累積します。"),
+            Choice(id: "c", text: "16",
+                   correct: true, misconception: nil,
+                   explanation: "identityの10から開始し、1、2、3を順に加算するため、10+1+2+3で16です。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "Integer::sumがBinaryOperatorとして使えないと誤解",
+                   explanation: "Integer::sumは2つのintを受け取ってintを返すため、Integerのreduceで利用できます。"),
+        ],
+        explanationRef: "explain-gold-stream-004",
+        designIntent: "reduce(identity, accumulator)のidentityが初期値として必ず使われることを確認する。"
+    )
+
+    // MARK: - Gold: Optional (ofとofNullable)
+
+    static let goldOptional003 = Quiz(
+        id: "gold-optional-003",
+        level: .gold,
+        category: "optional-api",
+        tags: ["Optional", "of", "null"],
+        code: """
+import java.util.Optional;
+
+public class Test {
+    public static void main(String[] args) {
+        try {
+            Optional.of(null);
+            System.out.println("OK");
+        } catch (NullPointerException e) {
+            System.out.println("NPE");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "OK",
+                   correct: false, misconception: "Optional.ofがnullを空として扱うと誤解",
+                   explanation: "Optional.of(null)はnullを許容しません。空Optionalにしたい場合はofNullableを使います。"),
+            Choice(id: "b", text: "NPE",
+                   correct: true, misconception: nil,
+                   explanation: "Optional.of()にnullを渡すとNullPointerExceptionが発生し、catch節でNPEが出力されます。"),
+            Choice(id: "c", text: "null",
+                   correct: false, misconception: "Optionalがnull文字列を出力すると誤解",
+                   explanation: "Optional.of(null)はOptionalを生成せず、例外をスローします。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "nullを渡す呼び出し自体が文法エラーだと誤解",
+                   explanation: "呼び出し自体はコンパイルできます。問題は実行時にNullPointerExceptionが発生する点です。"),
+        ],
+        explanationRef: "explain-gold-optional-003",
+        designIntent: "Optional.ofは非null専用、ofNullableはnull許容というAPIの使い分けを確認する。"
+    )
+
+    // MARK: - Gold: クラスとインターフェース (sealed)
+
+    static let goldClasses002 = Quiz(
+        id: "gold-classes-002",
+        level: .gold,
+        category: "classes",
+        tags: ["sealed", "permits", "Java 17"],
+        code: """
+sealed interface Service permits FileService {}
+
+final class FileService implements Service {}
+
+final class NetworkService implements Service {}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる",
+                   correct: false, misconception: "interfaceなら誰でも実装できると誤解",
+                   explanation: "sealed interfaceはpermitsで許可した型だけが直接実装できます。"),
+            Choice(id: "b", text: "NetworkServiceの宣言でコンパイルエラー",
+                   correct: true, misconception: nil,
+                   explanation: "ServiceはFileServiceだけをpermitsしています。NetworkServiceは許可されていないため、直接実装できません。"),
+            Choice(id: "c", text: "FileServiceの宣言でコンパイルエラー",
+                   correct: false, misconception: "sealedのサブクラスはsealedでなければならないと誤解",
+                   explanation: "sealed型の直接サブタイプはfinal、sealed、non-sealedのいずれかを指定します。FileServiceはfinalなので有効です。"),
+            Choice(id: "d", text: "実行時にSecurityExceptionが発生する",
+                   correct: false, misconception: "継承制限が実行時チェックだと誤解",
+                   explanation: "sealedの継承制限はコンパイル時に検出されます。"),
+        ],
+        explanationRef: "explain-gold-classes-002",
+        designIntent: "sealed型ではpermitsに列挙された型だけが直接継承/実装できることを確認する。"
+    )
+
+    // MARK: - Gold: Date-Time API (不変性)
+
+    static let goldDateTime001 = Quiz(
+        id: "gold-date-time-001",
+        level: .gold,
+        category: "classes",
+        tags: ["Date-Time API", "LocalDate", "不変"],
+        code: """
+import java.time.LocalDate;
+
+public class Test {
+    public static void main(String[] args) {
+        LocalDate date = LocalDate.of(2026, 4, 19);
+        date.plusDays(1);
+        System.out.println(date);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2026-04-19",
+                   correct: true, misconception: nil,
+                   explanation: "LocalDateは不変です。plusDays(1)は新しいLocalDateを返しますが、戻り値を受け取っていないためdate自体は変わりません。"),
+            Choice(id: "b", text: "2026-04-20",
+                   correct: false, misconception: "plusDaysが元のオブジェクトを書き換えると誤解",
+                   explanation: "Date-Time APIの主要クラスは不変であり、変更系メソッドは新しいインスタンスを返します。"),
+            Choice(id: "c", text: "2026/04/19",
+                   correct: false, misconception: "LocalDateの標準出力形式を誤解",
+                   explanation: "LocalDate.toString()はISO-8601形式のyyyy-MM-ddで出力されます。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: nil,
+                   explanation: "plusDaysの戻り値を使わなくてもコンパイルはできます。"),
+        ],
+        explanationRef: "explain-gold-date-time-001",
+        designIntent: "Date-Time APIの不変性と、戻り値を受け取らない変更系メソッドの落とし穴を確認する。"
+    )
+
+    // MARK: - Gold: モジュールシステム (exports)
+
+    static let goldModule001 = Quiz(
+        id: "gold-module-001",
+        level: .gold,
+        category: "module-system",
+        tags: ["module-info", "exports", "カプセル化"],
+        code: """
+module com.example.app {
+    exports com.example.api;
+    requires java.logging;
+}
+""",
+        codeTabs: [
+            CodeFile(
+                filename: "module-info.java",
+                code: """
+module com.example.app {
+    exports com.example.api;
+    requires java.logging;
+}
+"""
+            ),
+            CodeFile(
+                filename: "com/example/api/PublicApi.java",
+                code: """
+package com.example.api;
+
+public class PublicApi {}
+"""
+            ),
+            CodeFile(
+                filename: "com/example/internal/Helper.java",
+                code: """
+package com.example.internal;
+
+public class Helper {}
+"""
+            ),
+        ],
+        question: "他のモジュールから直接参照できるpublic型として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "PublicApiだけ",
+                   correct: true, misconception: nil,
+                   explanation: "exportsされているのはcom.example.apiだけです。publicクラスであっても、exportsされていないパッケージの型は他モジュールから直接参照できません。"),
+            Choice(id: "b", text: "Helperだけ",
+                   correct: false, misconception: "クラス名やディレクトリ名だけで公開範囲が決まると誤解",
+                   explanation: "com.example.internalはexportsされていないため、Helperは他モジュールに公開されません。"),
+            Choice(id: "c", text: "PublicApiとHelperの両方",
+                   correct: false, misconception: "publicならモジュール外から常に見えると誤解",
+                   explanation: "JPMSではpublicであることに加え、そのパッケージがexportsされている必要があります。"),
+            Choice(id: "d", text: "どちらも参照できない",
+                   correct: false, misconception: "requiresだけが公開範囲を決めると誤解",
+                   explanation: "exports com.example.apiにより、PublicApiが属するパッケージは他モジュールに公開されます。"),
+        ],
+        explanationRef: "explain-gold-module-001",
+        designIntent: "モジュール境界ではpublic型でもexportsされていないパッケージは隠蔽されることを確認する。"
+    )
+
+    // MARK: - Gold: モジュールシステム (requires transitive)
+
+    static let goldModule002 = Quiz(
+        id: "gold-module-002",
+        level: .gold,
+        category: "module-system",
+        tags: ["requires transitive", "readability", "java.sql"],
+        code: """
+module lib.core {
+    requires transitive java.sql;
+    exports lib.api;
+}
+
+module app.main {
+    requires lib.core;
+}
+""",
+        codeTabs: [
+            CodeFile(
+                filename: "lib.core/module-info.java",
+                code: """
+module lib.core {
+    requires transitive java.sql;
+    exports lib.api;
+}
+"""
+            ),
+            CodeFile(
+                filename: "app.main/module-info.java",
+                code: """
+module app.main {
+    requires lib.core;
+}
+"""
+            ),
+        ],
+        question: "app.mainモジュールからjava.sqlの型を参照する場合の説明として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "app.mainにも必ずrequires java.sqlが必要",
+                   correct: false, misconception: "transitiveの効果を見落としている",
+                   explanation: "明示的に書いても構いませんが、lib.coreがrequires transitive java.sqlしているため、app.mainはjava.sqlも読めます。"),
+            Choice(id: "b", text: "requires transitiveによりapp.mainもjava.sqlを読める",
+                   correct: true, misconception: nil,
+                   explanation: "requires transitiveは、自分を読むモジュールにも依存先モジュールを読み取らせます。app.mainはlib.coreをrequiresしているため、java.sqlも読めます。"),
+            Choice(id: "c", text: "exports lib.apiがあるためjava.sqlを読める",
+                   correct: false, misconception: "exportsとrequiresの役割を混同",
+                   explanation: "exportsはパッケージ公開、requiresは依存モジュールの読み取りです。java.sqlを読む理由はrequires transitiveです。"),
+            Choice(id: "d", text: "java.sqlは標準モジュールなのでrequiresは常に不要",
+                   correct: false, misconception: "java.base以外も自動で読めると誤解",
+                   explanation: "暗黙的に読めるのはjava.baseです。java.sqlなどは通常requiresが必要です。"),
+        ],
+        explanationRef: "explain-gold-module-002",
+        designIntent: "requires transitiveが依存先の可読性を利用側へ伝播させる仕組みを確認する。"
+    )
+
+    // MARK: - Gold: 並行処理 (CompletableFuture)
+
+    static let goldConcurrency003 = Quiz(
+        id: "gold-concurrency-003",
+        level: .gold,
+        category: "concurrency",
+        tags: ["CompletableFuture", "thenApply", "join"],
+        code: """
+import java.util.concurrent.*;
+
+public class Test {
+    public static void main(String[] args) {
+        CompletableFuture<Integer> future = CompletableFuture
+            .supplyAsync(() -> 10)
+            .thenApply(n -> n + 5);
+        System.out.println(future.join());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "10",
+                   correct: false, misconception: "thenApplyの変換結果を見落としている",
+                   explanation: "thenApplyは前段の結果10を受け取り、15に変換したCompletableFutureを返します。"),
+            Choice(id: "b", text: "15",
+                   correct: true, misconception: nil,
+                   explanation: "supplyAsyncの結果10にthenApplyで5を加えます。join()は完了を待って結果15を返します。"),
+            Choice(id: "c", text: "CompletableFuture[15]",
+                   correct: false, misconception: "futureそのものが出力されると誤解",
+                   explanation: "printlnしているのはfutureではなくfuture.join()の戻り値です。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "非同期処理では戻り値型が合わないと誤解",
+                   explanation: "thenApplyによりCompletableFuture<Integer>として型がつながります。"),
+        ],
+        explanationRef: "explain-gold-concurrency-003",
+        designIntent: "CompletableFutureのthenApplyによる結果変換とjoinによる値取得を確認する。"
+    )
+
+    // MARK: - Gold: 並行処理 (invokeAll)
+
+    static let goldConcurrency004 = Quiz(
+        id: "gold-concurrency-004",
+        level: .gold,
+        category: "concurrency",
+        tags: ["ExecutorService", "invokeAll", "Future"],
+        code: """
+import java.util.*;
+import java.util.concurrent.*;
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        ExecutorService es = Executors.newFixedThreadPool(2);
+        List<Callable<String>> tasks = List.of(
+            () -> { Thread.sleep(50); return "A"; },
+            () -> "B"
+        );
+        for (Future<String> f : es.invokeAll(tasks)) {
+            System.out.print(f.get());
+        }
+        es.shutdown();
+    }
+}
+""",
+        question: "このコードを実行したとき、出力として最も適切なのはどれか？",
+        choices: [
+            Choice(id: "a", text: "AB",
+                   correct: true, misconception: nil,
+                   explanation: "invokeAllはすべてのタスク完了を待ち、渡したタスクリストと同じ順序でFutureのリストを返します。Bが先に完了しても取得順はA、Bです。"),
+            Choice(id: "b", text: "BA",
+                   correct: false, misconception: "完了順にFutureが並ぶと誤解",
+                   explanation: "タスクの完了順ではなく、入力リストの順序でFutureが返されます。"),
+            Choice(id: "c", text: "Aだけ",
+                   correct: false, misconception: "Thread.sleepによりBが無視されると誤解",
+                   explanation: "invokeAllはすべてのタスクが完了するまで待機します。"),
+            Choice(id: "d", text: "RejectedExecutionException",
+                   correct: false, misconception: "shutdown前のタスク投入が拒否されると誤解",
+                   explanation: "shutdownはタスク完了後に呼ばれており、ここでは拒否は発生しません。"),
+        ],
+        explanationRef: "explain-gold-concurrency-004",
+        designIntent: "invokeAllの戻り値の順序は完了順ではなく入力順であることを確認する。"
+    )
+
+    // MARK: - Gold: 入出力 (Path.relativize)
+
+    static let goldIo002 = Quiz(
+        id: "gold-io-002",
+        level: .gold,
+        category: "io",
+        tags: ["NIO.2", "Path", "relativize"],
+        code: """
+import java.nio.file.Path;
+
+public class Test {
+    public static void main(String[] args) {
+        Path base = Path.of("/app/logs");
+        Path file = Path.of("/app/logs/2026/app.log");
+        Path relative = base.relativize(file);
+        System.out.println(relative.getNameCount());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1",
+                   correct: false, misconception: "ファイル名だけが相対パスになると誤解",
+                   explanation: "baseからfileへの相対パスは2026/app.logなので、名前要素は2つです。"),
+            Choice(id: "b", text: "2",
+                   correct: true, misconception: nil,
+                   explanation: "relativeは2026/app.logに相当し、名前要素は2026とapp.logの2つです。"),
+            Choice(id: "c", text: "3",
+                   correct: false, misconception: "絶対パス全体の要素数を数えていると誤解",
+                   explanation: "getNameCountしているのはrelativize後の相対パスです。"),
+            Choice(id: "d", text: "IllegalArgumentException",
+                   correct: false, misconception: "relativizeは常に例外が出ると誤解",
+                   explanation: "両方とも同じ種類の絶対パスなので、相対パスを計算できます。"),
+        ],
+        explanationRef: "explain-gold-io-002",
+        designIntent: "Path.relativizeが基準パスから対象パスまでの相対パスを作ることと、名前要素数の数え方を確認する。"
+    )
+
+    // MARK: - Gold: ローカライズ (ResourceBundle)
+
+    static let goldLocalization001 = Quiz(
+        id: "gold-localization-001",
+        level: .gold,
+        category: "localization",
+        tags: ["ResourceBundle", "Locale", "フォールバック"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static class Messages extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] { {"greeting", "base"} };
+        }
+    }
+    public static class Messages_ja extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] { {"greeting", "ja"} };
+        }
+    }
+    public static void main(String[] args) {
+        ResourceBundle rb = ResourceBundle.getBundle("Test$Messages", Locale.JAPAN);
+        System.out.println(rb.getString("greeting"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "ja",
+                   correct: true, misconception: nil,
+                   explanation: "Locale.JAPANはja_JPです。Messages_ja_JPがない場合、Messages_jaが候補となり、その値jaが取得されます。"),
+            Choice(id: "b", text: "base",
+                   correct: false, misconception: "完全一致がないと必ずベースに落ちると誤解",
+                   explanation: "完全一致のMessages_ja_JPがなくても、言語だけ一致するMessages_jaがあればそれが使われます。"),
+            Choice(id: "c", text: "greeting",
+                   correct: false, misconception: "キー名そのものが返ると誤解",
+                   explanation: "getStringはキーに対応する値を返します。"),
+            Choice(id: "d", text: "MissingResourceException",
+                   correct: false, misconception: "クラスベースのResourceBundleを見落としている",
+                   explanation: "Messages_jaが存在し、greetingキーも定義されているため例外は発生しません。"),
+        ],
+        explanationRef: "explain-gold-localization-001",
+        designIntent: "ResourceBundleが言語・国・ベースの順に候補を探すフォールバックを確認する。"
+    )
+
+    // MARK: - Gold: アノテーション (@Override)
+
+    static let goldAnnotations001 = Quiz(
+        id: "gold-annotations-001",
+        level: .gold,
+        category: "annotations",
+        tags: ["@Override", "オーバーライド", "オーバーロード"],
+        code: """
+class Parent {
+    void run() {}
+}
+
+class Child extends Parent {
+    @Override
+    void run(String name) {}
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる",
+                   correct: false, misconception: "runという名前が同じならオーバーライドだと誤解",
+                   explanation: "引数リストが異なるため、run(String)はrun()のオーバーライドではありません。"),
+            Choice(id: "b", text: "@Overrideの行でコンパイルエラー",
+                   correct: true, misconception: nil,
+                   explanation: "@Overrideを付けたメソッドは親型のメソッドを実際にオーバーライドしている必要があります。run(String)はオーバーロードなのでエラーです。"),
+            Choice(id: "c", text: "実行時にNoSuchMethodErrorが発生する",
+                   correct: false, misconception: "アノテーションの検査が実行時だと誤解",
+                   explanation: "@Overrideの整合性はコンパイル時に検査されます。"),
+            Choice(id: "d", text: "Parent.run()が自動でrun(String)に変換される",
+                   correct: false, misconception: "オーバーロードとオーバーライドを混同",
+                   explanation: "メソッドの引数リストは自動変換されません。別シグネチャのメソッドです。"),
+        ],
+        explanationRef: "explain-gold-annotations-001",
+        designIntent: "@Overrideがオーバーロード誤りをコンパイル時に検出してくれることを確認する。"
+    )
+
+    // MARK: - Gold: JDBC (PreparedStatement)
+
+    static let goldJdbc001 = Quiz(
+        id: "gold-jdbc-001",
+        level: .gold,
+        category: "jdbc",
+        tags: ["JDBC", "PreparedStatement", "パラメータ番号"],
+        code: """
+import java.sql.*;
+
+public class Test {
+    static void bind(PreparedStatement ps) throws SQLException {
+        ps.setString(0, "Alice");
+    }
+}
+""",
+        question: "このJDBCコード片について正しい説明はどれか？",
+        choices: [
+            Choice(id: "a", text: "0番目のプレースホルダにAliceが設定される",
+                   correct: false, misconception: "JDBCのパラメータ番号が0始まりだと誤解",
+                   explanation: "JDBCのプレースホルダ番号は0始まりではありません。"),
+            Choice(id: "b", text: "setStringの引数型が違うためコンパイルエラー",
+                   correct: false, misconception: "setString(int, String)のシグネチャを誤解",
+                   explanation: "setString(int parameterIndex, String x)は有効なシグネチャなので、コード自体はコンパイルできます。"),
+            Choice(id: "c", text: "パラメータ番号は1始まりなので、実行時にSQLExceptionの原因になる",
+                   correct: true, misconception: nil,
+                   explanation: "PreparedStatementのパラメータ番号は1から始まります。最初の?に値を設定するにはsetString(1, \"Alice\")と書きます。"),
+            Choice(id: "d", text: "PreparedStatementではなくStatementなら0始まりになる",
+                   correct: false, misconception: "StatementとPreparedStatementの役割を混同",
+                   explanation: "Statementにはプレースホルダへのバインド操作はありません。PreparedStatementのパラメータは1始まりです。"),
+        ],
+        explanationRef: "explain-gold-jdbc-001",
+        designIntent: "PreparedStatementのプレースホルダ番号が1始まりであることを確認する。"
     )
 
     // MARK: - Silver: 複数ファイルとオーバーライド
