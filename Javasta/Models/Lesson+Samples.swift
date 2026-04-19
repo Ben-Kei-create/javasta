@@ -11,13 +11,8 @@ extension Lesson {
         samples.first(where: { $0.id == id })
     }
     
-    
-
-    
-    
-    
     // MARK: - オーバーロード解決
-
+    
     static let overloadResolution = Lesson(
         id: "lesson-overload-resolution",
         level: .silver,
@@ -85,9 +80,9 @@ public class Test {
         ],
         relatedQuizIds: ["silver-overload-001"]
     )
-
+    
+    // (この下には、元の finallyAndReturn と boundedWildcards が続きます)
     // MARK: - finallyとreturn
-
     static let finallyAndReturn = Lesson(
         id: "lesson-finally-and-return",
         level: .silver,

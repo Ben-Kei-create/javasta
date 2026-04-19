@@ -24,8 +24,211 @@ extension Quiz {
         goldConcurrency001,
         goldPathNormalize001,
         silverException002,
+        silverJavaBasics001,
+        silverClasses002,
+        silverLambda001,
+        silverDataTypes002,
+        
     ]
 
+    // MARK: - Silver: Javaの基本 (ローカル変数の初期化)
+        static let silverJavaBasics001 = Quiz(
+            id: "silver-java-basics-001",
+            level: .silver,
+            category: "java-basics",
+            tags: ["ローカル変数", "初期化", "コンパイルエラー"],
+            code: """
+    public class Test {
+        int instanceVar;
+        
+        public static void main(String[] args) {
+            int localVar;
+            Test t = new Test();
+            
+            if (t.instanceVar == 0) {
+                localVar = 10;
+            }
+            System.out.println(localVar);
+        }
+    }
+    """,
+            question: "このコードをコンパイルおよび実行したときの結果として正しいものはどれか？",
+            choices: [
+                Choice(id: "a", text: "10",
+                       correct: false, misconception: "if文が必ずtrueになるため初期化されると誤解",
+                       explanation: "コンパイラは実行時のロジック（if文が必ず成立するか）まで深く推論しません。初期化されないルートが存在し得ると判断されます。"),
+                Choice(id: "b", text: "0",
+                       correct: false, misconception: "ローカル変数も自動で0に初期化されると誤解",
+                       explanation: "インスタンス変数（フィールド）はデフォルト値で初期化されますが、ローカル変数は自動初期化されません。"),
+                Choice(id: "c", text: "コンパイルエラー",
+                       correct: true, misconception: nil,
+                       explanation: "ローカル変数 localVar が確実に初期化される前に使用（println）されているため、コンパイルエラーになります。"),
+                Choice(id: "d", text: "実行時エラー",
+                       correct: false, misconception: nil,
+                       explanation: "ローカル変数の未初期化はコンパイル時に検出されるため、実行時エラーには到達しません。"),
+            ],
+            explanationRef: "explain-silver-java-basics-001",
+            designIntent: "インスタンス変数（自動初期化）とローカル変数（明示的な初期化が必須）の違いと、コンパイラの確実な初期化チェックを見抜かせる。"
+        )
+
+        // MARK: - Silver: クラスとインターフェース (static変数)
+        static let silverClasses002 = Quiz(
+            id: "silver-classes-002",
+            level: .silver,
+            category: "classes",
+            tags: ["static", "クラス変数", "インスタンス"],
+            code: """
+    public class Test {
+        static int count = 0;
+        
+        Test() {
+            count++;
+        }
+        
+        public static void main(String[] args) {
+            Test t1 = new Test();
+            Test t2 = new Test();
+            t1.count = 5;
+            
+            System.out.println(t2.count);
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力されるのはどれか？",
+            choices: [
+                Choice(id: "a", text: "1",
+                       correct: false, misconception: "インスタンスごとに別々の変数を持つと誤解",
+                       explanation: "countはstatic変数（クラス変数）であるため、すべてのインスタンスで1つの変数を共有します。"),
+                Choice(id: "b", text: "2",
+                       correct: false, misconception: "t1.count = 5 の代入がt2に影響しないと誤解",
+                       explanation: "t1.countもt2.countも、実体はTest.countという同一の変数を指しています。"),
+                Choice(id: "c", text: "5",
+                       correct: true, misconception: nil,
+                       explanation: "static変数はクラス全体で共有されます。t1経由で5を代入した後、t2経由で参照しても同じ共有変数の値（5）が取得されます。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: "インスタンス変数経由でのstaticアクセスは禁止されていると誤解",
+                       explanation: "推奨はされませんが、インスタンス（t1やt2）経由でstatic変数にアクセスすることは文法上可能です。"),
+            ],
+            explanationRef: "explain-silver-classes-002",
+            designIntent: "static変数がクラス全体で共有される概念と、インスタンス経由でも同じ値にアクセスできる仕様を確認する。"
+        )
+
+        // MARK: - Silver: ラムダ式 (省略記法)
+        static let silverLambda001 = Quiz(
+            id: "silver-lambda-001",
+            level: .silver,
+            category: "lambda-streams",
+            tags: ["ラムダ式", "省略記法", "Predicate"],
+            code: """
+    import java.util.function.Predicate;
+
+    public class Test {
+        public static void main(String[] args) {
+            Predicate<String> p1 = s -> s.isEmpty();
+            Predicate<String> p2 = s -> { s.isEmpty(); }; // (注: ここにエラーがあるか問う)
+            
+            System.out.println(p1.test(""));
+        }
+    }
+    """,
+            question: "このコードについて正しい説明はどれか？",
+            choices: [
+                Choice(id: "a", text: "true と出力される",
+                       correct: false, misconception: "p2の文法が正しいと誤解",
+                       explanation: "p2の記述にコンパイルエラーが含まれているため、実行まで到達しません。"),
+                Choice(id: "b", text: "p1の行でコンパイルエラーになる",
+                       correct: false, misconception: "引数のカッコ()やreturnが必須であると誤解",
+                       explanation: "引数が1つで型推論可能な場合、カッコは省略可能です。また、単一式の場合は波カッコ{}とreturnも省略できます(p1は正しい)。"),
+                Choice(id: "c", text: "p2の行でコンパイルエラーになる",
+                       correct: true, misconception: nil,
+                       explanation: "ラムダ式で波カッコ {} を使用した場合、戻り値が必要な関数インターフェース（Predicateなど）では明示的に return を書く必要があります。"),
+                Choice(id: "d", text: "実行時エラーになる",
+                       correct: false, misconception: nil,
+                       explanation: "文法エラー(return抜け)によるコンパイルエラーです。"),
+            ],
+            explanationRef: "explain-silver-lambda-001",
+            designIntent: "ラムダ式の正しい省略ルール（{}を使うならreturnが必須）を理解しているか問う。"
+        )
+
+        // MARK: - Silver: 制御構文 (拡張for文と参照)
+        static let silverControlFlow002 = Quiz(
+            id: "silver-control-flow-002",
+            level: .silver,
+            category: "control-flow",
+            tags: ["拡張for文", "配列", "値渡し"],
+            code: """
+    public class Test {
+        public static void main(String[] args) {
+            int[] numbers = {1, 2, 3};
+            
+            for (int n : numbers) {
+                n = n * 2;
+            }
+            
+            System.out.println(numbers[0]);
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力されるのはどれか？",
+            choices: [
+                Choice(id: "a", text: "1",
+                       correct: true, misconception: nil,
+                       explanation: "拡張for文の変数 n には配列要素の「値」がコピーされます。変数 n を変更しても、元の配列 numbers の要素は変更されません。"),
+                Choice(id: "b", text: "2",
+                       correct: false, misconception: "配列の要素自体が書き換わると誤解",
+                       explanation: "配列の要素を直接書き換えるには、インデックスを使った通常のfor文 (numbers[i] = ...) が必要です。"),
+                Choice(id: "c", text: "3",
+                       correct: false, misconception: "最後の要素が出力されると誤解",
+                       explanation: "numbers[0] なので最初の要素が出力されます。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: nil,
+                       explanation: "拡張for文内でループ変数を変更することは文法的に許可されています（ただし元の配列には影響しません）。"),
+            ],
+            explanationRef: "explain-silver-control-flow-002",
+            designIntent: "拡張for文で一時変数に代入しても、元の配列やコレクションの中身は書き換わらないというJavaの基本仕様を確認する。"
+        )
+
+        // MARK: - Silver: データ型 (参照渡し・値渡し)
+        static let silverDataTypes002 = Quiz(
+            id: "silver-data-types-002",
+            level: .silver,
+            category: "data-types",
+            tags: ["参照", "メソッド引数", "String"],
+            code: """
+    public class Test {
+        static void modify(String s, StringBuilder sb) {
+            s = s.concat("World");
+            sb.append("World");
+        }
+        
+        public static void main(String[] args) {
+            String str = "Hello";
+            StringBuilder builder = new StringBuilder("Hello");
+            
+            modify(str, builder);
+            
+            System.out.println(str + " " + builder);
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力されるのはどれか？",
+            choices: [
+                Choice(id: "a", text: "HelloWorld HelloWorld",
+                       correct: false, misconception: "Stringもメソッド内で変更されると誤解",
+                       explanation: "Stringは不変クラスであり、メソッド内で変数sに再代入しても、呼び出し元のstrの参照先は変わりません。"),
+                Choice(id: "b", text: "Hello Hello",
+                       correct: false, misconception: "StringBuilderもメソッド内で変更されないと誤解",
+                       explanation: "StringBuilderは可変オブジェクトであり、メソッド内で同じインスタンスを変更するため呼び出し元にも影響します。"),
+                Choice(id: "c", text: "Hello HelloWorld",
+                       correct: true, misconception: nil,
+                       explanation: "Stringは不変であり再代入は呼び出し元に影響しませんが、StringBuilderは可変であり同じオブジェクトを変更するため呼び出し元に影響（副作用）が出ます。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: nil,
+                       explanation: "文法的な問題はありません。"),
+            ],
+            explanationRef: "explain-silver-data-types-002",
+            designIntent: "Javaのメソッド引数は「参照の値渡し」。不変クラス(String)の再代入と、可変クラス(StringBuilder)のメソッド呼び出しの違いを問う。"
+        )
     // MARK: - Silver: 例外処理 (try-with-resources)
         static let silverException002 = Quiz(
             id: "silver-exception-002",
