@@ -11,7 +11,7 @@ extension Lesson {
         samples.first(where: { $0.id == id })
     }
     
-    // MARK: - オーバーロード解決
+    // MARK: - 深掘り教材 (Deep Dive)
     
     static let overloadResolution = Lesson(
         id: "lesson-overload-resolution",
@@ -81,8 +81,6 @@ public class Test {
         relatedQuizIds: ["silver-overload-001"]
     )
     
-    // (この下には、元の finallyAndReturn と boundedWildcards が続きます)
-    // MARK: - finallyとreturn
     static let finallyAndReturn = Lesson(
         id: "lesson-finally-and-return",
         level: .silver,
@@ -138,9 +136,7 @@ static int calc() {
         ],
         relatedQuizIds: ["silver-exception-001"]
     )
-
-    // MARK: - 上限境界ワイルドカード
-
+    
     static let boundedWildcards = Lesson(
         id: "lesson-bounded-wildcards",
         level: .gold,
@@ -210,61 +206,151 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         ],
         relatedQuizIds: ["gold-generics-001"]
     )
-
-    // MARK: - 追加レッスン（実機検証用の短編教材）
-
+    
+    // MARK: - 短編教材 (Quick Lessons)
+    
     private static let quickLessons: [Lesson] = [
         
-        // MARK: - Silver: 例外処理
-                quickLesson(
-                    id: "lesson-silver-try-with-resources",
-                    level: .silver,
-                    category: .exceptionHandling,
-                    title: "try-with-resourcesのクローズ順序",
-                    summary: "複数リソースの自動解放における優先順序",
-                    estimatedMinutes: 5,
-                    focus: "try-with-resources文で複数のリソースを宣言した場合、クローズ(closeメソッドの呼び出し)は「宣言した順序の逆（下から上）」に行われます。",
-                    examTip: "AとBの順番で宣言した場合、B -> A の順でcloseされます。実行結果を問う問題の定番トラップです。",
-                    code: """
+        // ===== 今回追加した5つの新レッスン =====
+        
+        // MARK: - Silver: GC
+        quickLesson(
+            id: "lesson-silver-gc-eligibility",
+            level: .silver,
+            category: .javaBasics,
+            title: "GCの対象になるタイミング",
+            summary: "到達不能（Unreachable）になったオブジェクトを判定する",
+            estimatedMinutes: 5,
+            focus: "ガベージコレクション(GC)の対象となるのは、「どの有効なスレッドからも参照されなくなったオブジェクト」です。変数に null を代入したり、別の参照を上書き代入することで、元のオブジェクトは孤立します。",
+            examTip: "試験では複数の変数同士で参照を代入し合うコードが出ます。「図を描いて矢印がどこを向いているか」を追うのが確実に解くコツです。",
+            code: """
+        Object a = new Object(); // 参照A
+        Object b = new Object(); // 参照B
+        a = b; 
+        // 参照Aだったオブジェクトはどこからも辿れなくなり、ここでGC対象になる
+        """,
+            relatedQuizIds: ["silver-java-basics-002"]
+        ),
+
+        // MARK: - Silver: 配列
+        quickLesson(
+            id: "lesson-silver-multidimensional-arrays",
+            level: .silver,
+            category: .dataTypes,
+            title: "多次元配列と非対称配列",
+            summary: "Javaの多次元配列は「配列の配列」である",
+            estimatedMinutes: 5,
+            focus: "Javaには真の多次元配列はなく、「配列を要素として持つ配列」です。そのため、new int[3][] のように1次元目のサイズだけを指定し、2次元目はバラバラのサイズの配列を後から代入する（非対称配列）ことが可能です。",
+            examTip: "1次元目だけ生成した時点では、各要素（2次元目を指す部分）は null です。そのままアクセスすると NullPointerException が発生します。",
+            code: """
+        int[][] arr = new int[2][]; // OK
+        arr[0] = new int[3];        // 1行目は3列
+        arr[1] = new int[5];        // 2行目は5列 (非対称)
+        """,
+            relatedQuizIds: ["silver-array-002"]
+        ),
+
+        // MARK: - Gold: JDBC
+        quickLesson(
+            id: "lesson-gold-jdbc-resultset",
+            level: .gold,
+            category: .jdbc,
+            title: "ResultSetのカーソル操作",
+            summary: "データ取得前に必ず rs.next() を呼ぶ",
+            estimatedMinutes: 5,
+            focus: "executeQuery() で取得した ResultSet は、内部に「カーソル」を持っています。初期状態のカーソルは「1行目の直前」を指しているため、データを読むには必ず最初に next() を呼び出してカーソルを1行目に進める必要があります。",
+            examTip: "rs.next() は次の行が存在すれば true を返します。 while(rs.next()) { ... } が定番のイディオムです。next()を忘れて getString() すると SQLException になります。",
+            code: """
+        ResultSet rs = stmt.executeQuery("SELECT name FROM users");
+        // System.out.println(rs.getString("name")); // ❌ 例外発生
+        if (rs.next()) {
+            System.out.println(rs.getString("name")); // ⭕ OK
+        }
+        """,
+            relatedQuizIds: ["gold-jdbc-001"]
+        ),
+
+        // MARK: - Gold: ローカライゼーション
+        quickLesson(
+            id: "lesson-gold-resourcebundle-fallback",
+            level: .gold,
+            category: .localization,
+            title: "ResourceBundleの検索順序",
+            summary: "見つからないプロパティファイルのフォールバック",
+            estimatedMinutes: 7,
+            focus: "Localeを指定してBundleを取得する際、完全一致するファイルがない場合は以下の順序で探します。\n1. 要求された「言語+地域」\n2. 要求された「言語のみ」\n3. デフォルトの「言語+地域」\n4. デフォルトの「言語のみ」\n5. ベースファイル（言語指定なし）",
+            examTip: "fr_CA (フランス語・カナダ) が要求されてファイルがない場合、まずは fr (フランス語) を探します。いきなり en_US (デフォルト) やベースファイルには飛びません。",
+            code: nil,
+            relatedQuizIds: ["gold-localization-001"]
+        ),
+
+        // MARK: - Gold: Stream API
+        quickLesson(
+            id: "lesson-gold-stream-collectors",
+            level: .gold,
+            category: .lambdaStreams,
+            title: "Collectors.groupingBy",
+            summary: "Streamの要素を条件でグループ分けしてMapにする",
+            estimatedMinutes: 6,
+            focus: "collect(Collectors.groupingBy(分類関数)) を使うと、関数の戻り値をキーとし、そのキーに該当する要素のリストを値とする Map を生成できます。",
+            examTip: "戻り値の型は Map<キーの型, List<元の要素の型>> になります。true/false の2つにだけ分けたい場合は Collectors.partitioningBy() の方が適しています。",
+            code: """
+        List<String> names = List.of("Ali", "Bob", "Charlie");
+        // 名前の文字数をキーにしてグループ化
+        Map<Integer, List<String>> map = names.stream()
+            .collect(Collectors.groupingBy(String::length));
+        // 結果: {3=[Ali, Bob], 7=[Charlie]}
+        """,
+            relatedQuizIds: ["gold-stream-003"]
+        ),
+
+        // ===== 以下、既存の全レッスン =====
+        
+        quickLesson(
+            id: "lesson-silver-try-with-resources",
+            level: .silver,
+            category: .exceptionHandling,
+            title: "try-with-resourcesのクローズ順序",
+            summary: "複数リソースの自動解放における優先順序",
+            estimatedMinutes: 5,
+            focus: "try-with-resources文で複数のリソースを宣言した場合、クローズ(closeメソッドの呼び出し)は「宣言した順序の逆（下から上）」に行われます。",
+            examTip: "AとBの順番で宣言した場合、B -> A の順でcloseされます。実行結果を問う問題の定番トラップです。",
+            code: """
         try (Reader r1 = new FileReader("file1.txt");
              Reader r2 = new FileReader("file2.txt")) {
             // 処理終了時、r2.close() が先によばれ、次に r1.close() が呼ばれる
         }
         """,
-                    relatedQuizIds: ["silver-exception-002"]
-                ),
-
-                // MARK: - Silver: コレクション
-                quickLesson(
-                    id: "lesson-silver-list-factory",
-                    level: .silver,
-                    category: .collections,
-                    title: "List.of()とArrays.asList()の違い",
-                    summary: "コレクションのファクトリメソッドの挙動",
-                    estimatedMinutes: 6,
-                    focus: "Java 9の List.of() は「完全な不変(Immutable)リスト」を作り、nullを要素に含めることができず、実行時にNPEになります。一方、Arrays.asList() は「要素の変更(set)のみ可能」でnullも許容します。",
-                    examTip: "List.of() に null を渡すコードを見たら、コンパイルエラーではなく実行時エラー(NPE)になることを疑ってください。",
-                    code: """
+            relatedQuizIds: ["silver-exception-002"]
+        ),
+        quickLesson(
+            id: "lesson-silver-list-factory",
+            level: .silver,
+            category: .collections,
+            title: "List.of()とArrays.asList()の違い",
+            summary: "コレクションのファクトリメソッドの挙動",
+            estimatedMinutes: 6,
+            focus: "Java 9の List.of() は「完全な不変(Immutable)リスト」を作り、nullを要素に含めることができず、実行時にNPEになります。一方、Arrays.asList() は「要素の変更(set)のみ可能」でnullも許容します。",
+            examTip: "List.of() に null を渡すコードを見たら、コンパイルエラーではなく実行時エラー(NPE)になることを疑ってください。",
+            code: """
         List<String> list1 = Arrays.asList("A", null); // OK
         list1.set(0, "B"); // OK
 
         List<String> list2 = List.of("A", null); // ここでNullPointerException
         // list2.set(0, "B"); // (もし生成できたとしても) UnsupportedOperationException
         """,
-                    relatedQuizIds: ["silver-collections-001"]
-                ),
-
-                // MARK: - Gold: 並行処理
-                quickLesson(
-                    id: "lesson-gold-executor-submit",
-                    level: .gold,
-                    category: .concurrency,
-                    title: "submit()とexecute()の例外ハンドリング",
-                    summary: "ExecutorServiceによる非同期タスクの例外",
-                    estimatedMinutes: 7,
-                    focus: "execute() は例外が発生するとスレッドが終了しコンソールにエラーが出力されますが、submit() は例外をキャッチして戻り値の Future に閉じ込めます。",
-                    examTip: "submit() を使った問題で「例外が発生してプログラムが異常終了する」という選択肢はほぼ引っかけです。Future.get() を呼ばない限りエラーは隠蔽されます。",
-                    code: """
+            relatedQuizIds: ["silver-collections-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-executor-submit",
+            level: .gold,
+            category: .concurrency,
+            title: "submit()とexecute()の例外ハンドリング",
+            summary: "ExecutorServiceによる非同期タスクの例外",
+            estimatedMinutes: 7,
+            focus: "execute() は例外が発生するとスレッドが終了しコンソールにエラーが出力されますが、submit() は例外をキャッチして戻り値の Future に閉じ込めます。",
+            examTip: "submit() を使った問題で「例外が発生してプログラムが異常終了する」という選択肢はほぼ引っかけです。Future.get() を呼ばない限りエラーは隠蔽されます。",
+            code: """
         ExecutorService es = Executors.newSingleThreadExecutor();
 
         // 例外はコンソールに出力される
@@ -273,20 +359,18 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         // 例外は隠蔽され、f.get() を呼んだ時に ExecutionException としてスローされる
         Future<?> f = es.submit(() -> { throw new RuntimeException(); });
         """,
-                    relatedQuizIds: ["gold-concurrency-001"]
-                ),
-
-                // MARK: - Gold: 入出力
-                quickLesson(
-                    id: "lesson-gold-path-resolve",
-                    level: .gold,
-                    category: .io,
-                    title: "Path.resolve()の絶対パス結合",
-                    summary: "NIO.2 におけるパスの結合ルール",
-                    estimatedMinutes: 5,
-                    focus: "Path.resolve(Path other) メソッドは、引数(other)が「相対パス」の場合は結合したパスを返しますが、引数が「絶対パス」の場合は引数(other)そのものを返します。",
-                    examTip: "Windows環境を想定した C:\\dir などの絶対パスか、/dir などのUNIX系絶対パスが引数に来た場合の挙動を見落とさないように注意してください。",
-                    code: """
+            relatedQuizIds: ["gold-concurrency-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-path-resolve",
+            level: .gold,
+            category: .io,
+            title: "Path.resolve()の絶対パス結合",
+            summary: "NIO.2 におけるパスの結合ルール",
+            estimatedMinutes: 5,
+            focus: "Path.resolve(Path other) メソッドは、引数(other)が「相対パス」の場合は結合したパスを返しますが、引数が「絶対パス」の場合は引数(other)そのものを返します。",
+            examTip: "Windows環境を想定した C:\\dir などの絶対パスか、/dir などのUNIX系絶対パスが引数に来た場合の挙動を見落とさないように注意してください。",
+            code: """
         Path base = Path.of("/app");
         Path relative = Path.of("logs");
         Path absolute = Path.of("/backup");
@@ -294,20 +378,18 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         System.out.println(base.resolve(relative)); // /app/logs
         System.out.println(base.resolve(absolute)); // /backup (上書きされる)
         """,
-                    relatedQuizIds: ["gold-io-001"]
-                ),
-        
-        // MARK: - Silver: 文字列 (String)
-                quickLesson(
-                    id: "lesson-silver-string-pool",
-                    level: .silver,
-                    category: .string,
-                    title: "Stringの不変性とString Pool",
-                    summary: "文字列リテラルと new String() の挙動の違い",
-                    estimatedMinutes: 5,
-                    focus: "リテラルで生成した文字列は「String Pool」で共有されますが、new演算子を使うとヒープ上に全く新しいインスタンスが生成されます。",
-                    examTip: "文字列の同値性判定で == を使う引っかけ問題が頻出です。値の比較には必ず equals() を使用してください。",
-                    code: """
+            relatedQuizIds: ["gold-io-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-string-pool",
+            level: .silver,
+            category: .string,
+            title: "Stringの不変性とString Pool",
+            summary: "文字列リテラルと new String() の挙動の違い",
+            estimatedMinutes: 5,
+            focus: "リテラルで生成した文字列は「String Pool」で共有されますが、new演算子を使うとヒープ上に全く新しいインスタンスが生成されます。",
+            examTip: "文字列の同値性判定で == を使う引っかけ問題が頻出です。値の比較には必ず equals() を使用してください。",
+            code: """
         String s1 = "Java";
         String s2 = "Java";
         String s3 = new String("Java");
@@ -315,40 +397,36 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         System.out.println(s1 == s2); // true (同じ参照)
         System.out.println(s1 == s3); // false (違う参照)
         """,
-                    relatedQuizIds: ["silver-string-001"]
-                ),
-
-                // MARK: - Silver: データ型 (var)
-                quickLesson(
-                    id: "lesson-silver-local-var",
-                    level: .silver,
-                    category: .dataTypes,
-                    title: "ローカル変数型推論 (var)",
-                    summary: "Java 10から導入された var の正しい使い方",
-                    estimatedMinutes: 5,
-                    focus: "var は「ローカル変数」かつ「初期化を伴う宣言」でのみ使用可能です。フィールド変数やメソッドの引数、初期化なしの宣言には使えません。",
-                    examTip: "var x = null; や var[] arr = new int[3]; のような記述はコンパイルエラーになるため、試験でよく狙われます。",
-                    code: """
+            relatedQuizIds: ["silver-string-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-local-var",
+            level: .silver,
+            category: .dataTypes,
+            title: "ローカル変数型推論 (var)",
+            summary: "Java 10から導入された var の正しい使い方",
+            estimatedMinutes: 5,
+            focus: "var は「ローカル変数」かつ「初期化を伴う宣言」でのみ使用可能です。フィールド変数やメソッドの引数、初期化なしの宣言には使えません。",
+            examTip: "var x = null; や var[] arr = new int[3]; のような記述はコンパイルエラーになるため、試験でよく狙われます。",
+            code: """
         public void sample() {
             var list = new ArrayList<String>(); // OK
             // var name; // コンパイルエラー (初期化なし)
             // var obj = null; // コンパイルエラー (型が特定できない)
         }
         """,
-                    relatedQuizIds: []
-                ),
-
-                // MARK: - Silver: 例外処理
-                quickLesson(
-                    id: "lesson-silver-exception-types",
-                    level: .silver,
-                    category: .exceptionHandling,
-                    title: "チェック例外と非チェック例外",
-                    summary: "RuntimeException と Exception の違いを理解する",
-                    estimatedMinutes: 6,
-                    focus: "RuntimeExceptionとそのサブクラスは「非チェック例外」であり、try-catchやthrowsの記述が任意です。それ以外のExceptionは「チェック例外」と呼ばれ、ハンドリングが必須です。",
-                    examTip: "NullPointerException や IllegalArgumentException は非チェック例外です。試験では、例外の種類によってコンパイルエラーになるかどうかの判別が求められます。",
-                    code: """
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-silver-exception-types",
+            level: .silver,
+            category: .exceptionHandling,
+            title: "チェック例外と非チェック例外",
+            summary: "RuntimeException と Exception の違いを理解する",
+            estimatedMinutes: 6,
+            focus: "RuntimeExceptionとそのサブクラスは「非チェック例外」であり、try-catchやthrowsの記述が任意です。それ以外のExceptionは「チェック例外」と呼ばれ、ハンドリングが必須です。",
+            examTip: "NullPointerException や IllegalArgumentException は非チェック例外です。試験では、例外の種類によってコンパイルエラーになるかどうかの判別が求められます。",
+            code: """
         // チェック例外 (IOExceptionなど) はハンドリング必須
         try {
             throw new java.io.IOException();
@@ -356,20 +434,18 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
             e.printStackTrace();
         }
         """,
-                    relatedQuizIds: []
-                ),
-
-                // MARK: - Silver: 継承 (インターフェース)
-                quickLesson(
-                    id: "lesson-silver-interface-methods",
-                    level: .silver,
-                    category: .inheritance,
-                    title: "インターフェースのdefault/staticメソッド",
-                    summary: "Java 8以降のインターフェースの拡張機能",
-                    estimatedMinutes: 6,
-                    focus: "インターフェースには、実装を持てる default メソッドと static メソッドを定義できます。これにより、既存の実装クラスを壊さずにメソッドを追加できます。",
-                    examTip: "インターフェースの static メソッドは、実装クラスのインスタンスからは呼び出せません (InterfaceName.method() のように呼び出す必要があります)。",
-                    code: """
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-silver-interface-methods",
+            level: .silver,
+            category: .inheritance,
+            title: "インターフェースのdefault/staticメソッド",
+            summary: "Java 8以降のインターフェースの拡張機能",
+            estimatedMinutes: 6,
+            focus: "インターフェースには、実装を持てる default メソッドと static メソッドを定義できます。これにより、既存の実装クラスを壊さずにメソッドを追加できます。",
+            examTip: "インターフェースの static メソッドは、実装クラスのインスタンスからは呼び出せません (InterfaceName.method() のように呼び出す必要があります)。",
+            code: """
         interface Greeter {
             default void greet() {
                 System.out.println("Hello");
@@ -379,78 +455,70 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
             }
         }
         """,
-                    relatedQuizIds: []
-                ),
-
-                // MARK: - Gold: クラスとインターフェース (Sealed Classes)
-                quickLesson(
-                    id: "lesson-gold-sealed-classes",
-                    level: .gold,
-                    category: .classes,
-                    title: "シールドクラス (Sealed Classes)",
-                    summary: "Java 17で正式導入された、継承を制限する仕組み",
-                    estimatedMinutes: 5,
-                    focus: "sealed 修飾子を使うと、どのクラスがこのクラスを継承できるかを permits で明示的に制限できます。想定外のサブクラスが作られるのを防ぎます。",
-                    examTip: "シールドクラスを継承するサブクラスは、必ず final, sealed, non-sealed のいずれかの修飾子をつける必要があります。",
-                    code: """
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-sealed-classes",
+            level: .gold,
+            category: .classes,
+            title: "シールドクラス (Sealed Classes)",
+            summary: "Java 17で正式導入された、継承を制限する仕組み",
+            estimatedMinutes: 5,
+            focus: "sealed 修飾子を使うと、どのクラスがこのクラスを継承できるかを permits で明示的に制限できます。想定外のサブクラスが作られるのを防ぎます。",
+            examTip: "シールドクラスを継承するサブクラスは、必ず final, sealed, non-sealed のいずれかの修飾子をつける必要があります。",
+            code: """
         public sealed class Shape permits Circle, Square {}
 
         final class Circle extends Shape {}
         non-sealed class Square extends Shape {}
         """,
-                    relatedQuizIds: ["gold-classes-002"]
-                ),
-
-                // MARK: - Gold: ラムダ式とStream API
-                quickLesson(
-                    id: "lesson-gold-stream-terminal",
-                    level: .gold,
-                    category: .lambdaStreams,
-                    title: "Streamの中間操作と終端操作",
-                    summary: "遅延評価とストリームの消費",
-                    estimatedMinutes: 7,
-                    focus: "filterやmapなどの「中間操作」はストリームを返し、メソッドチェーンを作ります。「終端操作」(forEachやcollect)が呼ばれるまで、実際の処理は実行されません（遅延評価）。",
-                    examTip: "1つのストリームに対して終端操作を2回呼び出すと、実行時例外 (IllegalStateException) が発生します。",
-                    code: """
+            relatedQuizIds: ["gold-classes-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-stream-terminal",
+            level: .gold,
+            category: .lambdaStreams,
+            title: "Streamの中間操作と終端操作",
+            summary: "遅延評価とストリームの消費",
+            estimatedMinutes: 7,
+            focus: "filterやmapなどの「中間操作」はストリームを返し、メソッドチェーンを作ります。「終端操作」(forEachやcollect)が呼ばれるまで、実際の処理は実行されません（遅延評価）。",
+            examTip: "1つのストリームに対して終端操作を2回呼び出すと、実行時例外 (IllegalStateException) が発生します。",
+            code: """
         Stream<String> stream = Stream.of("A", "B", "C");
         stream.filter(s -> s.equals("A")); // 何も出力・実行されない
         long count = stream.count(); // ここで初めて処理される(終端操作)
         // stream.forEach(System.out::println); // 例外発生(再利用不可)
         """,
-                    relatedQuizIds: ["gold-stream-003"]
-                ),
-
-                // MARK: - Gold: Optional API
-                quickLesson(
-                    id: "lesson-gold-optional-flatmap",
-                    level: .gold,
-                    category: .optionalApi,
-                    title: "OptionalのmapとflatMap",
-                    summary: "ネストしたOptionalを平坦化する方法",
-                    estimatedMinutes: 6,
-                    focus: "Optionalの中身を変換する際、変換後の値がさらにOptionalである場合、map() を使うと Optional<Optional<T>> のようにネストしてしまいます。flatMap() を使うと1層に平坦化されます。",
-                    examTip: "メソッドの戻り値が Optional 型である場合、flatMap を使うのが定石です。",
-                    code: """
+            relatedQuizIds: ["gold-stream-003"]
+        ),
+        quickLesson(
+            id: "lesson-gold-optional-flatmap",
+            level: .gold,
+            category: .optionalApi,
+            title: "OptionalのmapとflatMap",
+            summary: "ネストしたOptionalを平坦化する方法",
+            estimatedMinutes: 6,
+            focus: "Optionalの中身を変換する際、変換後の値がさらにOptionalである場合、map() を使うと Optional<Optional<T>> のようにネストしてしまいます。flatMap() を使うと1層に平坦化されます。",
+            examTip: "メソッドの戻り値が Optional 型である場合、flatMap を使うのが定石です。",
+            code: """
         Optional<String> opt = Optional.of("Java");
         // mapの場合
         Optional<Optional<Integer>> nested = opt.map(s -> Optional.of(s.length()));
         // flatMapの場合
         Optional<Integer> flat = opt.flatMap(s -> Optional.of(s.length()));
         """,
-                    relatedQuizIds: []
-                ),
-
-                // MARK: - Gold: モジュールシステム
-                quickLesson(
-                    id: "lesson-gold-module-exports",
-                    level: .gold,
-                    category: .moduleSystem,
-                    title: "モジュールシステムの基本 (exports / requires)",
-                    summary: "Java 9で導入されたアクセス制御と依存関係の管理",
-                    estimatedMinutes: 5,
-                    focus: "module-info.java にて、他モジュールに公開するパッケージを exports で指定し、自分が利用するモジュールを requires で宣言します。",
-                    examTip: "exports は「パッケージ名」を指定し、requires は「モジュール名」を指定します。この違いが非常によく出題されます。",
-                    code: """
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-module-exports",
+            level: .gold,
+            category: .moduleSystem,
+            title: "モジュールシステムの基本 (exports / requires)",
+            summary: "Java 9で導入されたアクセス制御と依存関係の管理",
+            estimatedMinutes: 5,
+            focus: "module-info.java にて、他モジュールに公開するパッケージを exports で指定し、自分が利用するモジュールを requires で宣言します。",
+            examTip: "exports は「パッケージ名」を指定し、requires は「モジュール名」を指定します。この違いが非常によく出題されます。",
+            code: """
         module com.myapp.core {
             // パッケージを公開
             exports com.myapp.core.util;
@@ -459,11 +527,8 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
             requires java.logging;
         }
         """,
-                    relatedQuizIds: ["gold-module-001"]
-                ),
-        
-        
-        
+            relatedQuizIds: ["gold-module-001"]
+        ),
         quickLesson(
             id: "lesson-bronze-java-platform",
             level: .silver,

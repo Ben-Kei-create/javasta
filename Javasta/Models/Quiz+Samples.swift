@@ -45,9 +45,213 @@ extension Quiz {
         goldModule001,
         goldModule002,
         goldLocalization001,
+        goldLocalization002,
         goldAnnotations001,
         goldJdbc001,
+        goldJdbc002,
+        silverJavaBasics002,
+        silverArray002,
+        goldStream005,
     ]
+    
+    // MARK: - Silver: ガベージコレクション (GC)
+        static let silverJavaBasics002 = Quiz(
+            id: "silver-java-basics-002",
+            level: .silver,
+            category: "java-basics",
+            tags: ["GC", "参照", "スコープ"],
+            code: """
+    public class Test {
+        public static void main(String[] args) {
+            Object obj1 = new Object(); // [1]
+            Object obj2 = new Object(); // [2]
+            
+            obj1 = obj2;                // [3]
+            obj2 = null;                // [4]
+            
+            // ここでGCの対象になっているオブジェクトはどれか？
+        }
+    }
+    """,
+            question: "コメント [4] の実行直後において、ガベージコレクション(GC)の対象となるオブジェクトはどれか？",
+            choices: [
+                Choice(id: "a", text: "[1] で生成されたオブジェクトのみ",
+                       correct: true, misconception: nil,
+                       explanation: "[3]でobj1にobj2の参照が代入されたことで、[1]で生成されたオブジェクトを指す参照がなくなりました。そのため[1]はGC対象です。"),
+                Choice(id: "b", text: "[2] で生成されたオブジェクトのみ",
+                       correct: false, misconception: "nullを代入した変数の元のオブジェクトが必ずGC対象になると誤解",
+                       explanation: "[4]でobj2にnullを代入しましたが、その前に[3]でobj1が[2]のオブジェクトを参照しているため、[2]はまだGC対象ではありません。"),
+                Choice(id: "c", text: "[1]と[2] で生成された両方のオブジェクト",
+                       correct: false, misconception: "null代入で関連するすべてが消えると誤解",
+                       explanation: "[2]のオブジェクトは変数obj1から参照され続けています。"),
+                Choice(id: "d", text: "GCの対象になるオブジェクトはない",
+                       correct: false, misconception: nil,
+                       explanation: "[1]のオブジェクトは誰からも参照されなくなっているため、GCの対象になります。"),
+            ],
+            explanationRef: "explain-silver-java-basics-002",
+            designIntent: "参照変数の代入とnullの代入を追いかけ、どのインスタンスが「到達不能(GC対象)」になったかを見抜かせる。"
+        )
+
+        // MARK: - Silver: 多次元配列
+        static let silverArray002 = Quiz(
+            id: "silver-array-002",
+            level: .silver,
+            category: "data-types",
+            tags: ["多次元配列", "非対称配列", "NullPointerException"],
+            code: """
+    public class Test {
+        public static void main(String[] args) {
+            int[][] array = new int[2][];
+            array[0] = new int[2];
+            array[0][1] = 5;
+            
+            System.out.println(array[0][1] + " " + array[1][0]);
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "5 0",
+                       correct: false, misconception: "初期化していない多次元配列の要素も0になると誤解",
+                       explanation: "array[1] はインスタンス化されていないため null です。array[1][0] にアクセスすると例外が発生します。"),
+                Choice(id: "b", text: "5 null",
+                       correct: false, misconception: "プリミティブ配列の要素がnullを返すと誤解",
+                       explanation: "int型の要素はnullにはなり得ず、アクセス自体ができません。"),
+                Choice(id: "c", text: "NullPointerException",
+                       correct: true, misconception: nil,
+                       explanation: "new int[2][] で生成した配列の要素(array[0], array[1])は参照型であり、デフォルト値は null です。array[1] に配列を割り当てる前に array[1][0] にアクセスしたため、NPEがスローされます。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: "多次元配列は全ての次元のサイズを同時に指定しなければならないと誤解",
+                       explanation: "new int[2][] のように、1次元目だけサイズを指定して非対称配列を作るのは文法的に正しいです。"),
+            ],
+            explanationRef: "explain-silver-array-002",
+            designIntent: "多次元配列（配列の配列）において、1次元目だけを初期化した場合、2次元目がデフォルトでnullになる仕様を確認する。"
+        )
+
+        // MARK: - Gold: JDBC (ResultSet)
+        static let goldJdbc001 = Quiz(
+            id: "gold-jdbc-001",
+            level: .gold,
+            category: "jdbc",
+            tags: ["JDBC", "ResultSet", "next()"],
+            code: """
+    import java.sql.*;
+
+    public class Test {
+        public static void main(String[] args) throws SQLException {
+            // 接続等は正常に完了しているものとする
+            Connection conn = DriverManager.getConnection("jdbc:h2:mem:");
+            Statement stmt = conn.createStatement();
+            stmt.execute("CREATE TABLE users (name VARCHAR)");
+            stmt.execute("INSERT INTO users VALUES ('Alice')");
+            
+            ResultSet rs = stmt.executeQuery("SELECT name FROM users");
+            System.out.println(rs.getString(1));
+        }
+    }
+    """,
+            question: "このコードを実行したときの挙動として正しいものはどれか？",
+            choices: [
+                Choice(id: "a", text: "Alice",
+                       correct: false, misconception: "executeQuery直後に1行目のデータが取得できると誤解",
+                       explanation: "ResultSetのカーソルは初期状態では「最初の行の直前(before first)」を指しています。"),
+                Choice(id: "b", text: "SQLExceptionがスローされる",
+                       correct: true, misconception: nil,
+                       explanation: "カーソルが有効な行を指していない状態で getString() などのデータ取得メソッドを呼び出すと、実行時例外（SQLException）が発生します。取得前に rs.next() を呼び出す必要があります。"),
+                Choice(id: "c", text: "null",
+                       correct: false, misconception: "カーソル未移動時はnullが返ると誤解",
+                       explanation: "nullではなく例外がスローされます。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: nil,
+                       explanation: "SQLExceptionは throws で宣言されているためコンパイルは通ります。"),
+            ],
+            explanationRef: "explain-gold-jdbc-001",
+            designIntent: "JDBCのResultSetにおけるカーソルの初期位置（before first）と、next()呼び出しの必要性を見抜かせる。"
+        )
+
+        // MARK: - Gold: ローカライゼーション (ResourceBundle)
+        static let goldLocalization001 = Quiz(
+            id: "gold-localization-001",
+            level: .gold,
+            category: "localization",
+            tags: ["ResourceBundle", "Locale", "フォールバック"],
+            code: """
+    import java.util.*;
+
+    public class Test {
+        public static void main(String[] args) {
+            // 以下のプロパティファイルが存在する
+            // Msg_fr_FR.properties (値: "Bonjour FR")
+            // Msg_fr.properties    (値: "Bonjour")
+            // Msg.properties       (値: "Hello")
+            
+            // 現在のデフォルトロケールは en_US である
+            
+            Locale loc = new Locale("fr", "CA"); // フランス語・カナダ
+            ResourceBundle rb = ResourceBundle.getBundle("Msg", loc);
+            
+            System.out.println(rb.getString("greet"));
+        }
+    }
+    """,
+            question: "このコードを実行したとき、取得される値はどれか？",
+            choices: [
+                Choice(id: "a", text: "Bonjour FR",
+                       correct: false, misconception: "言語が同じなら他の地域(FR)も探すと誤解",
+                       explanation: "要求された地域はCA(カナダ)なので、FR(フランス)のファイルは読み込まれません。"),
+                Choice(id: "b", text: "Bonjour",
+                       correct: true, misconception: nil,
+                       explanation: "Msg_fr_CA を探して見つからないため、地域を落として Msg_fr を探します。Msg_fr.properties が存在するため、その値が採用されます。"),
+                Choice(id: "c", text: "Hello",
+                       correct: false, misconception: "完全一致がないとデフォルトロケール(en_US)や基底ファイルに直接飛ぶと誤解",
+                       explanation: "デフォルトロケール(en_US)を探す前に、要求されたロケール(fr_CA)の言語のみのファイル(Msg_fr)を探します。"),
+                Choice(id: "d", text: "MissingResourceException",
+                       correct: false, misconception: nil,
+                       explanation: "フォールバックにより Msg_fr.properties が見つかるため例外は発生しません。"),
+            ],
+            explanationRef: "explain-gold-localization-001",
+            designIntent: "ResourceBundleの検索順序（要求ロケール → デフォルトロケール → 基底ファイル）と、地域落ち(言語のみ)のフォールバックを理解しているか。"
+        )
+
+        // MARK: - Gold: Stream API (Collectors.groupingBy)
+        static let goldStream003 = Quiz(
+            id: "gold-stream-003",
+            level: .gold,
+            category: "lambda-streams",
+            tags: ["Stream", "Collectors", "groupingBy"],
+            code: """
+    import java.util.*;
+    import java.util.stream.*;
+
+    public class Test {
+        public static void main(String[] args) {
+            List<String> list = List.of("A", "BB", "C", "DDD");
+            
+            Map<Integer, List<String>> map = list.stream()
+                .collect(Collectors.groupingBy(String::length));
+                
+            System.out.println(map.get(1));
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "A",
+                       correct: false, misconception: "戻り値が単一の要素になると誤解",
+                       explanation: "groupingByはキーに対して「要素のリスト」を値とするMapを作成します。単一の文字列ではありません。"),
+                Choice(id: "b", text: "[A]",
+                       correct: false, misconception: "Cが見落とされると誤解",
+                       explanation: "長さ1の文字列は \"A\" と \"C\" の2つ存在します。"),
+                Choice(id: "c", text: "[A, C]",
+                       correct: true, misconception: nil,
+                       explanation: "groupingBy(String::length) は、文字列の「長さ」をキーとして要素をグループ化します。長さ1のキー(1)には \"A\" と \"C\" のリストが入ります。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: "groupingByの引数型が不正であると誤解",
+                       explanation: "String::lengthはキーを抽出するFunctionとして正しく機能します。"),
+            ],
+            explanationRef: "explain-gold-stream-003",
+            designIntent: "Collectors.groupingByが「キー抽出関数」を受け取り、Map<K, List<V>>を返すという高度な集計操作を理解しているか。"
+        )
 
     // MARK: - Silver: Javaの基本 (ローカル変数の初期化)
         static let silverJavaBasics001 = Quiz(
@@ -1256,7 +1460,7 @@ public class Test {
 
     // MARK: - Gold: Stream API (peekの遅延評価)
 
-    static let goldStream003 = Quiz(
+    static let goldStream004 = Quiz(
         id: "gold-stream-003",
         level: .gold,
         category: "lambda-streams",
@@ -1292,7 +1496,7 @@ public class Test {
 
     // MARK: - Gold: Stream API (reduce)
 
-    static let goldStream004 = Quiz(
+    static let goldStream005 = Quiz(
         id: "gold-stream-004",
         level: .gold,
         category: "lambda-streams",
@@ -1673,7 +1877,7 @@ public class Test {
 
     // MARK: - Gold: ローカライズ (ResourceBundle)
 
-    static let goldLocalization001 = Quiz(
+    static let goldLocalization002 = Quiz(
         id: "gold-localization-001",
         level: .gold,
         category: "localization",
@@ -1755,7 +1959,7 @@ class Child extends Parent {
 
     // MARK: - Gold: JDBC (PreparedStatement)
 
-    static let goldJdbc001 = Quiz(
+    static let goldJdbc002 = Quiz(
         id: "gold-jdbc-001",
         level: .gold,
         category: "jdbc",
