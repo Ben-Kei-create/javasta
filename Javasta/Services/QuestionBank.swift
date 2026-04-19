@@ -1,5 +1,40 @@
 import Foundation
 
+struct ExplanationAuditReport {
+    let quizCount: Int
+    let authoredExplanationCount: Int
+    let placeholderCount: Int
+    let missingCount: Int
+    let duplicateRefCount: Int
+    let orphanedCount: Int
+    let issues: [ExplanationAuditIssue]
+
+    var needsAttentionCount: Int {
+        placeholderCount + missingCount + duplicateRefCount + orphanedCount
+    }
+}
+
+struct ExplanationAuditIssue: Identifiable {
+    enum Kind: String {
+        case placeholder
+        case missing
+        case duplicateRef
+        case orphaned
+    }
+
+    let kind: Kind
+    let quizId: String?
+    let explanationRef: String
+    let level: JavaLevel?
+    let category: String?
+    let question: String?
+    let detail: String
+
+    var id: String {
+        "\(kind.rawValue)-\(quizId ?? "no-quiz")-\(explanationRef)"
+    }
+}
+
 enum QuestionBank {
     static var allQuizzes: [Quiz] { Quiz.samples }
     static var lessons: [Lesson] { Lesson.samples }
@@ -73,8 +108,8 @@ enum QuestionBank {
 
         let explanationIds = Set(Explanation.allSampleIds)
         for quiz in allQuizzes {
-            if !explanationIds.contains(quiz.explanationRef) {
-                issues.append("\(quiz.id): missing explanation \(quiz.explanationRef)")
+            if Explanation.sample(for: quiz.explanationRef) == nil {
+                issues.append("\(quiz.id): unresolved explanation \(quiz.explanationRef)")
             }
             let correctCount = quiz.choices.filter(\.correct).count
             if quiz.isMultipleSelect {
@@ -89,6 +124,18 @@ enum QuestionBank {
             }
         }
 
+        let explanationRefs = allQuizzes.map(\.explanationRef)
+        let duplicateExplanationRefs = Dictionary(grouping: explanationRefs, by: { $0 })
+            .filter { $0.value.count > 1 }
+            .keys
+        for ref in duplicateExplanationRefs {
+            issues.append("Duplicate explanation ref: \(ref)")
+        }
+
+        for ref in explanationIds.subtracting(Set(explanationRefs)) {
+            issues.append("Authored explanation is not linked from any quiz: \(ref)")
+        }
+
         for lesson in lessons {
             for id in lesson.relatedQuizIds where quiz(id: id) == nil {
                 issues.append("\(lesson.id): missing related quiz \(id)")
@@ -96,6 +143,86 @@ enum QuestionBank {
         }
 
         return issues
+    }
+
+    static func explanationAuditReport() -> ExplanationAuditReport {
+        let quizzes = allQuizzes
+        let authoredRefs = Explanation.authoredSampleIds
+        let quizRefs = quizzes.map(\.explanationRef)
+        let quizRefSet = Set(quizRefs)
+        let duplicateRefs = Set(
+            Dictionary(grouping: quizRefs, by: { $0 })
+                .filter { $0.value.count > 1 }
+                .keys
+        )
+
+        var issues: [ExplanationAuditIssue] = []
+
+        for quiz in quizzes.sorted(by: { $0.id < $1.id }) {
+            if duplicateRefs.contains(quiz.explanationRef) {
+                issues.append(
+                    ExplanationAuditIssue(
+                        kind: .duplicateRef,
+                        quizId: quiz.id,
+                        explanationRef: quiz.explanationRef,
+                        level: quiz.level,
+                        category: quiz.categoryDisplayName,
+                        question: quiz.question,
+                        detail: "複数の問題が同じexplanationRefを共有しています。問題ごとに固有のrefへ分ける必要があります。"
+                    )
+                )
+            }
+
+            if Explanation.sample(for: quiz.explanationRef) == nil {
+                issues.append(
+                    ExplanationAuditIssue(
+                        kind: .missing,
+                        quizId: quiz.id,
+                        explanationRef: quiz.explanationRef,
+                        level: quiz.level,
+                        category: quiz.categoryDisplayName,
+                        question: quiz.question,
+                        detail: "Explanation.sample(for:)で解決できません。refの打ち間違いか、問題がsamples未登録の可能性があります。"
+                    )
+                )
+            } else if !authoredRefs.contains(quiz.explanationRef) {
+                issues.append(
+                    ExplanationAuditIssue(
+                        kind: .placeholder,
+                        quizId: quiz.id,
+                        explanationRef: quiz.explanationRef,
+                        level: quiz.level,
+                        category: quiz.categoryDisplayName,
+                        question: quiz.question,
+                        detail: "手書き解説がないため、quickTraceの汎用3ステップ解説にフォールバックしています。"
+                    )
+                )
+            }
+        }
+
+        for ref in authoredRefs.subtracting(quizRefSet).sorted() {
+            issues.append(
+                ExplanationAuditIssue(
+                    kind: .orphaned,
+                    quizId: nil,
+                    explanationRef: ref,
+                    level: nil,
+                    category: nil,
+                    question: nil,
+                    detail: "手書き解説は存在しますが、このrefを使っている問題がありません。samples登録漏れか、ref変更漏れを確認してください。"
+                )
+            )
+        }
+
+        return ExplanationAuditReport(
+            quizCount: quizzes.count,
+            authoredExplanationCount: quizzes.filter { authoredRefs.contains($0.explanationRef) }.count,
+            placeholderCount: issues.filter { $0.kind == .placeholder }.count,
+            missingCount: issues.filter { $0.kind == .missing }.count,
+            duplicateRefCount: issues.filter { $0.kind == .duplicateRef }.count,
+            orphanedCount: issues.filter { $0.kind == .orphaned }.count,
+            issues: issues
+        )
     }
 
     private static func balanced(_ pool: [Quiz], limit: Int) -> [Quiz] {
@@ -174,20 +301,5 @@ enum QuestionBank {
         default:
             return [category]
         }
-    }
-}
-
-extension Explanation {
-    static var allSampleIds: [String] {
-        [
-            "explain-silver-overload-001",
-            "explain-silver-exception-001",
-            "explain-silver-string-001",
-            "explain-silver-autoboxing-001",
-            "explain-silver-switch-001",
-            "explain-gold-generics-001",
-            "explain-gold-stream-001",
-            "explain-gold-optional-001",
-        ]
     }
 }

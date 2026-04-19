@@ -415,7 +415,7 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
             // var obj = null; // コンパイルエラー (型が特定できない)
         }
         """,
-            relatedQuizIds: []
+            relatedQuizIds: ["gold-lambda-effectively-final-001"]
         ),
         quickLesson(
             id: "lesson-silver-exception-types",
@@ -474,8 +474,8 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         """,
             relatedQuizIds: ["gold-classes-002"]
         ),
-        quickLesson(
-            id: "lesson-gold-stream-terminal",
+                quickLesson(
+                    id: "lesson-gold-stream-terminal",
             level: .gold,
             category: .lambdaStreams,
             title: "Streamの中間操作と終端操作",
@@ -489,8 +489,8 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         long count = stream.count(); // ここで初めて処理される(終端操作)
         // stream.forEach(System.out::println); // 例外発生(再利用不可)
         """,
-            relatedQuizIds: ["gold-stream-003"]
-        ),
+                    relatedQuizIds: ["gold-stream-003", "gold-stream-004"]
+                ),
         quickLesson(
             id: "lesson-gold-optional-flatmap",
             level: .gold,
@@ -840,7 +840,7 @@ List<Integer> ints = List.of(1);
             focus: "filterやmapなどの中間操作はパイプラインを組み立てるだけです。sum、collect、forEachなどの終端操作で初めて実行されます。",
             examTip: "peekを使った出力順問題は、終端操作の有無を必ず確認します。",
             code: nil,
-            relatedQuizIds: ["gold-stream-001", "gold-stream-002", "gold-stream-003"]
+            relatedQuizIds: ["gold-stream-001", "gold-stream-002", "gold-stream-lazy-001", "gold-stream-004"]
         ),
         quickLesson(
             id: "lesson-gold-stream-findfirst",
@@ -987,7 +987,7 @@ set.add("bb"); // 長さが同じなので追加されない
 void print(List<String> values) {}
 void print(List<Integer> values) {} // 型消去後に衝突
 """,
-            relatedQuizIds: ["gold-generics-003"]
+            relatedQuizIds: ["gold-generics-003", "gold-generics-erasure-001"]
         ),
         quickLesson(
             id: "lesson-gold-stream-reduce-identity",
@@ -1001,7 +1001,7 @@ void print(List<Integer> values) {} // 型消去後に衝突
             code: """
 int result = Stream.of(1, 2, 3).reduce(10, Integer::sum); // 16
 """,
-            relatedQuizIds: ["gold-stream-004"]
+            relatedQuizIds: ["gold-stream-005"]
         ),
         quickLesson(
             id: "lesson-gold-optional-of-null",
@@ -1131,7 +1131,7 @@ PreparedStatement ps = con.prepareStatement(
 );
 ps.setString(1, "Alice");
 """,
-            relatedQuizIds: ["gold-jdbc-001"]
+            relatedQuizIds: ["gold-jdbc-002"]
         ),
         quickLesson(
             id: "lesson-gold-resource-bundle",
@@ -1143,7 +1143,7 @@ ps.setString(1, "Alice");
             focus: "ResourceBundleはベース名とLocaleから最適なリソースを探索します。地域、言語、デフォルトの順でフォールバックを理解します。",
             examTip: "ファイル名の候補順と、存在しないキーを取得した時のMissingResourceExceptionが頻出です。",
             code: nil,
-            relatedQuizIds: ["gold-localization-001"]
+            relatedQuizIds: ["gold-localization-001", "gold-localization-002"]
         ),
     ]
 

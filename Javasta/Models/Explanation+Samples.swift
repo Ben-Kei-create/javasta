@@ -2,25 +2,52 @@ import Foundation
 
 extension Explanation {
     static func sample(for ref: String) -> Explanation? {
-        switch ref {
-        case "explain-silver-overload-001":   return silverOverload001
-        case "explain-silver-exception-001":  return silverException001
-        case "explain-silver-string-001":     return silverString001
-        case "explain-silver-autoboxing-001": return silverAutoboxing001
-        case "explain-silver-switch-001":     return silverSwitch001
-        case "explain-gold-generics-001":     return goldGenerics001
-        case "explain-gold-stream-001":       return goldStream001
-        case "explain-gold-optional-001":     return goldOptional001
-        default:
-            if let quiz = Quiz.samples.first(where: { $0.explanationRef == ref }) {
-                return quickTrace(for: quiz, ref: ref)
-            }
-            return nil
+        if let explanation = authoredSamples[ref] {
+            return explanation
         }
+
+        if let quiz = Quiz.samples.first(where: { $0.explanationRef == ref }) {
+            return quickTrace(for: quiz, ref: ref)
+        }
+
+        return nil
     }
 
-    
-    
+    static var authoredSampleIds: Set<String> {
+        Set(authoredSamples.keys)
+    }
+
+    static var allSampleIds: [String] {
+        authoredSamples.keys.sorted()
+    }
+
+    static func isAuthored(ref: String) -> Bool {
+        authoredSamples[ref] != nil
+    }
+
+    private static var authoredSamples: [String: Explanation] {
+        [
+            goldLambdaEffectivelyFinal001Explanation.id: goldLambdaEffectivelyFinal001Explanation,
+            silverInheritanceException001Explanation.id: silverInheritanceException001Explanation,
+            goldStreamLazy001Explanation.id: goldStreamLazy001Explanation,
+            goldGenericsErasure001Explanation.id: goldGenericsErasure001Explanation,
+            silverConstructorChain001Explanation.id: silverConstructorChain001Explanation,
+            silverOverloadVarargs001Explanation.id: silverOverloadVarargs001Explanation,
+            silverPolymorphism001Explanation.id: silverPolymorphism001Explanation,
+            silverExceptionFinally001Explanation.id: silverExceptionFinally001Explanation,
+            silverStringPool001Explanation.id: silverStringPool001Explanation,
+            silverDataTypesPassByValueExplanation.id: silverDataTypesPassByValueExplanation,
+            silverOverload001.id: silverOverload001,
+            silverException001.id: silverException001,
+            goldGenerics001.id: goldGenerics001,
+            silverString001.id: silverString001,
+            silverAutoboxing001.id: silverAutoboxing001,
+            silverSwitch001.id: silverSwitch001,
+            goldStream001.id: goldStream001,
+            goldOptional001.id: goldOptional001,
+        ]
+    }
+
     private static func quickTrace(for quiz: Quiz, ref: String) -> Explanation {
         let lines = quiz.code.components(separatedBy: .newlines)
         let mainLine = lines.firstIndex { $0.contains("main(") }.map { $0 + 1 } ?? 1

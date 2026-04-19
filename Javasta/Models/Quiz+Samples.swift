@@ -4,16 +4,21 @@ extension Quiz {
     static let samples: [Quiz] = [
         silverOverload001,
         silverException001,
+        silverExceptionFinally001,
         silverString001,
+        silverStringPool001,
         silverAutoboxing001,
         silverSwitch001,
         silverControlFlow001,
         silverControlFlow002,
         silverOverload002,
+        silverOverloadVarargs001,
         silverArrayDefaults001,
         silverInheritance001,
+        silverInheritanceException001,
         silverMultiFileOverride001,
         silverConstructor001,
+        silverConstructorChain001,
         silverStringBuilder001,
         silverException002,
         silverCollections001,
@@ -21,13 +26,18 @@ extension Quiz {
         silverClasses002,
         silverLambda001,
         silverDataTypes002,
+        silverDataTypesPassByValue,
         goldGenerics001,
         goldGenerics002,
         goldGenerics003,
+        goldGenericsErasure001,
+        goldLambdaEffectivelyFinal001,
         goldStream001,
         goldStream002,
         goldStream003,
         goldStream004,
+        goldStream005,
+        goldStreamLazy001,
         goldOptional001,
         goldOptional002,
         goldOptional003,
@@ -51,10 +61,8 @@ extension Quiz {
         goldJdbc002,
         silverJavaBasics002,
         silverArray002,
-        goldStream005,
         silverPolymorphism001,
-        silverConstructorChain001,
-    ]
+    ] + goldExpansion
     
     
     
@@ -1819,7 +1827,7 @@ public class Test {
     // MARK: - Gold: Stream API (peekの遅延評価)
 
     static let goldStream004 = Quiz(
-        id: "gold-stream-003",
+        id: "gold-stream-004",
         level: .gold,
         category: "lambda-streams",
         tags: ["Stream", "peek", "遅延評価"],
@@ -1848,14 +1856,14 @@ public class Test {
                    correct: false, misconception: "戻り値のStreamを受け取らないとエラーになると誤解",
                    explanation: "戻り値を使わないメソッド呼び出し式として文法上は有効です。"),
         ],
-        explanationRef: "explain-gold-stream-003",
+        explanationRef: "explain-gold-stream-004",
         designIntent: "peekを含む中間操作は終端操作がないと実行されない、というStreamの遅延評価を見抜かせる。"
     )
 
     // MARK: - Gold: Stream API (reduce)
 
     static let goldStream005 = Quiz(
-        id: "gold-stream-004",
+        id: "gold-stream-005",
         level: .gold,
         category: "lambda-streams",
         tags: ["Stream", "reduce", "identity"],
@@ -1885,7 +1893,7 @@ public class Test {
                    correct: false, misconception: "Integer::sumがBinaryOperatorとして使えないと誤解",
                    explanation: "Integer::sumは2つのintを受け取ってintを返すため、Integerのreduceで利用できます。"),
         ],
-        explanationRef: "explain-gold-stream-004",
+        explanationRef: "explain-gold-stream-005",
         designIntent: "reduce(identity, accumulator)のidentityが初期値として必ず使われることを確認する。"
     )
 
@@ -2236,7 +2244,7 @@ public class Test {
     // MARK: - Gold: ローカライズ (ResourceBundle)
 
     static let goldLocalization002 = Quiz(
-        id: "gold-localization-001",
+        id: "gold-localization-002",
         level: .gold,
         category: "localization",
         tags: ["ResourceBundle", "Locale", "フォールバック"],
@@ -2275,7 +2283,7 @@ public class Test {
                    correct: false, misconception: "クラスベースのResourceBundleを見落としている",
                    explanation: "Messages_jaが存在し、greetingキーも定義されているため例外は発生しません。"),
         ],
-        explanationRef: "explain-gold-localization-001",
+        explanationRef: "explain-gold-localization-002",
         designIntent: "ResourceBundleが言語・国・ベースの順に候補を探すフォールバックを確認する。"
     )
 
@@ -2318,7 +2326,7 @@ class Child extends Parent {
     // MARK: - Gold: JDBC (PreparedStatement)
 
     static let goldJdbc002 = Quiz(
-        id: "gold-jdbc-001",
+        id: "gold-jdbc-002",
         level: .gold,
         category: "jdbc",
         tags: ["JDBC", "PreparedStatement", "パラメータ番号"],
@@ -2346,7 +2354,7 @@ public class Test {
                    correct: false, misconception: "StatementとPreparedStatementの役割を混同",
                    explanation: "Statementにはプレースホルダへのバインド操作はありません。PreparedStatementのパラメータは1始まりです。"),
         ],
-        explanationRef: "explain-gold-jdbc-001",
+        explanationRef: "explain-gold-jdbc-002",
         designIntent: "PreparedStatementのプレースホルダ番号が1始まりであることを確認する。"
     )
 
