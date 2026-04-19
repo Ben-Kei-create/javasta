@@ -194,31 +194,32 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
     case weak
     case mistakes
     case unattempted
-    case examSprint
+    case mockExam
 
-    static let allCases: [QuizPracticeMode] = [.daily, .weak, .mistakes, .unattempted, .examSprint]
+    static let allCases: [QuizPracticeMode] = [.daily, .weak, .mistakes, .unattempted, .mockExam]
+    static let homeModes: [QuizPracticeMode] = [.daily, .unattempted]
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .single: return "単問チャレンジ"
-        case .daily: return "今日の10問"
+        case .daily: return "ランダム10問"
         case .weak: return "苦手克服"
         case .mistakes: return "ミスだけ復習"
         case .unattempted: return "未回答から"
-        case .examSprint: return "本番スプリント"
+        case .mockExam: return "模擬試験"
         }
     }
 
     var subtitle: String {
         switch self {
         case .single: return "選んだ問題を解く"
-        case .daily: return "範囲を混ぜてウォームアップ"
+        case .daily: return "毎回シャッフルして解く"
         case .weak: return "正答率が低いタグを優先"
         case .mistakes: return "間違えた問題を再挑戦"
         case .unattempted: return "新しい問題だけ進める"
-        case .examSprint: return "制限時間つきの集中練習"
+        case .mockExam: return "最後に合格ゾーンを判定"
         }
     }
 
@@ -229,7 +230,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
         case .weak: return "target"
         case .mistakes: return "arrow.counterclockwise"
         case .unattempted: return "circle.dashed"
-        case .examSprint: return "timer"
+        case .mockExam: return "graduationcap.fill"
         }
     }
 
@@ -240,7 +241,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
         case .weak: return 10
         case .mistakes: return 10
         case .unattempted: return 10
-        case .examSprint: return 20
+        case .mockExam: return 60
         }
     }
 }
@@ -251,17 +252,19 @@ struct QuizSession: Identifiable {
     let level: JavaLevel
     let version: JavaExamVersion
     let quizzes: [Quiz]
+    var customTitle: String? = nil
 
-    var title: String { mode.title }
+    var title: String { customTitle ?? mode.title }
     var subtitle: String { "\(level.displayName) / \(version.displayName)" }
     var icon: String { mode.icon }
 
     static func single(_ quiz: Quiz) -> QuizSession {
         QuizSession(
-            mode: .daily,
+            mode: .single,
             level: quiz.level,
             version: quiz.examVersion,
-            quizzes: [quiz]
+            quizzes: [quiz],
+            customTitle: "単問チャレンジ"
         )
     }
 }

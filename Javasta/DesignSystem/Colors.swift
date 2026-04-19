@@ -28,3 +28,4 @@ extension Color {
         self.init(.sRGB, red: r, green: g, blue: b)
     }
 }
+

@@ -34,15 +34,15 @@ enum QuestionBank {
         case .single:
             selected = Array(pool.prefix(1))
         case .daily:
-            selected = balanced(pool, limit: mode.limit)
+            selected = Array(pool.shuffled().prefix(min(mode.limit, pool.count)))
         case .weak:
             selected = weak(pool, progress: progress, limit: mode.limit)
         case .mistakes:
             selected = mistakes(pool, progress: progress, limit: mode.limit)
         case .unattempted:
             selected = unattempted(pool, progress: progress, limit: mode.limit)
-        case .examSprint:
-            selected = balanced(pool.shuffled(), limit: mode.limit)
+        case .mockExam:
+            selected = Array(pool.shuffled().prefix(min(mode.limit, pool.count)))
         }
 
         let fallback = balanced(pool, limit: mode.limit)

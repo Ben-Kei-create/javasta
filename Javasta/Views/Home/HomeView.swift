@@ -23,16 +23,15 @@ struct HomeView: View {
                         headerSection
                         commandCenter
                         practiceModesSection
-                        coverageSection
-                        weaknessSection
-                        ForEach(JavaLevel.allCases, id: \.self) { level in
-                            LevelSectionView(
-                                level: level,
-                                version: selectedVersion,
-                                quizzes: QuestionBank.quizzes(version: selectedVersion, level: level),
-                                onSelect: { activeSession = QuizSession.single($0) }
-                            )
-                        }
+                        LevelSectionView(
+                            level: selectedLevel,
+                            version: selectedVersion,
+                            quizzes: QuestionBank.quizzes(version: selectedVersion, level: selectedLevel),
+                            onSelect: { activeSession = QuizSession.single($0) },
+                            onStartSession: { activeSession = $0 }
+                        )
+                        .id(selectedLevel)
+                        .transition(.opacity.combined(with: .move(edge: .trailing)))
                     }
                     .padding(.bottom, Spacing.xxl)
                 }
@@ -155,7 +154,11 @@ struct HomeView: View {
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
-                Button(action: { selectedLevel = level }) {
+                Button(action: {
+                    withAnimation(.jbSpring) {
+                        selectedLevel = level
+                    }
+                }) {
                     Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
                         .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(selectedLevel == level ? .white : Color.jbSubtext)
@@ -178,7 +181,7 @@ struct HomeView: View {
             sectionHeader("練習を開始", trailing: "\(QuestionBank.quizzes(version: selectedVersion, level: selectedLevel).count)問")
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.sm) {
-                ForEach(QuizPracticeMode.allCases) { mode in
+                ForEach(QuizPracticeMode.homeModes) { mode in
                     PracticeModeCard(
                         mode: mode,
                         isPrimary: mode == .daily,
@@ -187,40 +190,6 @@ struct HomeView: View {
                 }
             }
             .padding(.horizontal, Spacing.md)
-        }
-    }
-
-    private var coverageSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            sectionHeader("試験範囲カバー", trailing: selectedVersion.displayName)
-            VStack(spacing: Spacing.xs) {
-                ForEach(QuestionBank.coverage(version: selectedVersion, level: selectedLevel), id: \.objective.id) { row in
-                    ObjectiveCoverageRow(objective: row.objective, count: row.count)
-                }
-            }
-            .padding(.horizontal, Spacing.md)
-        }
-    }
-
-    private var weaknessSection: some View {
-        let weakTags = progress.weakTags(limit: 4)
-        return VStack(alignment: .leading, spacing: Spacing.sm) {
-            sectionHeader("弱点インサイト", trailing: progress.answerHistory.isEmpty ? "未分析" : "\(weakTags.count)件")
-
-            if weakTags.isEmpty {
-                EmptyInsightRow()
-                    .padding(.horizontal, Spacing.md)
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: Spacing.sm) {
-                        ForEach(weakTags) { tag in
-                            WeakTagCard(summary: tag)
-                        }
-                    }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, 2)
-                }
-            }
         }
     }
 
@@ -345,118 +314,6 @@ private struct PracticeModeCard: View {
     }
 }
 
-// MARK: - ObjectiveCoverageRow
-
-private struct ObjectiveCoverageRow: View {
-    let objective: ExamObjective
-    let count: Int
-
-    private var countColor: Color {
-        if count == 0 { return Color.jbError }
-        if count < 3 { return Color.jbWarning }
-        return Color.jbSuccess
-    }
-
-    var body: some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: count == 0 ? "circle" : "checkmark.circle.fill")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(countColor)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(objective.title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.jbText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                Text(objective.category.displayName)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.jbSubtext)
-            }
-
-            Spacer()
-
-            Text("\(count)問")
-                .font(.system(size: 12, weight: .bold).monospacedDigit())
-                .foregroundStyle(countColor)
-                .frame(minWidth: 42, alignment: .trailing)
-        }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
-    }
-}
-
-// MARK: - WeakTagCard
-
-private struct WeakTagCard: View {
-    let summary: WeakTagSummary
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            HStack {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.jbWarning)
-                Spacer()
-                Text("\(summary.missRatePercent)%")
-                    .font(.system(size: 13, weight: .bold).monospacedDigit())
-                    .foregroundStyle(Color.jbWarning)
-            }
-            Text(summary.tag)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Color.jbText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.78)
-            Text("\(summary.misses)/\(summary.attempts) ミス")
-                .font(.system(size: 11))
-                .foregroundStyle(Color.jbSubtext)
-        }
-        .padding(Spacing.md)
-        .frame(width: 150, height: 96, alignment: .topLeading)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbWarning.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbWarning.opacity(0.35), lineWidth: 1)
-                )
-        )
-    }
-}
-
-// MARK: - EmptyInsightRow
-
-private struct EmptyInsightRow: View {
-    var body: some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: "sparkle.magnifyingglass")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.jbAccent)
-            Text("数問解くと、タグ単位で苦手が見えてきます")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(Color.jbSubtext)
-            Spacer()
-        }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
-    }
-}
-
 // MARK: - LevelSectionView
 
 struct LevelSectionView: View {
@@ -464,6 +321,7 @@ struct LevelSectionView: View {
     let version: JavaExamVersion
     let quizzes: [Quiz]
     let onSelect: (Quiz) -> Void
+    let onStartSession: (QuizSession) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -474,7 +332,12 @@ struct LevelSectionView: View {
                 LevelBadgeView(level: level)
                 Spacer()
                 NavigationLink {
-                    AllQuizzesView(level: level, version: version, onSelect: onSelect)
+                    AllQuizzesView(
+                        level: level,
+                        version: version,
+                        onSelect: onSelect,
+                        onStartSession: onStartSession
+                    )
                 } label: {
                     HStack(spacing: 2) {
                         Text("すべて見る")
@@ -560,6 +423,9 @@ struct QuizSheetView: View {
     @State private var currentQuiz: Quiz
     @State private var quizVM: QuizViewModel
     @State private var currentIndex: Int
+    @State private var scoredQuizIds: Set<String> = []
+    @State private var correctCount = 0
+    @State private var showSessionResult = false
     @State private var activeExplanation: Explanation?
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
@@ -578,42 +444,50 @@ struct QuizSheetView: View {
 
     var body: some View {
         NavigationStack {
-            QuizView(
-                vm: quizVM,
-                codeZoom: codeZoom,
-                onShowExplanation: {
-                    activeExplanation = Explanation.sample(for: currentQuiz.explanationRef)
-                },
-                onNextQuiz: { goToNextQuiz() },
-                nextButtonTitle: isLastQuiz ? "完了" : "次の問題"
-            )
-            .id(currentQuiz.id)
-            .navigationTitle(session.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("閉じる") { dismiss() }
-                        .foregroundStyle(Color.jbSubtext)
-                }
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 1) {
-                        Text(session.title)
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(Color.jbText)
-                        Text("\(currentIndex + 1) / \(session.quizzes.count) ・ \(currentQuiz.categoryDisplayName)")
-                            .font(.system(size: 10, weight: .medium))
+            if showSessionResult {
+                QuizSessionResultView(
+                    session: session,
+                    correctCount: correctCount,
+                    onClose: { dismiss() }
+                )
+            } else {
+                QuizView(
+                    vm: quizVM,
+                    codeZoom: codeZoom,
+                    onShowExplanation: {
+                        activeExplanation = Explanation.sample(for: currentQuiz.explanationRef)
+                    },
+                    onNextQuiz: { goToNextQuiz() },
+                    nextButtonTitle: isLastQuiz ? "完了" : "次の問題"
+                )
+                .id(currentQuiz.id)
+                .navigationTitle(session.title)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("閉じる") { dismiss() }
                             .foregroundStyle(Color.jbSubtext)
                     }
+                    ToolbarItem(placement: .principal) {
+                        VStack(spacing: 1) {
+                            Text(session.title)
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(Color.jbText)
+                            Text("\(currentIndex + 1) / \(session.quizzes.count) ・ \(currentQuiz.categoryDisplayName)")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(Color.jbSubtext)
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        LevelBadgeView(
+                            level: currentQuiz.level,
+                            zoomPercent: CodeZoom.percent(codeZoom),
+                            onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
+                        )
+                    }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    LevelBadgeView(
-                        level: currentQuiz.level,
-                        zoomPercent: CodeZoom.percent(codeZoom),
-                        onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
-                    )
-                }
+                .sensoryFeedback(.selection, trigger: codeZoom)
             }
-            .sensoryFeedback(.selection, trigger: codeZoom)
         }
         .fullScreenCover(item: $activeExplanation) { explanation in
             ExplanationView(explanation: explanation, level: currentQuiz.level, onDismiss: { activeExplanation = nil })
@@ -625,8 +499,15 @@ struct QuizSheetView: View {
     }
 
     private func goToNextQuiz() {
+        captureCurrentScore()
         guard !isLastQuiz else {
-            dismiss()
+            if session.mode == .mockExam {
+                withAnimation(.jbSpring) {
+                    showSessionResult = true
+                }
+            } else {
+                dismiss()
+            }
             return
         }
         let nextIndex = currentIndex + 1
@@ -634,5 +515,129 @@ struct QuizSheetView: View {
         currentIndex = nextIndex
         currentQuiz = next
         quizVM = QuizViewModel(quiz: next)
+    }
+
+    private func captureCurrentScore() {
+        guard !scoredQuizIds.contains(currentQuiz.id), quizVM.isAnswered else { return }
+        scoredQuizIds.insert(currentQuiz.id)
+        if quizVM.isCorrect {
+            correctCount += 1
+        }
+    }
+}
+
+// MARK: - QuizSessionResultView
+
+private struct QuizSessionResultView: View {
+    let session: QuizSession
+    let correctCount: Int
+    let onClose: () -> Void
+
+    private var totalCount: Int { max(session.quizzes.count, 1) }
+    private var scorePercent: Int {
+        Int((Double(correctCount) / Double(totalCount) * 100).rounded())
+    }
+    private var isPassing: Bool { scorePercent >= 65 }
+
+    var body: some View {
+        ZStack {
+            Color.jbBackground.ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                Spacer(minLength: Spacing.lg)
+
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    HStack {
+                        Image(systemName: isPassing ? "checkmark.seal.fill" : "chart.bar.fill")
+                            .font(.system(size: 30, weight: .bold))
+                            .foregroundStyle(isPassing ? Color.jbSuccess : Color.jbWarning)
+                        Spacer()
+                        LevelBadgeView(level: session.level)
+                    }
+
+                    Text(isPassing ? "合格ゾーン" : "もう少しで合格ゾーン")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(Color.jbText)
+
+                    Text("\(session.version.examCode(for: session.level)) の目安として 65% 以上を合格ゾーンにしています。")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.jbSubtext)
+                        .lineSpacing(4)
+
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text("\(scorePercent)")
+                            .font(.system(size: 54, weight: .heavy).monospacedDigit())
+                            .foregroundStyle(isPassing ? Color.jbSuccess : Color.jbWarning)
+                        Text("%")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(Color.jbSubtext)
+                    }
+
+                    HStack(spacing: Spacing.sm) {
+                        ResultMetric(title: "正解", value: "\(correctCount)問", color: Color.jbSuccess)
+                        ResultMetric(title: "出題", value: "\(session.quizzes.count)問", color: Color.jbAccent)
+                        ResultMetric(title: "基準", value: "65%", color: Color.jbWarning)
+                    }
+                }
+                .padding(Spacing.lg)
+                .background(
+                    RoundedRectangle(cornerRadius: Radius.md)
+                        .fill(Color.jbCard)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .stroke(isPassing ? Color.jbSuccess.opacity(0.35) : Color.jbWarning.opacity(0.35), lineWidth: 1.5)
+                        )
+                )
+
+                Button(action: onClose) {
+                    HStack {
+                        Text("閉じる")
+                            .font(.system(size: 15, weight: .bold))
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .fill(isPassing ? Color.jbSuccess : Color.jbAccent)
+                    )
+                }
+
+                Spacer(minLength: Spacing.xl)
+            }
+            .padding(Spacing.md)
+        }
+        .navigationBarBackButtonHidden(true)
+    }
+}
+
+private struct ResultMetric: View {
+    let title: String
+    let value: String
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(value)
+                .font(.system(size: 18, weight: .bold).monospacedDigit())
+                .foregroundStyle(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Color.jbSubtext)
+        }
+        .padding(Spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.sm)
+                .fill(Color.jbBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.sm)
+                        .stroke(Color.jbBorder, lineWidth: 1)
+                )
+        )
     }
 }
