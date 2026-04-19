@@ -62,7 +62,7 @@ extension Quiz {
         silverJavaBasics002,
         silverArray002,
         silverPolymorphism001,
-    ] + goldExpansion
+    ] + goldExpansion + silverExpansion + mixedExpansion
     
     
     

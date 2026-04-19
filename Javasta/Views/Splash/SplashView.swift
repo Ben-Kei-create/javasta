@@ -3,217 +3,275 @@ import SwiftUI
 struct SplashView: View {
     var onFinish: () -> Void
 
-    private let fullCode = """
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("Javasta");
-    }
-}
-"""
-
-    @State private var typedCount: Int = 0
-    @State private var cursorOn: Bool = true
-    @State private var showLogo: Bool = false
-    @State private var fadeOut: Bool = false
-
-    private var typedPrefix: String {
-        let end = fullCode.index(fullCode.startIndex, offsetBy: min(typedCount, fullCode.count))
-        return String(fullCode[..<end])
+    private enum Stage: Int {
+        case boot
+        case compile
+        case link
+        case reveal
+        case ready
     }
 
-    private var lines: [String] {
-        let prefix = typedPrefix
-        let split = prefix.components(separatedBy: "\n")
-        if split.isEmpty { return [""] }
-        return split
-    }
+    @State private var stage: Stage = .boot
+    @State private var pulse = false
+    @State private var fadeOut = false
 
     var body: some View {
-        ZStack {
-            Color.jbBackground.ignoresSafeArea()
+        GeometryReader { proxy in
+            let size = proxy.size
+            let compactHeight = size.height < 700
 
-            VStack(spacing: Spacing.md) {
-                Spacer(minLength: Spacing.xl)
+            ZStack {
+                Color.jbBackground.ignoresSafeArea()
+                backgroundGrid
 
-                editorWindow
+                VStack(spacing: compactHeight ? 18 : 26) {
+                    Spacer(minLength: compactHeight ? 18 : 44)
 
-                if showLogo {
-                    logoBlock
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    launchConsole(compactHeight: compactHeight)
+                        .frame(maxWidth: min(size.width - 32, 520))
+                        .opacity(stage.rawValue >= Stage.compile.rawValue ? 1 : 0)
+                        .offset(y: stage.rawValue >= Stage.compile.rawValue ? 0 : 14)
+
+                    logoLockup(width: size.width, compactHeight: compactHeight)
+                        .padding(.top, compactHeight ? 0 : 4)
+
+                    statusPill
+                        .opacity(stage.rawValue >= Stage.ready.rawValue ? 1 : 0)
+                        .offset(y: stage.rawValue >= Stage.ready.rawValue ? 0 : 8)
+
+                    Spacer(minLength: compactHeight ? 18 : 44)
                 }
-
-                Spacer()
+                .padding(.horizontal, Spacing.md)
             }
-            .padding(.horizontal, Spacing.md)
         }
         .opacity(fadeOut ? 0 : 1)
         .preferredColorScheme(.dark)
         .task {
             await runAnimation()
         }
-        .onAppear {
-            startCursorBlink()
+    }
+
+    // MARK: - Background
+
+    private var backgroundGrid: some View {
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let height = proxy.size.height
+
+            Canvas { context, _ in
+                var path = Path()
+                for x in stride(from: 0, through: width, by: 28) {
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: height))
+                }
+                for y in stride(from: 0, through: height, by: 28) {
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: width, y: y))
+                }
+                context.stroke(path, with: .color(Color.jbBorder.opacity(0.18)), lineWidth: 0.6)
+            }
+            .mask(
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.65), .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .ignoresSafeArea()
+
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.jbAccent.opacity(0.12),
+                            Color.clear,
+                            Color.jbSyntaxType.opacity(0.08)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .ignoresSafeArea()
         }
     }
 
-    // MARK: - Editor window
+    // MARK: - Launch console
 
-    private var editorWindow: some View {
+    private func launchConsole(compactHeight: Bool) -> some View {
         VStack(spacing: 0) {
             titleBar
             Rectangle().fill(Color.jbBorder).frame(height: 1)
-            codeArea
+
+            VStack(alignment: .leading, spacing: compactHeight ? 8 : 10) {
+                launchLine(
+                    symbol: "terminal.fill",
+                    text: "javac JavaSta.java",
+                    tint: Color.jbSyntaxType,
+                    isActive: stage.rawValue >= Stage.compile.rawValue
+                )
+                launchLine(
+                    symbol: "checkmark.seal.fill",
+                    text: "BUILD SUCCESS",
+                    tint: Color.jbSuccess,
+                    isActive: stage.rawValue >= Stage.link.rawValue
+                )
+                launchLine(
+                    symbol: "play.fill",
+                    text: "java JavaSta",
+                    tint: Color.jbAccent,
+                    isActive: stage.rawValue >= Stage.reveal.rawValue
+                )
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, compactHeight ? 12 : 16)
         }
-        .background(Color.jbCard)
+        .background(Color.jbCard.opacity(0.92))
         .clipShape(RoundedRectangle(cornerRadius: Radius.md))
         .overlay(
             RoundedRectangle(cornerRadius: Radius.md)
                 .stroke(Color.jbBorder, lineWidth: 1)
         )
+        .shadow(color: Color.black.opacity(0.28), radius: 18, x: 0, y: 14)
+        .animation(.jbFast, value: stage)
     }
 
     private var titleBar: some View {
         HStack(spacing: Spacing.sm) {
-            Circle().fill(Color(hex: "FF5F57")).frame(width: 11, height: 11)
-            Circle().fill(Color(hex: "FEBC2E")).frame(width: 11, height: 11)
-            Circle().fill(Color(hex: "28C840")).frame(width: 11, height: 11)
+            Circle().fill(Color(hex: "FF5F57")).frame(width: 10, height: 10)
+            Circle().fill(Color(hex: "FEBC2E")).frame(width: 10, height: 10)
+            Circle().fill(Color(hex: "28C840")).frame(width: 10, height: 10)
 
             Spacer()
 
-            HStack(spacing: 6) {
-                Image(systemName: "doc.text.fill")
-                    .font(.system(size: 10))
-                    .foregroundStyle(Color.jbSyntaxType)
-                Text("Main.java")
-                    .font(.codeFont(11))
-                    .foregroundStyle(Color.jbText)
-            }
+            Label("Launch.java", systemImage: "chevron.left.forwardslash.chevron.right")
+                .font(.codeFont(11))
+                .foregroundStyle(Color.jbSubtext)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
 
             Spacer()
 
-            Color.clear.frame(width: 33, height: 1)
+            Color.clear.frame(width: 30, height: 1)
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, 10)
     }
 
-    private var codeArea: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(lines.enumerated()), id: \.offset) { idx, lineText in
-                let isLast = idx == lines.count - 1
-                HStack(spacing: 0) {
-                    Text("\(idx + 1)")
-                        .font(.codeFont(11))
-                        .foregroundStyle(Color.jbSubtext)
-                        .frame(width: 28, alignment: .trailing)
-                        .padding(.trailing, Spacing.sm)
+    private func launchLine(symbol: String, text: String, tint: Color, isActive: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(isActive ? tint : Color.jbSubtext.opacity(0.35))
+                .frame(width: 18)
 
-                    Rectangle().fill(Color.jbBorder).frame(width: 1)
+            Text(text)
+                .font(.codeFont(13))
+                .foregroundStyle(isActive ? Color.jbText : Color.jbSubtext.opacity(0.42))
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
 
-                    HStack(spacing: 0) {
-                        tokenizedLine(lineText)
-                        if isLast { cursor }
-                    }
-                    .padding(.leading, Spacing.md)
+            Spacer(minLength: Spacing.sm)
 
-                    Spacer(minLength: 0)
-                }
-                .frame(height: 22)
-            }
-        }
-        .padding(.vertical, Spacing.sm)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func tokenizedLine(_ line: String) -> some View {
-        let tokens = JavaTokenizer.tokenize(line).first ?? []
-        return HStack(spacing: 0) {
-            ForEach(Array(tokens.enumerated()), id: \.offset) { _, token in
-                Text(token.text)
-                    .font(.codeFont(13))
-                    .foregroundStyle(tokenColor(token.kind))
+            if isActive {
+                Capsule()
+                    .fill(tint)
+                    .frame(width: 28, height: 3)
+                    .transition(.scale.combined(with: .opacity))
             }
         }
     }
 
-    private var cursor: some View {
-        Rectangle()
-            .fill(Color.jbAccent)
-            .frame(width: 8, height: 16)
-            .opacity(cursorOn ? 1 : 0)
-    }
+    // MARK: - Logo
 
-    private func tokenColor(_ kind: CodeToken.Kind) -> Color {
-        switch kind {
-        case .keyword: return .jbSyntaxKeyword
-        case .type:    return .jbSyntaxType
-        case .method:  return .jbSyntaxMethod
-        case .string:  return .jbSyntaxString
-        case .number:  return .jbSyntaxNumber
-        case .comment: return .jbSyntaxComment
-        case .plain:   return .jbText
+    private func logoLockup(width: CGFloat, compactHeight: Bool) -> some View {
+        let logoSize = min(max(width * 0.17, 48), compactHeight ? 74 : 88)
+
+        return VStack(spacing: compactHeight ? 8 : 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                Text("Java")
+                    .foregroundStyle(Color.jbText)
+                Text("Sta")
+                    .foregroundStyle(Color.jbAccent)
+            }
+            .font(.system(size: logoSize, weight: .black, design: .rounded))
+            .lineLimit(1)
+            .minimumScaleFactor(0.58)
+            .allowsTightening(true)
+            .shadow(color: Color.jbAccent.opacity(stage.rawValue >= Stage.reveal.rawValue ? 0.36 : 0), radius: 18, x: 0, y: 0)
+            .scaleEffect(stage.rawValue >= Stage.reveal.rawValue ? 1 : 0.92)
+            .opacity(stage.rawValue >= Stage.reveal.rawValue ? 1 : 0)
+            .overlay(alignment: .bottom) {
+                Capsule()
+                    .fill(Color.jbAccent)
+                    .frame(width: stage.rawValue >= Stage.ready.rawValue ? min(width * 0.38, 180) : 0, height: 4)
+                    .offset(y: compactHeight ? 6 : 8)
+            }
+
+            HStack(spacing: 8) {
+                Text("SILVER")
+                Text("/")
+                    .foregroundStyle(Color.jbSubtext)
+                Text("GOLD")
+            }
+            .font(.system(size: 11, weight: .bold).monospacedDigit())
+            .tracking(3)
+            .foregroundStyle(Color.jbSubtext)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .opacity(stage.rawValue >= Stage.ready.rawValue ? 1 : 0)
         }
+        .padding(.vertical, compactHeight ? 4 : 10)
+        .animation(.spring(response: 0.58, dampingFraction: 0.78), value: stage)
     }
 
-    // MARK: - Logo block
+    private var statusPill: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(Color.jbSuccess)
+                .frame(width: 7, height: 7)
+                .scaleEffect(pulse ? 1.35 : 0.85)
+                .opacity(pulse ? 0.45 : 1)
 
-    private var logoBlock: some View {
-        VStack(spacing: 4) {
-            Text("ジャバスタ")
-                .font(.system(size: 28, weight: .heavy))
+            Text("READY FOR PRACTICE")
+                .font(.system(size: 11, weight: .bold).monospacedDigit())
+                .tracking(2)
                 .foregroundStyle(Color.jbText)
-            Text("JAVASTA")
-                .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                .foregroundStyle(Color.jbAccent)
-                .tracking(4)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
-        .padding(.top, Spacing.lg)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+        .background(Color.jbCard.opacity(0.72))
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(Color.jbBorder, lineWidth: 1)
+        )
+        .animation(.easeInOut(duration: 0.75).repeatForever(autoreverses: true), value: pulse)
     }
 
     // MARK: - Animation
 
     private func runAnimation() async {
-        // Brief opening delay
-        try? await Task.sleep(nanoseconds: 250_000_000)
+        pulse = true
 
-        for index in 0...fullCode.count {
-            typedCount = index
-            let ch = index > 0
-                ? fullCode[fullCode.index(fullCode.startIndex, offsetBy: index - 1)]
-                : Character(" ")
-            // Variable typing speed: pauses on newlines look natural
-            let delay: UInt64
-            switch ch {
-            case "\n":   delay = 90_000_000
-            case " ":    delay = 18_000_000
-            case "{", "}", ";": delay = 70_000_000
-            default:     delay = 28_000_000
-            }
-            try? await Task.sleep(nanoseconds: delay)
-        }
+        try? await Task.sleep(nanoseconds: 180_000_000)
+        withAnimation(.jbFast) { stage = .compile }
 
-        // After typing finishes, reveal logo
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
-            showLogo = true
-        }
+        try? await Task.sleep(nanoseconds: 360_000_000)
+        withAnimation(.jbFast) { stage = .link }
 
-        // Hold for a moment, then fade out
-        try? await Task.sleep(nanoseconds: 900_000_000)
-        withAnimation(.easeInOut(duration: 0.45)) {
-            fadeOut = true
-        }
-        try? await Task.sleep(nanoseconds: 470_000_000)
+        try? await Task.sleep(nanoseconds: 320_000_000)
+        withAnimation(.spring(response: 0.48, dampingFraction: 0.78)) { stage = .reveal }
+
+        try? await Task.sleep(nanoseconds: 420_000_000)
+        withAnimation(.jbSpring) { stage = .ready }
+
+        try? await Task.sleep(nanoseconds: 760_000_000)
+        withAnimation(.easeInOut(duration: 0.38)) { fadeOut = true }
+
+        try? await Task.sleep(nanoseconds: 400_000_000)
         onFinish()
-    }
-
-    private func startCursorBlink() {
-        Task {
-            while !fadeOut {
-                try? await Task.sleep(nanoseconds: 500_000_000)
-                cursorOn.toggle()
-            }
-        }
     }
 }
 
