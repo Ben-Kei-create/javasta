@@ -52,9 +52,9 @@ enum JavaTokenizer {
         var word = ""
         var i = text.startIndex
 
-        func flush() {
+        func flush(nextChar: Character? = nil) {
             guard !word.isEmpty else { return }
-            tokens.append(CodeToken(text: word, kind: classify(word)))
+            tokens.append(CodeToken(text: word, kind: classify(word, nextChar: nextChar)))
             word = ""
         }
 
@@ -81,21 +81,46 @@ enum JavaTokenizer {
                 }
                 tokens.append(CodeToken(text: n, kind: .number))
             } else {
-                flush()
+                flush(nextChar: c)
                 tokens.append(CodeToken(text: String(c), kind: .plain))
                 i = text.index(after: i)
             }
         }
         flush()
-        return tokens
+        return postProcess(tokens)
     }
 
-    private static func classify(_ word: String) -> CodeToken.Kind {
+    private static func classify(_ word: String, nextChar: Character? = nil) -> CodeToken.Kind {
         if keywords.contains(word)   { return .keyword }
         if primitives.contains(word) { return .type }
         if stdTypes.contains(word)   { return .type }
         if word.first?.isUppercase == true { return .type }
+        if nextChar == "(" { return .method }
         return .plain
+    }
+
+    /// ジェネリクスのワイルドカード `?` や型パラメータを補正（plain → typeParam）
+    /// `< T >`, `<? extends Number>`, `<T, U>` の中の識別子を type として扱う。
+    private static func postProcess(_ tokens: [CodeToken]) -> [CodeToken] {
+        var result = tokens
+        var depth = 0
+        for idx in 0..<result.count {
+            let t = result[idx]
+            if t.kind == .plain && t.text == "<" {
+                depth += 1
+            } else if t.kind == .plain && t.text == ">" {
+                depth = max(0, depth - 1)
+            } else if depth > 0, t.kind == .plain {
+                if t.text == "?" {
+                    result[idx] = CodeToken(text: t.text, kind: .type)
+                } else if let first = t.text.first, first.isLetter,
+                          t.text.count == 1 || t.text.allSatisfy({ $0.isUppercase || $0.isNumber }) {
+                    // T, K, V, T1 などの型パラメータ
+                    result[idx] = CodeToken(text: t.text, kind: .type)
+                }
+            }
+        }
+        return result
     }
 }
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ExplanationView: View {
     @State private var vm: ExplanationViewModel
+    @State private var activeLesson: Lesson?
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     let level: JavaLevel
     var onDismiss: () -> Void
@@ -77,6 +78,18 @@ struct ExplanationView: View {
         }
         .preferredColorScheme(.dark)
         .sensoryFeedback(.selection, trigger: codeZoom)
+        .sheet(item: $activeLesson) { lesson in
+            NavigationStack {
+                LessonDetailView(lesson: lesson)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("閉じる") { activeLesson = nil }
+                                .foregroundStyle(Color.jbSubtext)
+                        }
+                    }
+            }
+            .preferredColorScheme(.dark)
+        }
     }
 
     // MARK: Header
@@ -135,7 +148,9 @@ struct ExplanationView: View {
             }
             .disabled(!vm.canGoBack)
 
-            Button(action: vm.goForward) {
+            Button(action: {
+                if vm.isComplete { onDismiss() } else { vm.goForward() }
+            }) {
                 HStack(spacing: 4) {
                     Text(vm.isComplete ? "完了" : "進む")
                     Image(systemName: vm.isComplete ? "checkmark" : "chevron.right")
@@ -163,19 +178,54 @@ struct ExplanationView: View {
     // MARK: Completion
 
     private var completionBanner: some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(Color.jbSuccess)
-                .font(.system(size: 20))
-            VStack(alignment: .leading, spacing: 2) {
-                Text("ステップ完走")
-                    .font(.system(size: 14, weight: .bold))
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(Color.jbSuccess)
-                Text("コードの流れを理解できました")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.jbSubtext)
+                    .font(.system(size: 20))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("ステップ完走")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.jbSuccess)
+                    Text("コードの流れを理解できました")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.jbSubtext)
+                }
+                Spacer()
             }
-            Spacer()
+
+            if let lessonId = vm.explanation.relatedLessonId,
+               let lesson = Lesson.sample(for: lessonId) {
+                Button(action: { activeLesson = lesson }) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: "book.fill")
+                            .font(.system(size: 14))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("詳しく学ぶ: \(lesson.title)")
+                                .font(.system(size: 13, weight: .semibold))
+                            Text("\(lesson.estimatedMinutes)分のレッスン")
+                                .font(.system(size: 11))
+                                .foregroundStyle(Color.jbSubtext)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.jbSubtext)
+                    }
+                    .foregroundStyle(Color.jbAccent)
+                    .padding(Spacing.sm)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .fill(Color.jbBackground)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Radius.sm)
+                                    .stroke(Color.jbAccent.opacity(0.4), lineWidth: 1)
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(Spacing.md)
         .background(

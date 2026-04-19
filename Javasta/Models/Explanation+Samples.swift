@@ -3,9 +3,14 @@ import Foundation
 extension Explanation {
     static func sample(for ref: String) -> Explanation? {
         switch ref {
-        case "explain-silver-overload-001":  return silverOverload001
-        case "explain-silver-exception-001": return silverException001
-        case "explain-gold-generics-001":    return goldGenerics001
+        case "explain-silver-overload-001":   return silverOverload001
+        case "explain-silver-exception-001":  return silverException001
+        case "explain-silver-string-001":     return silverString001
+        case "explain-silver-autoboxing-001": return silverAutoboxing001
+        case "explain-silver-switch-001":     return silverSwitch001
+        case "explain-gold-generics-001":     return goldGenerics001
+        case "explain-gold-stream-001":       return goldStream001
+        case "explain-gold-optional-001":     return goldOptional001
         default: return nil
         }
     }
@@ -14,6 +19,7 @@ extension Explanation {
 
     static let silverOverload001 = Explanation(
         id: "explain-silver-overload-001",
+        relatedLessonId: "lesson-overload-resolution",
         initialCode: """
 public class Test {
     static void print(int x) {
@@ -82,6 +88,7 @@ public class Test {
 
     static let silverException001 = Explanation(
         id: "explain-silver-exception-001",
+        relatedLessonId: "lesson-finally-and-return",
         initialCode: """
 public class Test {
     static int calc() {
@@ -144,6 +151,7 @@ public class Test {
 
     static let goldGenerics001 = Explanation(
         id: "explain-gold-generics-001",
+        relatedLessonId: "lesson-bounded-wildcards",
         initialCode: """
 import java.util.*;
 
@@ -243,6 +251,342 @@ public class Test {
                  highlightLines: [13],
                  variables: [Variable(name: "ints", type: "List<Integer>", value: "[1, 2, 3]", scope: "main")],
                  callStack: [CallStackFrame(method: "main", line: 13)],
+                 heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Silver: 文字列比較
+
+    static let silverString001 = Explanation(
+        id: "explain-silver-string-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        String a = "hello";
+        String b = "hello";
+        String c = new String("hello");
+        System.out.println((a == b) + " " + (a == c));
+    }
+}
+""",
+        steps: [
+            Step(index: 0,
+                 narration: "main開始。String a = \"hello\" でリテラル \"hello\" が文字列定数プールに格納され、aはその参照を保持します。",
+                 highlightLines: [3],
+                 variables: [Variable(name: "a", type: "String", value: "\"hello\" (pool@1)", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 3)],
+                 heap: [Explanation.HeapObject(id: "pool@1", type: "String", fields: ["value": "\"hello\""])],
+                 predict: nil),
+
+            Step(index: 1,
+                 narration: "String b = \"hello\" を実行。同じリテラルなので、新しいオブジェクトは作られず、bはプール内の同じ参照を共有します。",
+                 highlightLines: [4],
+                 variables: [
+                    Variable(name: "a", type: "String", value: "\"hello\" (pool@1)", scope: "main"),
+                    Variable(name: "b", type: "String", value: "\"hello\" (pool@1)", scope: "main"),
+                 ],
+                 callStack: [CallStackFrame(method: "main", line: 4)],
+                 heap: [Explanation.HeapObject(id: "pool@1", type: "String", fields: ["value": "\"hello\""])],
+                 predict: PredictPrompt(
+                    question: "a == b の結果は？",
+                    choices: ["true（同じ参照）", "false（別オブジェクト）"],
+                    answerIndex: 0,
+                    hint: "リテラルはプールで共有される",
+                    afterExplanation: "同じリテラルはプール内で共有されるため、a と b は同じ参照を持ちます。a == b は true。"
+                 )),
+
+            Step(index: 2,
+                 narration: "String c = new String(\"hello\") を実行。new はヒープ上に新しい String オブジェクトを生成します。プール内の \"hello\" とは別の参照です。",
+                 highlightLines: [5],
+                 variables: [
+                    Variable(name: "a", type: "String", value: "\"hello\" (pool@1)", scope: "main"),
+                    Variable(name: "b", type: "String", value: "\"hello\" (pool@1)", scope: "main"),
+                    Variable(name: "c", type: "String", value: "\"hello\" (heap@2)", scope: "main"),
+                 ],
+                 callStack: [CallStackFrame(method: "main", line: 5)],
+                 heap: [
+                    Explanation.HeapObject(id: "pool@1", type: "String", fields: ["value": "\"hello\""]),
+                    Explanation.HeapObject(id: "heap@2", type: "String", fields: ["value": "\"hello\""]),
+                 ],
+                 predict: PredictPrompt(
+                    question: "a == c の結果は？",
+                    choices: ["true（中身が同じ）", "false（別オブジェクト）"],
+                    answerIndex: 1,
+                    hint: "== は参照比較。new で別オブジェクト",
+                    afterExplanation: "== は参照比較なので、別オブジェクトの a と c は false。中身を比較するなら equals() を使う。"
+                 )),
+
+            Step(index: 3,
+                 narration: "println で結果を出力。a==b は true、a==c は false、これらが連結されて \"true false\" が出力されます。",
+                 highlightLines: [6],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 6)],
+                 heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Silver: オートボクシングとIntegerキャッシュ
+
+    static let silverAutoboxing001 = Explanation(
+        id: "explain-silver-autoboxing-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        Integer a = 100;
+        Integer b = 100;
+        Integer c = 200;
+        Integer d = 200;
+        System.out.println((a == b) + " " + (c == d));
+    }
+}
+""",
+        steps: [
+            Step(index: 0,
+                 narration: "Integer a = 100 で int リテラルが Integer.valueOf(100) によりオートボクシングされます。100 は -128〜127 のキャッシュ範囲内のため、JVM 内部のキャッシュから既存のオブジェクトが返されます。",
+                 highlightLines: [3],
+                 variables: [Variable(name: "a", type: "Integer", value: "100 (cache@100)", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 3)],
+                 heap: [], predict: nil),
+
+            Step(index: 1,
+                 narration: "Integer b = 100 も同じ valueOf(100) を呼び出し、同じキャッシュオブジェクトを返します。a と b は同じ参照。",
+                 highlightLines: [4],
+                 variables: [
+                    Variable(name: "a", type: "Integer", value: "100 (cache@100)", scope: "main"),
+                    Variable(name: "b", type: "Integer", value: "100 (cache@100)", scope: "main"),
+                 ],
+                 callStack: [CallStackFrame(method: "main", line: 4)],
+                 heap: [], predict: nil),
+
+            Step(index: 2,
+                 narration: "Integer c = 200 を実行。200 はキャッシュ範囲外のため、毎回 new Integer(200) 相当の新しいオブジェクトが作られます。",
+                 highlightLines: [5],
+                 variables: [
+                    Variable(name: "a", type: "Integer", value: "100 (cache@100)", scope: "main"),
+                    Variable(name: "b", type: "Integer", value: "100 (cache@100)", scope: "main"),
+                    Variable(name: "c", type: "Integer", value: "200 (heap@x)", scope: "main"),
+                 ],
+                 callStack: [CallStackFrame(method: "main", line: 5)],
+                 heap: [], predict: nil),
+
+            Step(index: 3,
+                 narration: "Integer d = 200 も同様に、別の新しい Integer オブジェクトを作成します。",
+                 highlightLines: [6],
+                 variables: [
+                    Variable(name: "c", type: "Integer", value: "200 (heap@x)", scope: "main"),
+                    Variable(name: "d", type: "Integer", value: "200 (heap@y)", scope: "main"),
+                 ],
+                 callStack: [CallStackFrame(method: "main", line: 6)],
+                 heap: [],
+                 predict: PredictPrompt(
+                    question: "(a == b) と (c == d) はそれぞれ何になる？",
+                    choices: ["true / true", "true / false", "false / true", "false / false"],
+                    answerIndex: 1,
+                    hint: "Integerキャッシュの範囲は -128〜127",
+                    afterExplanation: "100 はキャッシュ共有で同じ参照（true）、200 はキャッシュ範囲外で別オブジェクト（false）。出力は \"true false\"。"
+                 )),
+
+            Step(index: 4,
+                 narration: "println で \"true false\" が出力されます。Wrapper同士の == は危険。値比較は必ず equals() を使う。",
+                 highlightLines: [7],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 7)],
+                 heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Silver: switchフォールスルー
+
+    static let silverSwitch001 = Explanation(
+        id: "explain-silver-switch-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int x = 2;
+        switch (x) {
+            case 1: System.out.print("A");
+            case 2: System.out.print("B");
+            case 3: System.out.print("C");
+                break;
+            case 4: System.out.print("D");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0,
+                 narration: "x = 2 で switch (x) を評価します。x の値 2 にマッチする case 2: から実行を開始します。",
+                 highlightLines: [3, 4],
+                 variables: [Variable(name: "x", type: "int", value: "2", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 4)],
+                 heap: [], predict: nil),
+
+            Step(index: 1,
+                 narration: "case 2: にジャンプ。System.out.print(\"B\") で \"B\" を出力します。",
+                 highlightLines: [6],
+                 variables: [Variable(name: "x", type: "int", value: "2", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 6)],
+                 heap: [],
+                 predict: PredictPrompt(
+                    question: "case 2: の末尾には break がない。次に何が起こる？",
+                    choices: ["switch を抜けて終了", "case 3: に流れ落ちる（フォールスルー）", "コンパイルエラー"],
+                    answerIndex: 1,
+                    hint: "switch文は break で明示的に抜けない限り続く",
+                    afterExplanation: "break がない case はそのまま次の case の処理に流れ込みます。これを「フォールスルー」と呼びます。"
+                 )),
+
+            Step(index: 2,
+                 narration: "break がないため case 3: に流れ落ちます。System.out.print(\"C\") で \"C\" を出力します。",
+                 highlightLines: [7],
+                 variables: [Variable(name: "x", type: "int", value: "2", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 7)],
+                 heap: [], predict: nil),
+
+            Step(index: 3,
+                 narration: "case 3: の break; に到達。switch ブロックを抜けます。case 4: には到達しません。\n\n出力結果: \"BC\"",
+                 highlightLines: [8],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 8)],
+                 heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Gold: Stream API
+
+    static let goldStream001 = Explanation(
+        id: "explain-gold-stream-001",
+        initialCode: """
+import java.util.*;
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<Integer> nums = List.of(1, 2, 3, 4, 5);
+        int result = nums.stream()
+            .filter(n -> n % 2 == 0)
+            .mapToInt(Integer::intValue)
+            .sum();
+        System.out.println(result);
+    }
+}
+""",
+        steps: [
+            Step(index: 0,
+                 narration: "List.of(1, 2, 3, 4, 5) で不変リストを生成。nums がその参照を保持します。",
+                 highlightLines: [6],
+                 variables: [Variable(name: "nums", type: "List<Integer>", value: "[1, 2, 3, 4, 5]", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 6)],
+                 heap: [], predict: nil),
+
+            Step(index: 1,
+                 narration: "nums.stream() で Stream<Integer> を作成。この時点では何も計算されません（中間操作は遅延評価）。",
+                 highlightLines: [7],
+                 variables: [Variable(name: "nums", type: "List<Integer>", value: "[1, 2, 3, 4, 5]", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 7)],
+                 heap: [], predict: nil),
+
+            Step(index: 2,
+                 narration: ".filter(n -> n % 2 == 0) は中間操作。条件「nが偶数」を満たす要素だけ通すパイプラインを構築しますが、まだ実行されません。",
+                 highlightLines: [8],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 8)],
+                 heap: [],
+                 predict: PredictPrompt(
+                    question: "filter はこの時点で実行される？",
+                    choices: ["される（即評価）", "されない（遅延評価）"],
+                    answerIndex: 1,
+                    hint: "Streamは終端操作が呼ばれるまで動かない",
+                    afterExplanation: "中間操作（filter, map等）はパイプラインを組み立てるだけ。終端操作（sum, collect等）が呼ばれて初めて実行されます。"
+                 )),
+
+            Step(index: 3,
+                 narration: ".mapToInt(Integer::intValue) で Stream<Integer> を IntStream に変換するパイプラインを追加。これも中間操作で遅延評価。",
+                 highlightLines: [9],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 9)],
+                 heap: [], predict: nil),
+
+            Step(index: 4,
+                 narration: ".sum() は終端操作。ここで初めてパイプライン全体が実行されます。各要素について filter→mapToInt→加算が順に行われます。",
+                 highlightLines: [10],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 10)],
+                 heap: [], predict: nil),
+
+            Step(index: 5,
+                 narration: "実行: 1（奇数→除外）、2（偶数→2）、3（除外）、4（4）、5（除外）。残った [2, 4] を sum して 6 になります。",
+                 highlightLines: [10],
+                 variables: [Variable(name: "result", type: "int", value: "6", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 10)],
+                 heap: [], predict: nil),
+
+            Step(index: 6,
+                 narration: "println(6) で \"6\" が出力されます。\n\n出力結果: \"6\"",
+                 highlightLines: [11],
+                 variables: [Variable(name: "result", type: "int", value: "6", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 11)],
+                 heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Gold: Optional
+
+    static let goldOptional001 = Explanation(
+        id: "explain-gold-optional-001",
+        initialCode: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        String s = null;
+        String result = Optional.ofNullable(s)
+            .map(String::toUpperCase)
+            .orElse("DEFAULT");
+        System.out.println(result);
+    }
+}
+""",
+        steps: [
+            Step(index: 0,
+                 narration: "String s = null で s に null を代入します。",
+                 highlightLines: [5],
+                 variables: [Variable(name: "s", type: "String", value: "null", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 5)],
+                 heap: [], predict: nil),
+
+            Step(index: 1,
+                 narration: "Optional.ofNullable(s) を呼び出します。s は null ですが、ofNullable は例外を投げず、空の Optional を返します（of(null) なら NPE）。",
+                 highlightLines: [6],
+                 variables: [Variable(name: "s", type: "String", value: "null", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 6)],
+                 heap: [],
+                 predict: PredictPrompt(
+                    question: "Optional.of(null) と Optional.ofNullable(null) の違いは？",
+                    choices: ["どちらも空Optionalを返す", "of(null)はNPE、ofNullable(null)は空Optional", "どちらもNPE"],
+                    answerIndex: 1,
+                    hint: "of は null を許容しない",
+                    afterExplanation: "Optional.of(null) は NullPointerException を投げます。null の可能性がある値には ofNullable() を使う。"
+                 )),
+
+            Step(index: 2,
+                 narration: ".map(String::toUpperCase) を呼び出し。Optional が空の場合、map は何もせず空の Optional を返します（関数は呼ばれない）。",
+                 highlightLines: [7],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 7)],
+                 heap: [], predict: nil),
+
+            Step(index: 3,
+                 narration: ".orElse(\"DEFAULT\") を呼び出し。Optional が空なので、引数の \"DEFAULT\" がそのまま返されます。result に \"DEFAULT\" が代入されます。",
+                 highlightLines: [8],
+                 variables: [Variable(name: "result", type: "String", value: "\"DEFAULT\"", scope: "main")],
+                 callStack: [CallStackFrame(method: "main", line: 8)],
+                 heap: [], predict: nil),
+
+            Step(index: 4,
+                 narration: "println で \"DEFAULT\" が出力されます。Optional + map + orElse の組み合わせで、null チェックなしに安全にデフォルト値を返せます。\n\n出力結果: \"DEFAULT\"",
+                 highlightLines: [9],
+                 variables: [],
+                 callStack: [CallStackFrame(method: "main", line: 9)],
                  heap: [], predict: nil),
         ]
     )

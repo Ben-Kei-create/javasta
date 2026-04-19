@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var selectedQuiz: Quiz?
+    @State private var progress = ProgressStore.shared
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -24,6 +26,9 @@ struct HomeView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationDestination(isPresented: $showSettings) {
+                SettingsView()
+            }
         }
         .sheet(item: $selectedQuiz) { quiz in
             QuizSheetView(quiz: quiz)
@@ -46,7 +51,7 @@ struct HomeView: View {
 
             Spacer()
 
-            Button(action: {}) {
+            Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 18))
                     .foregroundStyle(Color.jbSubtext)
@@ -65,10 +70,10 @@ struct HomeView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.jbSubtext)
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text("1")
+                    Text("\(progress.todayAnswered)")
                         .font(.system(size: 28, weight: .bold).monospacedDigit())
-                        .foregroundStyle(Color.jbAccent)
-                    Text("/ 5 問")
+                        .foregroundStyle(progress.todayAnswered >= progress.dailyGoal ? Color.jbSuccess : Color.jbAccent)
+                    Text("/ \(progress.dailyGoal) 問")
                         .font(.system(size: 13))
                         .foregroundStyle(Color.jbSubtext)
                 }
@@ -81,7 +86,7 @@ struct HomeView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.jbSubtext)
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text("3")
+                    Text("\(progress.streakDays)")
                         .font(.system(size: 28, weight: .bold).monospacedDigit())
                         .foregroundStyle(Color.jbText)
                     Text("日")
@@ -99,9 +104,9 @@ struct HomeView: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(Color.jbSubtext)
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text("72")
+                    Text(progress.totalAnswered > 0 ? "\(progress.accuracyPercent)" : "—")
                         .font(.system(size: 28, weight: .bold).monospacedDigit())
-                        .foregroundStyle(Color.jbSuccess)
+                        .foregroundStyle(accuracyColor)
                     Text("%")
                         .font(.system(size: 13))
                         .foregroundStyle(Color.jbSubtext)
@@ -118,6 +123,14 @@ struct HomeView: View {
                 )
         )
         .padding(.horizontal, Spacing.md)
+    }
+
+    private var accuracyColor: Color {
+        guard progress.totalAnswered > 0 else { return Color.jbSubtext }
+        let p = progress.accuracyPercent
+        if p >= 70 { return Color.jbSuccess }
+        if p >= 40 { return Color.jbWarning }
+        return Color.jbError
     }
 }
 
@@ -136,10 +149,16 @@ struct LevelSectionView: View {
                     .foregroundStyle(Color.jbText)
                 LevelBadgeView(level: level)
                 Spacer()
-                Button(action: {}) {
-                    Text("すべて見る")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.jbAccent)
+                NavigationLink {
+                    AllQuizzesView(level: level, onSelect: onSelect)
+                } label: {
+                    HStack(spacing: 2) {
+                        Text("すべて見る")
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.jbAccent)
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -213,23 +232,29 @@ struct QuizCardView: View {
 // MARK: - QuizSheetView
 
 struct QuizSheetView: View {
-    let quiz: Quiz
+    @State private var currentQuiz: Quiz
     @State private var quizVM: QuizViewModel
     @State private var activeExplanation: Explanation?
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
 
     init(quiz: Quiz) {
-        self.quiz = quiz
+        self._currentQuiz = State(initialValue: quiz)
         self._quizVM = State(wrappedValue: QuizViewModel(quiz: quiz))
     }
 
     var body: some View {
         NavigationStack {
-            QuizView(vm: quizVM, codeZoom: codeZoom, onShowExplanation: {
-                activeExplanation = Explanation.sample(for: quiz.explanationRef)
-            })
-            .navigationTitle(quiz.categoryDisplayName)
+            QuizView(
+                vm: quizVM,
+                codeZoom: codeZoom,
+                onShowExplanation: {
+                    activeExplanation = Explanation.sample(for: currentQuiz.explanationRef)
+                },
+                onNextQuiz: { goToNextQuiz() }
+            )
+            .id(currentQuiz.id)
+            .navigationTitle(currentQuiz.categoryDisplayName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -238,7 +263,7 @@ struct QuizSheetView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     LevelBadgeView(
-                        level: quiz.level,
+                        level: currentQuiz.level,
                         zoomPercent: CodeZoom.percent(codeZoom),
                         onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
                     )
@@ -247,7 +272,16 @@ struct QuizSheetView: View {
             .sensoryFeedback(.selection, trigger: codeZoom)
         }
         .fullScreenCover(item: $activeExplanation) { explanation in
-            ExplanationView(explanation: explanation, level: quiz.level, onDismiss: { activeExplanation = nil })
+            ExplanationView(explanation: explanation, level: currentQuiz.level, onDismiss: { activeExplanation = nil })
         }
+    }
+
+    private func goToNextQuiz() {
+        let pool = Quiz.samples.filter { $0.level == currentQuiz.level }
+        guard !pool.isEmpty else { return }
+        let idx = pool.firstIndex(where: { $0.id == currentQuiz.id }) ?? -1
+        let next = pool[(idx + 1) % pool.count]
+        currentQuiz = next
+        quizVM = QuizViewModel(quiz: next)
     }
 }

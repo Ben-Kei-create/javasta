@@ -4,6 +4,7 @@ struct QuizView: View {
     @State var vm: QuizViewModel
     var codeZoom: Double = 1.0
     var onShowExplanation: () -> Void
+    var onNextQuiz: (() -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -35,32 +36,7 @@ struct QuizView: View {
     // MARK: Code block
 
     private var codeBlock: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 6) {
-                Circle().fill(Color(hex: "FF5F57")).frame(width: 9, height: 9)
-                Circle().fill(Color(hex: "FEBC2E")).frame(width: 9, height: 9)
-                Circle().fill(Color(hex: "28C840")).frame(width: 9, height: 9)
-                Spacer()
-                Text("Java")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.jbSubtext)
-            }
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.sm)
-
-            Divider().background(Color.jbBorder)
-
-            CodePanelView(code: vm.quiz.code, highlightLines: [], zoom: codeZoom)
-                .frame(maxHeight: 220)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
+        CodeBlockView(code: vm.quiz.code, zoom: codeZoom)
     }
 
     // MARK: Question
@@ -116,12 +92,25 @@ struct QuizView: View {
                         .fill(Color.jbBackground)
                 )
 
+            actionButtons
+        }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.md)
+                .fill(Color.jbCard)
+        )
+    }
+
+    // MARK: Action buttons
+
+    private var actionButtons: some View {
+        HStack(spacing: Spacing.sm) {
             Button(action: onShowExplanation) {
-                HStack(spacing: Spacing.sm) {
+                HStack(spacing: 6) {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 17))
-                    Text("コードの実行を追う")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 15))
+                    Text("実行を追う")
+                        .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundStyle(Color.jbAccent)
                 .frame(maxWidth: .infinity)
@@ -131,12 +120,25 @@ struct QuizView: View {
                         .stroke(Color.jbAccent, lineWidth: 1.5)
                 )
             }
+
+            if let onNextQuiz {
+                Button(action: onNextQuiz) {
+                    HStack(spacing: 6) {
+                        Text("次の問題")
+                            .font(.system(size: 14, weight: .bold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .fill(Color.jbAccent)
+                    )
+                }
+            }
         }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-        )
     }
 }
 

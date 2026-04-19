@@ -15,17 +15,14 @@ struct LevelBadgeView: View {
     }
 
     private var content: some View {
-        HStack(spacing: 6) {
-            Text(level.displayName)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(.white)
-
+        Group {
             if let zoomPercent {
-                Rectangle()
-                    .fill(Color.white.opacity(0.35))
-                    .frame(width: 1, height: 9)
                 Text("\(zoomPercent)%")
-                    .font(.system(size: 10, weight: .semibold).monospacedDigit())
+                    .font(.system(size: 11, weight: .bold).monospacedDigit())
+                    .foregroundStyle(.white)
+            } else {
+                Text(level.displayName)
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(.white)
             }
         }
