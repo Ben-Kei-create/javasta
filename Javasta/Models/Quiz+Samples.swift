@@ -52,10 +52,368 @@ extension Quiz {
         silverJavaBasics002,
         silverArray002,
         goldStream005,
+        silverPolymorphism001,
+        silverConstructorChain001,
     ]
+    
+    
+    
+    // MARK: - Gold: ラムダ式とEffectively Final
+        static let goldLambdaEffectivelyFinal001 = Quiz(
+            id: "gold-lambda-effectively-final-001",
+            level: .gold,
+            category: "lambda-streams",
+            tags: ["ラムダ式", "effectively final", "スコープ"],
+            code: """
+    public class Test {
+        public static void main(String[] args) {
+            int count = 0;
+            Runnable r = () -> {
+                // System.out.println(count); // コメントを外すと？
+            };
+            count++;
+            r.run();
+        }
+    }
+    """,
+            question: "コメントアウトされている行を有効にした場合、このコードはどうなるか？",
+            choices: [
+                Choice(id: "a", text: "正常にコンパイルでき、1を出力する", correct: false, misconception: "実行時の値が参照されると誤解", explanation: "ラムダ式内で参照するローカル変数は、変更されてはいけません。"),
+                Choice(id: "b", text: "コンパイルエラーになる", correct: true, misconception: nil, explanation: "ラムダ式から参照されるローカル変数は、final または『実質的に final（effectively final）』である必要があります。このコードでは変数countが後でインクリメントされているため、条件を満たしません。"),
+                Choice(id: "c", text: "正常にコンパイルでき、0を出力する", correct: false, misconception: nil, explanation: "Javaのラムダは変数の値をコピーして保持するわけではなく、アクセス制限（final制約）を設けることで整合性を保っています。"),
+                Choice(id: "d", text: "実行時に例外が発生する", correct: false, misconception: nil, explanation: "実行時ではなく、コンパイル時に変数の書き換えが検知されます。")
+            ],
+            explanationRef: "explain-gold-lambda-effectively-final-001",
+            designIntent: "ラムダ式が「外部の変数を閉じ込める（キャプチャする）」際の制約と、メモリ上での変数の扱われ方を理解させる。"
+        )
+
+        // MARK: - Silver: オーバーライドと例外の投げ分け
+        static let silverInheritanceException001 = Quiz(
+            id: "silver-inheritance-exception-001",
+            level: .silver,
+            category: "inheritance",
+            tags: ["継承", "オーバーライド", "チェック例外"],
+            code: """
+    import java.io.*;
+
+    class Super {
+        void display() throws IOException { System.out.print("Super "); }
+    }
+    class Sub extends Super {
+        @Override
+        void display() { System.out.print("Sub "); }
+    }
+    public class Test {
+        public static void main(String[] args) throws IOException {
+            Super s = new Sub();
+            s.display();
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "Sub", correct: true, misconception: nil, explanation: "オーバーライドする側は、親クラスが投げる例外よりも『狭い』例外を投げるか、あるいは例外を投げないように定義することができます。"),
+                Choice(id: "b", text: "Super", correct: false, misconception: nil, explanation: "インスタンスメソッドは動的束縛されるため、Subのメソッドが呼ばれます。"),
+                Choice(id: "c", text: "コンパイルエラー（Sub側でthrows IOExceptionが必要）", correct: false, misconception: "親と同じ例外を宣言しなればならないと誤解", explanation: "例外を減らす方向のオーバーライドは許可されています。"),
+                Choice(id: "d", text: "コンパイルエラー（mainでcatchが必要）", correct: false, misconception: nil, explanation: "mainメソッドに throws IOException があるため、コンパイルは通ります。")
+            ],
+            explanationRef: "explain-silver-inheritance-exception-001",
+            designIntent: "オーバーライドにおける「メソッドシグネチャ」の制約、特に例外の範囲が「親より広くなってはいけない」というルールを、型の階層構造と合わせて理解させる。"
+        )
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // MARK: - Gold: Stream APIの遅延評価と中間操作の罠
+        static let goldStreamLazy001 = Quiz(
+            id: "gold-stream-lazy-001",
+            level: .gold,
+            category: "lambda-streams",
+            tags: ["Stream API", "遅延評価", "中間操作", "終端操作"],
+            code: """
+    import java.util.stream.*;
+    import java.util.*;
+
+    public class Test {
+        public static void main(String[] args) {
+            List<String> list = new ArrayList<>(Arrays.asList("A", "B"));
+            Stream<String> stream = list.stream()
+                .filter(s -> {
+                    System.out.print(s + " ");
+                    return true;
+                });
+                
+            list.add("C");
+            System.out.print("Size: " + stream.count());
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "A B Size: 2", correct: false, misconception: "Stream生成時にデータが決まると誤解", explanation: "Streamは終端操作(count)が呼ばれた瞬間にソース(list)を見に行きます。"),
+                Choice(id: "b", text: "A B C Size: 3", correct: true, misconception: nil, explanation: "filterなどの「中間操作」は終端操作が呼ばれるまで実行されません。終端操作(count)が呼ばれた時点でのリストの状態（Cが追加された後）が反映され、すべての要素がfilterを通ります。"),
+                Choice(id: "c", text: "Size: 3", correct: false, misconception: "filter内の出力が行われないと誤解", explanation: "count()は終端操作なので、パイプラインが実行され、中のprintも動作します。"),
+                Choice(id: "d", text: "実行時例外 (ConcurrentModificationException)", correct: false, misconception: "Stream操作中のリスト変更は常に例外になると誤解", explanation: "終端操作が始まる「前」にリストを変更するのは安全です。操作中に変更すると例外になります。")
+            ],
+            explanationRef: "explain-gold-stream-lazy-001",
+            designIntent: "「中間操作は組み立てるだけで、終端操作の瞬間に動き出す」という遅延評価の本質を、実行順序を追うことで理解させる。"
+        )
+
+        // MARK: - Gold: Genericsの型消去とシグネチャ衝突
+        static let goldGenericsErasure001 = Quiz(
+            id: "gold-generics-erasure-001",
+            level: .gold,
+            category: "generics",
+            tags: ["ジェネリクス", "型消去", "オーバーロード"],
+            code: """
+    import java.util.*;
+
+    public class Test {
+        // A: List<String>を受け取る
+        public void print(List<String> list) {
+            System.out.println("Strings");
+        }
+
+        // B: List<Integer>を受け取る
+        // public void print(List<Integer> list) {
+        //     System.out.println("Integers");
+        // }
+
+        public static void main(String[] args) {
+            new Test().print(Arrays.asList("a", "b"));
+        }
+    }
+    """,
+            question: "コメントアウトされている『B』のメソッドを有効にした場合、このクラスはどうなるか？",
+            choices: [
+                Choice(id: "a", text: "正常にコンパイルでき、オーバーロードとして機能する", correct: false, misconception: "型引数が違えば別メソッドだと誤解", explanation: "Javaのジェネリクスはコンパイル後に型情報が消去されます。"),
+                Choice(id: "b", text: "コンパイルエラーになる", correct: true, misconception: nil, explanation: "型消去（Type Erasure）により、両方のメソッドはコンパイル後に `print(List list)` という同じシグネチャになってしまいます。そのため、オーバーロードが成立せず衝突します。"),
+                Choice(id: "c", text: "実行時に ClassCastException が発生する", correct: false, misconception: nil, explanation: "実行時ではなく、コンパイル時点で重複定義としてエラーになります。"),
+                Choice(id: "d", text: "コンパイルは通るが、呼び出し時に曖昧さでエラーになる", correct: false, misconception: nil, explanation: "定義自体の時点でエラーになります。")
+            ],
+            explanationRef: "explain-gold-generics-erasure-001",
+            designIntent: "コンパイル時と実行時で「型」がどう変化するか、Java特有の『型消去』の仕組みを理解させる。"
+        )
+    
+    
+    // MARK: - Silver: コンストラクタ・チェーンと実行順序
+        static let silverConstructorChain001 = Quiz(
+            id: "silver-constructor-chain-001",
+            level: .silver,
+            category: "classes",
+            tags: ["コンストラクタ", "継承", "super"],
+            code: """
+    class A {
+        A() { System.out.print("A "); }
+    }
+    class B extends A {
+        B() { 
+            this("n");
+            System.out.print("B1 "); 
+        }
+        B(String s) { 
+            System.out.print("B2 "); 
+        }
+    }
+    public class Test {
+        public static void main(String[] args) {
+            new B();
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "A B1 B2", correct: false, misconception: "this()の呼び出し順を誤解", explanation: "B()からthis()を呼ぶと、まずB(String)に飛びますが、その前に親クラスAのコンストラクタが動きます。"),
+                Choice(id: "b", text: "B2 B1 A", correct: false, misconception: "親クラスが後に実行されると誤解", explanation: "親クラスのコンストラクタは常に子クラスの処理より先に完了します。"),
+                Choice(id: "c", text: "A B2 B1", correct: true, misconception: nil, explanation: "new B() -> B() -> this()によりB(String)へ -> B(String)の先頭で暗黙のsuper()が呼ばれA()実行 -> B(String)の残りを実行(B2) -> B()に戻り残りを実行(B1) という順序です。"),
+                Choice(id: "d", text: "A B1", correct: false, misconception: "this()で飛んだ先の処理が無視されると誤解", explanation: "this()で呼び出したコンストラクタもすべて実行されます。")
+            ],
+            explanationRef: "explain-silver-constructor-chain-001",
+            designIntent: "「まず親から」という原則と、this()による同一クラス内での連鎖がどう組み合わさるかをスタックの変化で理解させる。"
+        )
+
+        // MARK: - Silver: オーバーロードと可変長引数の優先順位
+        static let silverOverloadVarargs001 = Quiz(
+            id: "silver-overload-varargs-001",
+            level: .silver,
+            category: "overload-resolution",
+            tags: ["オーバーロード", "可変長引数", "型昇格"],
+            code: """
+    public class Test {
+        static void m(int... x) { System.out.print("A "); }
+        static void m(long x)   { System.out.print("B "); }
+        static void m(Integer x){ System.out.print("C "); }
+
+        public static void main(String[] args) {
+            int n = 5;
+            m(n);
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "A", correct: false, misconception: "可変長引数が優先されると誤解", explanation: "可変長引数は、他のどの候補にも一致しない場合の「最後の手段」です。"),
+                Choice(id: "b", text: "B", correct: true, misconception: nil, explanation: "Javaのオーバーロード解決優先順位は、1.完全一致 2.型昇格(Widening) 3.ボクシング 4.可変長引数 です。intからlongへの型昇格が優先されます。"),
+                Choice(id: "c", text: "C", correct: false, misconception: "ボクシングが型昇格より優先されると誤解", explanation: "ボクシング(Integer)よりも型昇格(long)の方が優先度が高いです。"),
+                Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "曖昧な呼び出しになると誤解", explanation: "優先順位が明確に定義されているため、コンパイル可能です。")
+            ],
+            explanationRef: "explain-silver-overload-varargs-001",
+            designIntent: "「完全一致がないとき、次にJavaがどこを探しに行くか」という優先順位のルールを確実に覚えさせる。"
+        )
+    // MARK: - Silver: ポリモーフィズムと静的束縛の罠
+        static let silverPolymorphism001 = Quiz(
+            id: "silver-polymorphism-001",
+            level: .silver,
+            category: "inheritance",
+            tags: ["ポリモーフィズム", "静的束縛", "動的束縛", "フィールド"],
+            code: """
+    class Parent {
+        int x = 10;
+        static void print() { System.out.print("P1 "); }
+        void show() { System.out.print("P2 "); }
+    }
+    class Child extends Parent {
+        int x = 20;
+        static void print() { System.out.print("C1 "); }
+        void show() { System.out.print("C2 "); }
+    }
+    public class Test {
+        public static void main(String[] args) {
+            Parent p = new Child();
+            System.out.print(p.x + " ");
+            p.print();
+            p.show();
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "10 P1 P2", correct: false, misconception: "すべてParentクラスのものが呼ばれると誤解", explanation: "インスタンスメソッドのshow()は、実体であるChildのものが呼ばれます。"),
+                Choice(id: "b", text: "20 C1 C2", correct: false, misconception: "すべてChildクラスのものが呼ばれると誤解", explanation: "フィールドとstaticメソッドは、変数の型(Parent)に依存します。"),
+                Choice(id: "c", text: "10 P1 C2", correct: true, misconception: nil, explanation: "変数の型がParent、実体がChildです。フィールド(x)とstaticメソッド(print)は変数の型(Parent)で決まりますが、インスタンスメソッド(show)は実体の型(Child)でオーバーライドされたものが動的に選ばれます。"),
+                Choice(id: "d", text: "10 C1 C2", correct: false, misconception: "staticメソッドも動的束縛されると誤解", explanation: "staticメソッドはオーバーライドされません（隠蔽）。変数の型であるParentのprintが呼ばれます。")
+            ],
+            explanationRef: "explain-silver-polymorphism-001",
+            designIntent: "変数の型で決まるもの（フィールド、static）と、インスタンスの型で決まるもの（インスタンスメソッド）の違いを視覚的に理解させる。"
+        )
+
+        // MARK: - Silver: try-catch-finallyのreturn上書き
+        static let silverExceptionFinally001 = Quiz(
+            id: "silver-exception-finally-001",
+            level: .silver,
+            category: "exception-handling",
+            tags: ["例外処理", "finally", "return"],
+            code: """
+    public class Test {
+        public static void main(String[] args) {
+            System.out.println(calc());
+        }
+        static int calc() {
+            try {
+                return 1;
+            } finally {
+                return 2;
+            }
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "1", correct: false, misconception: "tryブロックのreturnが優先されると誤解", explanation: "tryブロック内でreturnが宣言されても、メソッドを抜ける前に必ずfinallyブロックが実行されます。"),
+                Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "tryブロックで「1」を返そうとしますが、メソッドを抜ける前にfinallyブロックが実行され、そこで「2」がreturnされるため、結果が上書きされます。"),
+                Choice(id: "c", text: "1 2", correct: false, misconception: "両方の値が順に返されると誤解", explanation: "メソッドの戻り値は1つだけです。"),
+                Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "到達不能コード(Unreachable code)になると誤解", explanation: "finally内にreturnを書くことは文法上許されています（非推奨ですが、試験では頻出です）。")
+            ],
+            explanationRef: "explain-silver-exception-finally-001",
+            designIntent: "コールスタック上で「戻り値が一時保存され、finallyで上書きされる」という奇妙な動きをステップ実行で体感させる。"
+        )
+
+        // MARK: - Silver: String Poolと参照比較
+        static let silverStringPool001 = Quiz(
+            id: "silver-string-pool-001",
+            level: .silver,
+            category: "string",
+            tags: ["String", "文字列プール", "同値性"],
+            code: """
+    public class Test {
+        public static void main(String[] args) {
+            String s1 = "Java";
+            String s2 = "Java";
+            String s3 = new String("Java");
+            
+            System.out.print((s1 == s2) + " ");
+            System.out.print((s1 == s3) + " ");
+            System.out.print(s1.equals(s3));
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "true true true", correct: false, misconception: "文字が同じなら==もtrueになると誤解", explanation: "new String()で作ったオブジェクトは、プールとは別の新しいインスタンスになります。"),
+                Choice(id: "b", text: "false false true", correct: false, misconception: "毎回新しいインスタンスが作られると誤解", explanation: "文字列リテラル(\"Java\")はString Poolで共有されるため、s1とs2は同じインスタンスを指します。"),
+                Choice(id: "c", text: "true false true", correct: true, misconception: nil, explanation: "s1とs2はString Pool内の同じインスタンスを指すため == はtrue。s3はnewによりHeap上に新しく作られたインスタンスを指すため == はfalse。equalsは文字の中身を比較するためtrueです。"),
+                Choice(id: "d", text: "true false false", correct: false, misconception: "equalsが参照比較だと誤解", explanation: "Stringクラスのequalsメソッドは、文字の並びが同じであればtrueを返します。")
+            ],
+            explanationRef: "explain-silver-string-pool-001",
+            designIntent: "ヒープメモリ上の「String Pool（定数プール）」と「通常のヒープ領域」への参照の違いを視覚化して、== と equals の違いを根本から理解させる。"
+        )
+    
+    // MARK: - Silver: 参照の値渡し
+        static let silverDataTypesPassByValue = Quiz(
+            id: "silver-datatypes-pass-by-value-001",
+            level: .silver,
+            category: "data-types",
+            tags: ["参照型", "メソッド引数", "ヒープ"],
+            code: """
+    class Dog { 
+        String name; 
+    }
+
+    public class Test {
+        public static void main(String[] args) {
+            Dog d = new Dog();
+            d.name = "Pochi";
+            
+            changeName(d);
+            
+            System.out.println(d.name);
+        }
+        
+        static void changeName(Dog dog) {
+            dog.name = "Hachi";
+            dog = new Dog();
+            dog.name = "Taro";
+        }
+    }
+    """,
+            question: "このコードを実行したとき、出力される結果はどれか？",
+            choices: [
+                Choice(id: "a", text: "Pochi",
+                       correct: false, misconception: "メソッドに渡すと値のコピーが渡されるため、元のオブジェクトは変更されないと誤解（プリミティブ型との混同）",
+                       explanation: "参照型をメソッドに渡す場合、参照のコピーが渡されるため、メソッド内で元のインスタンスのフィールドを変更できます。"),
+                Choice(id: "b", text: "Hachi",
+                       correct: true, misconception: nil,
+                       explanation: "メソッド内の最初の行で元のDogインスタンスの名前がHachiに書き換わります。その後、変数dogには新しいインスタンスが代入されますが、mainメソッドの変数dの参照先は変わらないため、Hachiが出力されます。"),
+                Choice(id: "c", text: "Taro",
+                       correct: false, misconception: "メソッド内で新しいインスタンスを代入すると、呼び出し元の変数dの参照先も変わると誤解",
+                       explanation: "メソッド内で引数変数dogにnew Dog()を代入しても、それはローカル変数dogの参照先が変わるだけで、mainの変数dには影響しません。"),
+                Choice(id: "d", text: "コンパイルエラー",
+                       correct: false, misconception: "引数で受け取った変数への再代入はできないと誤解",
+                       explanation: "引数にfinalがついていないため、再代入はコンパイル可能です。")
+            ],
+            explanationRef: "explain-silver-datatypes-pass-by-value-001",
+            designIntent: "Javaの「参照の値渡し」の核心を突く問題。ヒープ上の同じオブジェクトを指している状態と、ローカル変数が別のオブジェクトを指し直す状態の違いを理解させる。"
+        )
     
     // MARK: - Silver: ガベージコレクション (GC)
         static let silverJavaBasics002 = Quiz(
+
             id: "silver-java-basics-002",
             level: .silver,
             category: "java-basics",
