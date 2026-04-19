@@ -5,6 +5,11 @@ struct LearningHomeView: View {
     @State private var pendingQuizId: String?
     @State private var activeQuiz: Quiz?
     @State private var progress = ProgressStore.shared
+    @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
+
+    private var selectedLevel: JavaLevel {
+        JavaLevel(rawValue: selectedLevelRaw) ?? .silver
+    }
 
     var body: some View {
         NavigationStack {
@@ -14,10 +19,10 @@ struct LearningHomeView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         headerSection
-
-                        ForEach(JavaLevel.allCases, id: \.self) { level in
-                            levelSection(level: level)
-                        }
+                        levelPicker
+                        levelSection(level: selectedLevel)
+                            .id(selectedLevel)
+                            .transition(.opacity.combined(with: .move(edge: .trailing)))
                     }
                     .padding(.bottom, Spacing.xxl)
                 }
@@ -66,6 +71,34 @@ struct LearningHomeView: View {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.top, Spacing.lg)
+    }
+
+    private var levelPicker: some View {
+        HStack(spacing: Spacing.xs) {
+            ForEach(JavaLevel.allCases, id: \.self) { level in
+                Button(action: {
+                    withAnimation(.jbSpring) {
+                        selectedLevelRaw = level.rawValue
+                    }
+                }) {
+                    Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(selectedLevel == level ? .white : Color.jbSubtext)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 34)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.sm)
+                                .fill(selectedLevel == level ? Color.jbAccent : Color.jbCard)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.sm)
+                                        .stroke(selectedLevel == level ? Color.jbAccent : Color.jbBorder, lineWidth: 1)
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, Spacing.md)
     }
 
     // MARK: Level section

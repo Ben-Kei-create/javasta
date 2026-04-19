@@ -5,12 +5,17 @@ extension Lesson {
         overloadResolution,
         finallyAndReturn,
         boundedWildcards,
-    ]
-
+    ] + quickLessons
+    
     static func sample(for id: String) -> Lesson? {
         samples.first(where: { $0.id == id })
     }
+    
+    
 
+    
+    
+    
     // MARK: - オーバーロード解決
 
     static let overloadResolution = Lesson(
@@ -210,4 +215,663 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         ],
         relatedQuizIds: ["gold-generics-001"]
     )
+
+    // MARK: - 追加レッスン（実機検証用の短編教材）
+
+    private static let quickLessons: [Lesson] = [
+        
+        // MARK: - Silver: 文字列 (String)
+                quickLesson(
+                    id: "lesson-silver-string-pool",
+                    level: .silver,
+                    category: .string,
+                    title: "Stringの不変性とString Pool",
+                    summary: "文字列リテラルと new String() の挙動の違い",
+                    estimatedMinutes: 5,
+                    focus: "リテラルで生成した文字列は「String Pool」で共有されますが、new演算子を使うとヒープ上に全く新しいインスタンスが生成されます。",
+                    examTip: "文字列の同値性判定で == を使う引っかけ問題が頻出です。値の比較には必ず equals() を使用してください。",
+                    code: """
+        String s1 = "Java";
+        String s2 = "Java";
+        String s3 = new String("Java");
+
+        System.out.println(s1 == s2); // true (同じ参照)
+        System.out.println(s1 == s3); // false (違う参照)
+        """,
+                    relatedQuizIds: []
+                ),
+
+                // MARK: - Silver: データ型 (var)
+                quickLesson(
+                    id: "lesson-silver-local-var",
+                    level: .silver,
+                    category: .dataTypes,
+                    title: "ローカル変数型推論 (var)",
+                    summary: "Java 10から導入された var の正しい使い方",
+                    estimatedMinutes: 5,
+                    focus: "var は「ローカル変数」かつ「初期化を伴う宣言」でのみ使用可能です。フィールド変数やメソッドの引数、初期化なしの宣言には使えません。",
+                    examTip: "var x = null; や var[] arr = new int[3]; のような記述はコンパイルエラーになるため、試験でよく狙われます。",
+                    code: """
+        public void sample() {
+            var list = new ArrayList<String>(); // OK
+            // var name; // コンパイルエラー (初期化なし)
+            // var obj = null; // コンパイルエラー (型が特定できない)
+        }
+        """,
+                    relatedQuizIds: []
+                ),
+
+                // MARK: - Silver: 例外処理
+                quickLesson(
+                    id: "lesson-silver-exception-types",
+                    level: .silver,
+                    category: .exceptionHandling,
+                    title: "チェック例外と非チェック例外",
+                    summary: "RuntimeException と Exception の違いを理解する",
+                    estimatedMinutes: 6,
+                    focus: "RuntimeExceptionとそのサブクラスは「非チェック例外」であり、try-catchやthrowsの記述が任意です。それ以外のExceptionは「チェック例外」と呼ばれ、ハンドリングが必須です。",
+                    examTip: "NullPointerException や IllegalArgumentException は非チェック例外です。試験では、例外の種類によってコンパイルエラーになるかどうかの判別が求められます。",
+                    code: """
+        // チェック例外 (IOExceptionなど) はハンドリング必須
+        try {
+            throw new java.io.IOException();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+        """,
+                    relatedQuizIds: []
+                ),
+
+                // MARK: - Silver: 継承 (インターフェース)
+                quickLesson(
+                    id: "lesson-silver-interface-methods",
+                    level: .silver,
+                    category: .inheritance,
+                    title: "インターフェースのdefault/staticメソッド",
+                    summary: "Java 8以降のインターフェースの拡張機能",
+                    estimatedMinutes: 6,
+                    focus: "インターフェースには、実装を持てる default メソッドと static メソッドを定義できます。これにより、既存の実装クラスを壊さずにメソッドを追加できます。",
+                    examTip: "インターフェースの static メソッドは、実装クラスのインスタンスからは呼び出せません (InterfaceName.method() のように呼び出す必要があります)。",
+                    code: """
+        interface Greeter {
+            default void greet() {
+                System.out.println("Hello");
+            }
+            static void log() {
+                System.out.println("Log");
+            }
+        }
+        """,
+                    relatedQuizIds: []
+                ),
+
+                // MARK: - Gold: クラスとインターフェース (Sealed Classes)
+                quickLesson(
+                    id: "lesson-gold-sealed-classes",
+                    level: .gold,
+                    category: .classes,
+                    title: "シールドクラス (Sealed Classes)",
+                    summary: "Java 17で正式導入された、継承を制限する仕組み",
+                    estimatedMinutes: 5,
+                    focus: "sealed 修飾子を使うと、どのクラスがこのクラスを継承できるかを permits で明示的に制限できます。想定外のサブクラスが作られるのを防ぎます。",
+                    examTip: "シールドクラスを継承するサブクラスは、必ず final, sealed, non-sealed のいずれかの修飾子をつける必要があります。",
+                    code: """
+        public sealed class Shape permits Circle, Square {}
+
+        final class Circle extends Shape {}
+        non-sealed class Square extends Shape {}
+        """,
+                    relatedQuizIds: []
+                ),
+
+                // MARK: - Gold: ラムダ式とStream API
+                quickLesson(
+                    id: "lesson-gold-stream-terminal",
+                    level: .gold,
+                    category: .lambdaStreams,
+                    title: "Streamの中間操作と終端操作",
+                    summary: "遅延評価とストリームの消費",
+                    estimatedMinutes: 7,
+                    focus: "filterやmapなどの「中間操作」はストリームを返し、メソッドチェーンを作ります。「終端操作」(forEachやcollect)が呼ばれるまで、実際の処理は実行されません（遅延評価）。",
+                    examTip: "1つのストリームに対して終端操作を2回呼び出すと、実行時例外 (IllegalStateException) が発生します。",
+                    code: """
+        Stream<String> stream = Stream.of("A", "B", "C");
+        stream.filter(s -> s.equals("A")); // 何も出力・実行されない
+        long count = stream.count(); // ここで初めて処理される(終端操作)
+        // stream.forEach(System.out::println); // 例外発生(再利用不可)
+        """,
+                    relatedQuizIds: []
+                ),
+
+                // MARK: - Gold: Optional API
+                quickLesson(
+                    id: "lesson-gold-optional-flatmap",
+                    level: .gold,
+                    category: .optionalApi,
+                    title: "OptionalのmapとflatMap",
+                    summary: "ネストしたOptionalを平坦化する方法",
+                    estimatedMinutes: 6,
+                    focus: "Optionalの中身を変換する際、変換後の値がさらにOptionalである場合、map() を使うと Optional<Optional<T>> のようにネストしてしまいます。flatMap() を使うと1層に平坦化されます。",
+                    examTip: "メソッドの戻り値が Optional 型である場合、flatMap を使うのが定石です。",
+                    code: """
+        Optional<String> opt = Optional.of("Java");
+        // mapの場合
+        Optional<Optional<Integer>> nested = opt.map(s -> Optional.of(s.length()));
+        // flatMapの場合
+        Optional<Integer> flat = opt.flatMap(s -> Optional.of(s.length()));
+        """,
+                    relatedQuizIds: []
+                ),
+
+                // MARK: - Gold: モジュールシステム
+                quickLesson(
+                    id: "lesson-gold-module-exports",
+                    level: .gold,
+                    category: .moduleSystem,
+                    title: "モジュールシステムの基本 (exports / requires)",
+                    summary: "Java 9で導入されたアクセス制御と依存関係の管理",
+                    estimatedMinutes: 5,
+                    focus: "module-info.java にて、他モジュールに公開するパッケージを exports で指定し、自分が利用するモジュールを requires で宣言します。",
+                    examTip: "exports は「パッケージ名」を指定し、requires は「モジュール名」を指定します。この違いが非常によく出題されます。",
+                    code: """
+        module com.myapp.core {
+            // パッケージを公開
+            exports com.myapp.core.util;
+            
+            // 他のモジュールに依存
+            requires java.logging;
+        }
+        """,
+                    relatedQuizIds: []
+                ),
+        
+        
+        
+        quickLesson(
+            id: "lesson-bronze-java-platform",
+            level: .silver,
+            category: .javaBasics,
+            title: "Bronze前提: JDK/JVM/JRE",
+            summary: "Javaを動かす道具と実行の流れを押さえる",
+            estimatedMinutes: 4,
+            focus: "Bronze相当の土台として、[JDK](javasta://term/jdk)・[JVM](javasta://term/jvm)・[ソースファイル](javasta://term/source-file)・[バイトコード](javasta://term/bytecode)の関係を理解します。開発者は `.java` を書き、javacで `.class` にコンパイルし、JVMがそれを実行します。",
+            examTip: "Silver以降の問題でも、コンパイル時に決まることと実行時に決まることを分ける力はずっと使います。",
+            code: """
+// Test.java
+public class Test {
+    public static void main(String[] args) {
+        System.out.println("Hello");
+    }
+}
+""",
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-bronze-variables-expression",
+            level: .silver,
+            category: .dataTypes,
+            title: "Bronze前提: 変数と式",
+            summary: "変数宣言、代入、式評価の読み方",
+            estimatedMinutes: 4,
+            focus: "変数は型・名前・値の組み合わせです。`int x = 3;` はint型の変数xに3を入れます。式は左から順に読むだけでなく、演算子の優先順位と型変換を意識します。",
+            examTip: "Silverのひっかけは、Bronzeレベルの代入・演算・比較を正確に追えるかに乗っています。",
+            code: """
+int x = 3;
+int y = x + 2;
+System.out.println(y);
+""",
+            relatedQuizIds: ["silver-array-defaults-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-main-method",
+            level: .silver,
+            category: .javaBasics,
+            title: "mainメソッドの形",
+            summary: "public static void main(String[] args) の各キーワードを整理する",
+            estimatedMinutes: 4,
+            focus: "Javaアプリケーションの入口は main メソッドです。試験では `public static void main(String[] args)` の並びや、`String... args` でもよい点が問われます。",
+            examTip: "`static` がないmainは通常のインスタンスメソッドであり、起動エントリポイントにはなりません。",
+            code: """
+public class Test {
+    public static void main(String... args) {
+        System.out.println(args.length);
+    }
+}
+""",
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-silver-primitive-widening",
+            level: .silver,
+            category: .dataTypes,
+            title: "プリミティブの型昇格",
+            summary: "byte/short/char/int/long/float/double の昇格ルール",
+            estimatedMinutes: 5,
+            focus: "小さい整数型は演算時にintへ昇格します。代入やメソッド呼び出しでは、狭い型から広い型への変換は自動で行われます。",
+            examTip: "longからintのような縮小変換は明示キャストが必要です。",
+            code: """
+byte b = 1;
+int x = b + 2;      // b は int に昇格
+long y = x;         // int から long はOK
+""",
+            relatedQuizIds: ["silver-overload-002"]
+        ),
+        quickLesson(
+            id: "lesson-silver-wrapper-cache",
+            level: .silver,
+            category: .dataTypes,
+            title: "Wrapperとキャッシュ",
+            summary: "Integerの==比較で起こる-128から127の罠",
+            estimatedMinutes: 5,
+            focus: "IntegerなどのWrapperは参照型です。`==` は値ではなく参照を比較します。Integerは通常 -128 から 127 をキャッシュします。",
+            examTip: "Wrapper同士の値比較は `equals()` を使うのが安全です。",
+            code: """
+Integer a = 100;
+Integer b = 100;
+System.out.println(a == b); // trueになり得る
+""",
+            relatedQuizIds: ["silver-autoboxing-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-string-equals",
+            level: .silver,
+            category: .string,
+            title: "String比較",
+            summary: "== と equals の違い、文字列プールの挙動",
+            estimatedMinutes: 5,
+            focus: "`==` は参照比較、`equals()` は内容比較です。文字列リテラルはプールで共有されるため、同じリテラル同士の `==` はtrueになることがあります。",
+            examTip: "`new String(\"x\")` は新しいオブジェクトを作るため、リテラルと `==` では一致しません。",
+            code: """
+String a = "java";
+String b = new String("java");
+System.out.println(a == b);      // false
+System.out.println(a.equals(b)); // true
+""",
+            relatedQuizIds: ["silver-string-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-stringbuilder-mutability",
+            level: .silver,
+            category: .string,
+            title: "StringBuilderの可変性",
+            summary: "appendは同じオブジェクトを書き換える",
+            estimatedMinutes: 4,
+            focus: "Stringは不変ですが、StringBuilderは可変です。`append()` は新しいStringBuilderを作るのではなく、同じインスタンスを更新します。",
+            examTip: "`toString()` で作られたStringは、その後StringBuilderを変更しても変わりません。",
+            code: """
+StringBuilder sb = new StringBuilder("A");
+String s = sb.append("B").toString();
+sb.append("C");
+""",
+            relatedQuizIds: ["silver-stringbuilder-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-array-defaults",
+            level: .silver,
+            category: .dataTypes,
+            title: "配列の初期値",
+            summary: "newした配列要素は型ごとのデフォルト値で初期化される",
+            estimatedMinutes: 4,
+            focus: "配列を `new` すると、各要素はデフォルト値で初期化されます。intは0、booleanはfalse、参照型はnullです。",
+            examTip: "ローカル変数そのものは自動初期化されませんが、配列の要素は自動初期化されます。",
+            code: """
+int[] nums = new int[3];
+String[] names = new String[3];
+""",
+            relatedQuizIds: ["silver-array-defaults-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-loop-control",
+            level: .silver,
+            category: .controlFlow,
+            title: "breakとcontinue",
+            summary: "ループ制御の流れを正確に追う",
+            estimatedMinutes: 5,
+            focus: "`break` はループを抜け、`continue` は次の繰り返しへ進みます。for文ではcontinue後に更新式が実行されます。",
+            examTip: "ネストしたループでは、ラベル付きbreak/continueの対象を見誤りやすいです。",
+            code: """
+for (int i = 0; i < 3; i++) {
+    if (i == 1) continue;
+    System.out.print(i);
+}
+""",
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-silver-switch-fallthrough",
+            level: .silver,
+            category: .controlFlow,
+            title: "switchのフォールスルー",
+            summary: "breakがないcaseは次へ流れる",
+            estimatedMinutes: 4,
+            focus: "従来のswitch文では、`break` がないと次のcaseへ処理が流れます。マッチしたcaseから実行が始まる点も重要です。",
+            examTip: "defaultの位置は最後でなくてもよく、そこからもbreakがなければ流れます。",
+            code: nil,
+            relatedQuizIds: ["silver-switch-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-constructor-chain",
+            level: .silver,
+            category: .classes,
+            title: "コンストラクタチェーン",
+            summary: "this(...) と super(...) は先頭文にしか書けない",
+            estimatedMinutes: 5,
+            focus: "`this(...)` は同じクラスの別コンストラクタ、`super(...)` は親クラスのコンストラクタを呼びます。どちらもコンストラクタの先頭文でなければなりません。",
+            examTip: "明示的に書かない場合、コンパイラは `super()` を補います。",
+            code: """
+Box() {
+    this(10);  // 先頭文なのでOK
+}
+""",
+            relatedQuizIds: ["silver-constructor-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-access-modifiers",
+            level: .silver,
+            category: .classes,
+            title: "アクセス修飾子",
+            summary: "public/protected/デフォルト/private の範囲",
+            estimatedMinutes: 5,
+            focus: "アクセス範囲は `public > protected > package-private > private` の順に広くなります。デフォルトは同一パッケージ内のみアクセス可能です。",
+            examTip: "protectedは同一パッケージまたはサブクラスからアクセスできますが、別パッケージの扱いに注意が必要です。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-silver-static-instance",
+            level: .silver,
+            category: .classes,
+            title: "staticとインスタンス",
+            summary: "クラスに属するものとオブジェクトに属するものを分ける",
+            estimatedMinutes: 5,
+            focus: "`static` メンバーはクラスに属し、インスタンスメンバーは各オブジェクトに属します。staticメソッドから直接インスタンス変数へはアクセスできません。",
+            examTip: "参照変数経由でstaticメンバーを呼べても、解決先は参照先オブジェクトではなくクラスです。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-silver-dynamic-dispatch",
+            level: .silver,
+            category: .inheritance,
+            title: "動的ディスパッチ",
+            summary: "オーバーライドメソッドは実体の型で決まる",
+            estimatedMinutes: 5,
+            focus: "親型の変数に子クラスのインスタンスを入れても、オーバーライドされたメソッドは実体である子クラス側が呼ばれます。",
+            examTip: "フィールドはオーバーライドされず、参照型で解決されます。",
+            code: nil,
+            relatedQuizIds: ["silver-inheritance-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-interface-default",
+            level: .silver,
+            category: .inheritance,
+            title: "interfaceのdefaultメソッド",
+            summary: "実装を持つインタフェースメソッドの扱い",
+            estimatedMinutes: 5,
+            focus: "Java 8以降、interfaceはdefaultメソッドを持てます。実装クラスは必要に応じてオーバーライドできます。",
+            examTip: "複数interfaceから同じdefaultメソッドを継承すると、実装クラス側で明示的な解決が必要です。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-silver-checked-exception",
+            level: .silver,
+            category: .exceptionHandling,
+            title: "チェック例外と非チェック例外",
+            summary: "throwsやcatchが必要な例外を見分ける",
+            estimatedMinutes: 5,
+            focus: "Exception直下の多くはチェック例外で、コンパイル時に処理が強制されます。RuntimeExceptionとそのサブクラスは非チェック例外です。",
+            examTip: "catchの順序はサブクラスから先。親クラスを先にcatchすると後続が到達不能になります。",
+            code: nil,
+            relatedQuizIds: ["silver-exception-001"]
+        ),
+        quickLesson(
+            id: "lesson-silver-try-with-resources",
+            level: .silver,
+            category: .exceptionHandling,
+            title: "try-with-resources",
+            summary: "AutoCloseableを自動でcloseする構文",
+            estimatedMinutes: 5,
+            focus: "try-with-resourcesでは、tryの括弧内で宣言したリソースがブロック終了時に自動でcloseされます。",
+            examTip: "複数リソースは宣言の逆順でcloseされます。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-generics-invariance",
+            level: .gold,
+            category: .generics,
+            title: "ジェネリクスの不変性",
+            summary: "List<Integer> は List<Number> ではない",
+            estimatedMinutes: 6,
+            focus: "IntegerはNumberのサブタイプですが、List<Integer>はList<Number>のサブタイプではありません。これを不変性と呼びます。",
+            examTip: "読み取り中心なら `? extends`、書き込み中心なら `? super` を検討します。",
+            code: """
+List<Integer> ints = List.of(1);
+// List<Number> nums = ints; // コンパイルエラー
+""",
+            relatedQuizIds: ["gold-generics-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-lower-bounded-wildcard",
+            level: .gold,
+            category: .generics,
+            title: "下限境界ワイルドカード",
+            summary: "<? super T> はTを入れる側で使う",
+            estimatedMinutes: 6,
+            focus: "`List<? super Integer>` にはIntegerを追加できます。ただし取り出すときは具体型が保証できないためObjectになります。",
+            examTip: "PECS: Producer Extends, Consumer Super。",
+            code: nil,
+            relatedQuizIds: ["gold-generics-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-functional-interface",
+            level: .gold,
+            category: .lambdaStreams,
+            title: "関数型インタフェース",
+            summary: "抽象メソッドが1つだけのinterface",
+            estimatedMinutes: 5,
+            focus: "ラムダ式の代入先は関数型インタフェースです。Predicate、Function、Consumer、Supplierなどの標準APIを覚えます。",
+            examTip: "@FunctionalInterfaceは必須ではありませんが、条件を満たさない時にコンパイルエラーで検出できます。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-effectively-final",
+            level: .gold,
+            category: .lambdaStreams,
+            title: "effectively final",
+            summary: "ラムダから参照するローカル変数の制約",
+            estimatedMinutes: 5,
+            focus: "ラムダ式内から参照するローカル変数はfinalまたは実質的finalである必要があります。後から再代入するとコンパイルエラーになります。",
+            examTip: "参照先オブジェクトの状態変更と、変数そのものの再代入は別物です。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-stream-lazy",
+            level: .gold,
+            category: .lambdaStreams,
+            title: "Streamの遅延評価",
+            summary: "中間操作は終端操作まで動かない",
+            estimatedMinutes: 6,
+            focus: "filterやmapなどの中間操作はパイプラインを組み立てるだけです。sum、collect、forEachなどの終端操作で初めて実行されます。",
+            examTip: "peekを使った出力順問題は、終端操作の有無を必ず確認します。",
+            code: nil,
+            relatedQuizIds: ["gold-stream-001", "gold-stream-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-stream-findfirst",
+            level: .gold,
+            category: .lambdaStreams,
+            title: "findFirstとOptional",
+            summary: "条件に合う最初の要素をOptionalで受け取る",
+            estimatedMinutes: 5,
+            focus: "`findFirst()` はOptionalを返します。順序付きストリームでは、条件に合う最初の要素を安全に扱えます。",
+            examTip: "値がない可能性があるため、orElseやorElseGetで後続処理を設計します。",
+            code: nil,
+            relatedQuizIds: ["gold-stream-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-optional-orelseget",
+            level: .gold,
+            category: .optionalApi,
+            title: "orElseとorElseGet",
+            summary: "デフォルト値の評価タイミングが違う",
+            estimatedMinutes: 5,
+            focus: "`orElse(value)` のvalueは即時評価されます。`orElseGet(supplier)` は値がない場合だけSupplierが実行されます。",
+            examTip: "副作用のあるメソッドをorElseに渡すと、Optionalに値があっても実行されます。",
+            code: nil,
+            relatedQuizIds: ["gold-optional-001", "gold-optional-002"]
+        ),
+        quickLesson(
+            id: "lesson-gold-datetime-immutable",
+            level: .gold,
+            category: .classes,
+            title: "Date-Time APIの不変性",
+            summary: "LocalDateなどは変更ではなく新しい値を返す",
+            estimatedMinutes: 5,
+            focus: "LocalDate、LocalTime、LocalDateTimeは不変です。plusDaysなどのメソッドは元のインスタンスを変えず、新しいインスタンスを返します。",
+            examTip: "戻り値を受け取らないと、変更したつもりでも元の値のままです。",
+            code: """
+LocalDate d = LocalDate.of(2026, 4, 19);
+d.plusDays(1); // d 自体は変わらない
+""",
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-module-basics",
+            level: .gold,
+            category: .moduleSystem,
+            title: "module-info.javaの基本",
+            summary: "requiresとexportsで依存と公開を宣言する",
+            estimatedMinutes: 6,
+            focus: "モジュールは `module-info.java` で定義します。`requires` で依存モジュール、`exports` で外部公開するパッケージを宣言します。",
+            examTip: "exportsしないパッケージは、publicクラスであっても他モジュールから直接利用できません。",
+            code: """
+module app.main {
+    requires java.sql;
+    exports com.example.api;
+}
+""",
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-service-loader",
+            level: .gold,
+            category: .moduleSystem,
+            title: "ServiceLoader",
+            summary: "uses/providesでサービス実装を疎結合にする",
+            estimatedMinutes: 6,
+            focus: "モジュールシステムでは、サービス利用側が `uses`、提供側が `provides ... with ...` を宣言します。",
+            examTip: "実装クラスをexportsしなくても、providesでサービス提供できます。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-executor-future",
+            level: .gold,
+            category: .concurrency,
+            title: "ExecutorServiceとFuture",
+            summary: "非同期タスクの投入と結果取得",
+            estimatedMinutes: 6,
+            focus: "ExecutorServiceにCallableをsubmitするとFutureが返ります。`get()` は結果が出るまで待機し、例外はExecutionExceptionに包まれます。",
+            examTip: "shutdownしないExecutorServiceはアプリケーション終了を妨げることがあります。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-atomic-integer",
+            level: .gold,
+            category: .concurrency,
+            title: "AtomicInteger",
+            summary: "ロックなしで安全に数値を更新する",
+            estimatedMinutes: 5,
+            focus: "AtomicIntegerはCASを使ってスレッドセーフな更新を提供します。`getAndIncrement()` は更新前の値、`incrementAndGet()` は更新後の値を返します。",
+            examTip: "名前にAndがあるメソッドは戻り値のタイミングを問われやすいです。",
+            code: nil,
+            relatedQuizIds: ["gold-concurrency-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-path-normalize",
+            level: .gold,
+            category: .io,
+            title: "Path.normalize",
+            summary: ". と .. を整理したパスを作る",
+            estimatedMinutes: 5,
+            focus: "`Path.normalize()` は冗長な名前要素を取り除きます。ファイルシステムへアクセスして存在確認をするわけではありません。",
+            examTip: "`normalize` と `toRealPath` は別物です。toRealPathは実ファイル解決を伴います。",
+            code: nil,
+            relatedQuizIds: ["gold-path-normalize-001"]
+        ),
+        quickLesson(
+            id: "lesson-gold-files-api",
+            level: .gold,
+            category: .io,
+            title: "Files API",
+            summary: "readString/writeString/copy/moveなどのNIO.2操作",
+            estimatedMinutes: 6,
+            focus: "FilesクラスはPathを使ってファイル操作を行うユーティリティです。小さなテキストならreadString/writeString、コピーや移動にはcopy/moveを使います。",
+            examTip: "copyやmoveはオプション指定なしだと既存ファイルで例外になる点に注意します。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+        quickLesson(
+            id: "lesson-gold-resource-bundle",
+            level: .gold,
+            category: .localization,
+            title: "ResourceBundle",
+            summary: "Localeに応じたプロパティファイルを読み込む",
+            estimatedMinutes: 6,
+            focus: "ResourceBundleはベース名とLocaleから最適なリソースを探索します。地域、言語、デフォルトの順でフォールバックを理解します。",
+            examTip: "ファイル名の候補順と、存在しないキーを取得した時のMissingResourceExceptionが頻出です。",
+            code: nil,
+            relatedQuizIds: []
+        ),
+    ]
+
+    private static func quickLesson(
+        id: String,
+        level: JavaLevel,
+        category: QuizCategory,
+        title: String,
+        summary: String,
+        estimatedMinutes: Int,
+        focus: String,
+        examTip: String,
+        code: String?,
+        relatedQuizIds: [String]
+    ) -> Lesson {
+        Lesson(
+            id: id,
+            level: level,
+            category: category.rawValue,
+            title: title,
+            summary: summary,
+            estimatedMinutes: estimatedMinutes,
+            sections: [
+                Section(
+                    id: "focus",
+                    heading: "要点",
+                    body: focus,
+                    code: code,
+                    highlightLines: code == nil ? [] : [1],
+                    callout: nil
+                ),
+                Section(
+                    id: "exam",
+                    heading: "試験での見え方",
+                    body: examTip,
+                    code: nil,
+                    highlightLines: [],
+                    callout: Callout(kind: .exam, text: examTip)
+                ),
+            ],
+            keyPoints: [
+                focus,
+                examTip,
+            ],
+            relatedQuizIds: relatedQuizIds
+        )
+    }
 }

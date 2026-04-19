@@ -3,14 +3,18 @@ import SwiftUI
 struct HomeView: View {
     @State private var activeSession: QuizSession?
     @State private var progress = ProgressStore.shared
-    @State private var selectedLevel: JavaLevel = .silver
     @State private var showSettings = false
     @State private var showEmptySessionAlert = false
     @State private var emptySessionMessage = ""
     @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
+    @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
 
     private var selectedVersion: JavaExamVersion {
         JavaExamVersion(rawValue: selectedExamVersionRaw) ?? .se17
+    }
+
+    private var selectedLevel: JavaLevel {
+        JavaLevel(rawValue: selectedLevelRaw) ?? .silver
     }
 
     var body: some View {
@@ -57,11 +61,11 @@ struct HomeView: View {
     private var headerSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("ジャバスタ")
+                Text("JavaSta")
                     .font(.system(size: 30, weight: .bold, design: .default))
                     .foregroundStyle(Color.jbText)
                 HStack(spacing: 6) {
-                    Text("Java資格 × 本質理解")
+                    Text("Javaの本質を理解しよう")
                     Text(selectedVersion.examCode(for: selectedLevel))
                         .font(.system(size: 11, weight: .bold).monospacedDigit())
                         .foregroundStyle(Color.jbAccent)
@@ -101,19 +105,10 @@ struct HomeView: View {
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("今日")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.jbSubtext)
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text("\(progress.todayAnswered)")
-                            .font(.system(size: 28, weight: .bold).monospacedDigit())
-                            .foregroundStyle(progress.todayAnswered >= progress.dailyGoal ? Color.jbSuccess : Color.jbAccent)
-                        Text("/\(progress.dailyGoal)")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(Color.jbSubtext)
-                    }
-                }
+                TodayStudyCounterView(
+                    answered: progress.todayAnswered,
+                    dailyGoal: progress.dailyGoal
+                )
             }
 
             levelPicker
@@ -121,7 +116,7 @@ struct HomeView: View {
             HStack(spacing: Spacing.sm) {
                 CommandMetric(
                     title: "正答率",
-                    value: progress.totalAnswered > 0 ? "\(progress.accuracyPercent)%" : "—",
+                    value: progress.answerAttemptCount(level: selectedLevel) > 0 ? "\(progress.levelAccuracyPercent(selectedLevel))%" : "—",
                     icon: "chart.line.uptrend.xyaxis",
                     color: accuracyColor
                 )
@@ -156,7 +151,7 @@ struct HomeView: View {
             ForEach(JavaLevel.allCases, id: \.self) { level in
                 Button(action: {
                     withAnimation(.jbSpring) {
-                        selectedLevel = level
+                        selectedLevelRaw = level.rawValue
                     }
                 }) {
                     Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
@@ -221,11 +216,64 @@ struct HomeView: View {
     }
 
     private var accuracyColor: Color {
-        guard progress.totalAnswered > 0 else { return Color.jbSubtext }
-        let p = progress.accuracyPercent
+        guard progress.answerAttemptCount(level: selectedLevel) > 0 else { return Color.jbSubtext }
+        let p = progress.levelAccuracyPercent(selectedLevel)
         if p >= 70 { return Color.jbSuccess }
         if p >= 40 { return Color.jbWarning }
         return Color.jbError
+    }
+}
+
+// MARK: - TodayStudyCounterView
+
+private struct TodayStudyCounterView: View {
+    let answered: Int
+    let dailyGoal: Int
+
+    private var reachedGoal: Bool {
+        answered >= dailyGoal
+    }
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 4) {
+            TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                HStack(spacing: 5) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 9, weight: .bold))
+                    Text(Self.timestamp(timeline.date))
+                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                .foregroundStyle(Color.jbSubtext)
+                .frame(maxWidth: 178, alignment: .trailing)
+            }
+
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text("\(answered)")
+                    .font(.system(size: 28, weight: .bold).monospacedDigit())
+                    .foregroundStyle(reachedGoal ? Color.jbSuccess : Color.jbAccent)
+                Text("/\(dailyGoal)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.jbSubtext)
+            }
+        }
+    }
+
+    private static func timestamp(_ date: Date) -> String {
+        let parts = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: date
+        )
+        return String(
+            format: "%04d年%02d月%02d日 %02d:%02d:%02d",
+            parts.year ?? 0,
+            parts.month ?? 0,
+            parts.day ?? 0,
+            parts.hour ?? 0,
+            parts.minute ?? 0,
+            parts.second ?? 0
+        )
     }
 }
 

@@ -155,6 +155,17 @@ final class ProgressStore {
         return Set(ids).count
     }
 
+    func answerAttemptCount(level: JavaLevel) -> Int {
+        answerHistory.filter { $0.level == level }.count
+    }
+
+    func levelAccuracyPercent(_ level: JavaLevel) -> Int {
+        let records = answerHistory.filter { $0.level == level }
+        guard !records.isEmpty else { return 0 }
+        let correct = records.filter(\.correct).count
+        return Int((Double(correct) / Double(records.count) * 100).rounded())
+    }
+
     func resetAll() {
         totalAnswered = 0
         totalCorrect = 0

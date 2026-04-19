@@ -6,7 +6,7 @@ struct SplashView: View {
     private let fullCode = """
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello!! Javasta");
+        System.out.println("Javasta");
     }
 }
 """

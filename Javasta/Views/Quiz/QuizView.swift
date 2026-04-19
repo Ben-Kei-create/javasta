@@ -11,33 +11,66 @@ struct QuizView: View {
         ZStack {
             Color.jbBackground.ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.lg) {
-                    codeBlock
-                    questionSection
-                    choicesSection
-
-                    if vm.isAnswered {
-                        resultSection
-                            .transition(.asymmetric(
-                                insertion: .push(from: .bottom).combined(with: .opacity),
-                                removal: .opacity
-                            ))
-                    }
-
-                    Spacer(minLength: Spacing.xxl)
+            GeometryReader { proxy in
+                ScrollView {
+                    contentLayout(size: proxy.size)
+                        .padding(Spacing.md)
+                        .animation(.jbSpring, value: vm.isAnswered)
                 }
-                .padding(Spacing.md)
-                .animation(.jbSpring, value: vm.isAnswered)
             }
         }
         .preferredColorScheme(.dark)
     }
 
+    @ViewBuilder
+    private func contentLayout(size: CGSize) -> some View {
+        if shouldUseSplitLayout(size) {
+            HStack(alignment: .top, spacing: Spacing.md) {
+                codeBlock(compactHeight: splitCodeHeight(for: size))
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+
+                VStack(alignment: .leading, spacing: Spacing.lg) {
+                    questionSection
+                    choicesSection
+                    answeredResultSection
+                    Spacer(minLength: Spacing.xl)
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                codeBlock()
+                questionSection
+                choicesSection
+                answeredResultSection
+                Spacer(minLength: Spacing.xxl)
+            }
+        }
+    }
+
     // MARK: Code block
 
-    private var codeBlock: some View {
-        CodeBlockView(code: vm.quiz.code, zoom: codeZoom)
+    @ViewBuilder
+    private func codeBlock(compactHeight: CGFloat = 220) -> some View {
+        if let codeTabs = vm.quiz.codeTabs, !codeTabs.isEmpty {
+            CodeBlockView(
+                tabs: codeTabs.map {
+                    CodeBlockView.FileTab(id: $0.id, filename: $0.filename, code: $0.code)
+                },
+                zoom: codeZoom,
+                compactHeight: compactHeight
+            )
+        } else {
+            CodeBlockView(code: vm.quiz.code, zoom: codeZoom, compactHeight: compactHeight)
+        }
+    }
+
+    private func shouldUseSplitLayout(_ size: CGSize) -> Bool {
+        size.width > size.height && size.width >= 680
+    }
+
+    private func splitCodeHeight(for size: CGSize) -> CGFloat {
+        min(max(size.height - Spacing.xl, 260), 560)
     }
 
     // MARK: Question
@@ -65,6 +98,17 @@ struct QuizView: View {
     }
 
     // MARK: Result
+
+    @ViewBuilder
+    private var answeredResultSection: some View {
+        if vm.isAnswered {
+            resultSection
+                .transition(.asymmetric(
+                    insertion: .push(from: .bottom).combined(with: .opacity),
+                    removal: .opacity
+                ))
+        }
+    }
 
     private var resultSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {

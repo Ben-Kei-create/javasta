@@ -22,13 +22,7 @@ struct ExplanationView: View {
                     headerBar
                     Divider().background(Color.jbBorder)
 
-                    CodePanelView(
-                        code: vm.explanation.initialCode,
-                        highlightLines: vm.currentStep.highlightLines,
-                        zoom: codeZoom
-                    )
-                    .frame(maxHeight: geo.size.height * 0.38)
-                    .background(Color.jbBackground)
+                    explanationCodeView(maxHeight: geo.size.height * 0.38)
 
                     Divider().background(Color.jbBorder)
 
@@ -89,6 +83,30 @@ struct ExplanationView: View {
                     }
             }
             .preferredColorScheme(.dark)
+        }
+    }
+
+    @ViewBuilder
+    private func explanationCodeView(maxHeight: CGFloat) -> some View {
+        if let codeTabs = vm.explanation.codeTabs, !codeTabs.isEmpty {
+            CodeBlockView(
+                tabs: codeTabs.map {
+                    CodeBlockView.FileTab(id: $0.id, filename: $0.filename, code: $0.code)
+                },
+                highlightLines: vm.currentStep.highlightLines,
+                zoom: codeZoom,
+                compactHeight: maxHeight
+            )
+            .frame(maxHeight: maxHeight)
+            .background(Color.jbBackground)
+        } else {
+            CodePanelView(
+                code: vm.explanation.initialCode,
+                highlightLines: vm.currentStep.highlightLines,
+                zoom: codeZoom
+            )
+            .frame(maxHeight: maxHeight)
+            .background(Color.jbBackground)
         }
     }
 

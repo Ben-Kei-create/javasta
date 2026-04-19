@@ -4,6 +4,7 @@ struct Explanation: Codable, Identifiable {
     let id: String
     var relatedLessonId: String? = nil
     let initialCode: String
+    var codeTabs: [Quiz.CodeFile]? = nil
     let steps: [Step]
 
     struct Step: Codable, Identifiable {

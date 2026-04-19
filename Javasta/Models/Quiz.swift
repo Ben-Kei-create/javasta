@@ -14,6 +14,7 @@ struct Quiz: Codable, Identifiable {
     let category: String
     let tags: [String]
     let code: String
+    var codeTabs: [CodeFile]? = nil
     let question: String
     let choices: [Choice]
     let explanationRef: String
@@ -25,6 +26,18 @@ struct Quiz: Codable, Identifiable {
 
     var examCode: String {
         examVersion.examCode(for: level)
+    }
+
+    struct CodeFile: Codable, Identifiable, Hashable {
+        let id: String
+        let filename: String
+        let code: String
+
+        init(filename: String, code: String, id: String? = nil) {
+            self.id = id ?? filename
+            self.filename = filename
+            self.code = code
+        }
     }
 
     struct Choice: Codable, Identifiable {
@@ -51,6 +64,7 @@ extension Quiz {
         case category
         case tags
         case code
+        case codeTabs
         case question
         case choices
         case explanationRef
@@ -72,6 +86,7 @@ extension Quiz {
         category = try container.decode(String.self, forKey: .category)
         tags = try container.decode([String].self, forKey: .tags)
         code = try container.decode(String.self, forKey: .code)
+        codeTabs = try container.decodeIfPresent([CodeFile].self, forKey: .codeTabs)
         question = try container.decode(String.self, forKey: .question)
         choices = try container.decode([Choice].self, forKey: .choices)
         explanationRef = try container.decode(String.self, forKey: .explanationRef)
@@ -93,6 +108,7 @@ extension Quiz {
         try container.encode(category, forKey: .category)
         try container.encode(tags, forKey: .tags)
         try container.encode(code, forKey: .code)
+        try container.encodeIfPresent(codeTabs, forKey: .codeTabs)
         try container.encode(question, forKey: .question)
         try container.encode(choices, forKey: .choices)
         try container.encode(explanationRef, forKey: .explanationRef)

@@ -11,8 +11,60 @@ extension Explanation {
         case "explain-gold-generics-001":     return goldGenerics001
         case "explain-gold-stream-001":       return goldStream001
         case "explain-gold-optional-001":     return goldOptional001
-        default: return nil
+        default:
+            if let quiz = Quiz.samples.first(where: { $0.explanationRef == ref }) {
+                return quickTrace(for: quiz, ref: ref)
+            }
+            return nil
         }
+    }
+
+    private static func quickTrace(for quiz: Quiz, ref: String) -> Explanation {
+        let lines = quiz.code.components(separatedBy: .newlines)
+        let mainLine = lines.firstIndex { $0.contains("main(") }.map { $0 + 1 } ?? 1
+        let outputLine = lines.lastIndex { $0.contains("System.out") }.map { $0 + 1 } ?? max(lines.count, 1)
+        let correctChoice = quiz.choices.first { $0.correct }
+
+        return Explanation(
+            id: ref,
+            initialCode: quiz.code,
+            codeTabs: quiz.codeTabs,
+            steps: [
+                Step(
+                    index: 0,
+                    narration: "mainメソッドから実行開始。この問題では、コードを上から順に追い、出力またはコンパイル結果を判断します。",
+                    highlightLines: [mainLine],
+                    variables: [],
+                    callStack: [CallStackFrame(method: "main", line: mainLine)],
+                    heap: [],
+                    predict: nil
+                ),
+                Step(
+                    index: 1,
+                    narration: "選択肢を判断する前に、型・参照・APIの評価順序を確認します。特にこの問題の狙いは「\(quiz.designIntent)」です。",
+                    highlightLines: [outputLine],
+                    variables: [],
+                    callStack: [CallStackFrame(method: "main", line: outputLine)],
+                    heap: [],
+                    predict: PredictPrompt(
+                        question: quiz.question,
+                        choices: quiz.choices.map(\.text),
+                        answerIndex: max(quiz.choices.firstIndex(where: { $0.correct }) ?? 0, 0),
+                        hint: quiz.tags.joined(separator: " / "),
+                        afterExplanation: correctChoice?.explanation ?? quiz.designIntent
+                    )
+                ),
+                Step(
+                    index: 2,
+                    narration: "正解は「\(correctChoice?.text ?? "該当なし")」。\(correctChoice?.explanation ?? quiz.designIntent)",
+                    highlightLines: [outputLine],
+                    variables: [],
+                    callStack: [CallStackFrame(method: "main", line: outputLine)],
+                    heap: [],
+                    predict: nil
+                ),
+            ]
+        )
     }
 
     // MARK: - Silver: オーバーロード解決
