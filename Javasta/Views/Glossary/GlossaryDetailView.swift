@@ -2,8 +2,16 @@ import SwiftUI
 
 struct GlossaryDetailView: View {
     let term: GlossaryTerm
+    var origin: Origin? = nil
     var onSelectLesson: ((String) -> Void)? = nil
     var onSelectQuiz: ((String) -> Void)? = nil
+
+    /// 用語集チェーンの起点 (レッスン/問題など) に一気に戻るための情報。
+    struct Origin {
+        let icon: String
+        let label: String
+        let action: () -> Void
+    }
 
     var body: some View {
         ZStack {
@@ -11,6 +19,9 @@ struct GlossaryDetailView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
+                    if let origin {
+                        originBar(origin)
+                    }
                     headerCard
                     bodyCard
 
@@ -32,6 +43,52 @@ struct GlossaryDetailView: View {
         .navigationTitle("用語")
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.dark)
+    }
+
+    // MARK: Origin bar
+
+    private func originBar(_ origin: Origin) -> some View {
+        Button(action: origin.action) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.jbAccent)
+                    .frame(width: 20, height: 20)
+                    .background(Circle().fill(Color.jbAccent.opacity(0.15)))
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("最初に戻る")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Color.jbSubtext)
+                        .tracking(0.3)
+                    HStack(spacing: 4) {
+                        Image(systemName: origin.icon)
+                            .font(.system(size: 11))
+                        Text(origin.label)
+                            .font(.system(size: 13, weight: .semibold))
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(Color.jbAccent)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Color.jbAccent.opacity(0.6))
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.sm)
+                    .fill(Color.jbAccent.opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .stroke(Color.jbAccent.opacity(0.35), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: Header

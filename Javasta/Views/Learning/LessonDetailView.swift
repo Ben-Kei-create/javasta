@@ -64,11 +64,16 @@ struct LessonDetailView: View {
     @ViewBuilder
     private func glossarySheet(rootId: String) -> some View {
         if let term = GlossaryTerm.lookup(rootId) {
+            let origin = GlossaryDetailView.Origin(
+                icon: "book.fill",
+                label: lesson.title,
+                action: { glossaryRoot = nil }
+            )
             NavigationStack(path: $glossaryPath) {
-                GlossaryDetailView(term: term)
+                GlossaryDetailView(term: term, origin: origin)
                     .navigationDestination(for: String.self) { id in
                         if let next = GlossaryTerm.lookup(id) {
-                            GlossaryDetailView(term: next)
+                            GlossaryDetailView(term: next, origin: origin)
                         }
                     }
                     .toolbar {
