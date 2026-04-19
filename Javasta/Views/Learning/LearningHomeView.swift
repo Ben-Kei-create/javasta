@@ -4,6 +4,7 @@ struct LearningHomeView: View {
     @State private var selectedLesson: Lesson?
     @State private var pendingQuizId: String?
     @State private var activeQuiz: Quiz?
+    @State private var progress = ProgressStore.shared
 
     var body: some View {
         NavigationStack {
@@ -83,7 +84,11 @@ struct LearningHomeView: View {
 
             VStack(spacing: Spacing.sm) {
                 ForEach(lessons) { lesson in
-                    LessonRowView(lesson: lesson, onTap: { selectedLesson = lesson })
+                    LessonRowView(
+                        lesson: lesson,
+                        isCompleted: progress.completedLessons.contains(lesson.id),
+                        onTap: { selectedLesson = lesson }
+                    )
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -95,6 +100,7 @@ struct LearningHomeView: View {
 
 struct LessonRowView: View {
     let lesson: Lesson
+    var isCompleted: Bool = false
     let onTap: () -> Void
 
     var body: some View {
@@ -132,9 +138,9 @@ struct LessonRowView: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "chevron.right")
                     .font(.system(size: 11))
-                    .foregroundStyle(Color.jbSubtext)
+                    .foregroundStyle(isCompleted ? Color.jbSuccess : Color.jbSubtext)
             }
             .padding(Spacing.md)
             .background(

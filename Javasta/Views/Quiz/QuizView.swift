@@ -5,6 +5,7 @@ struct QuizView: View {
     var codeZoom: Double = 1.0
     var onShowExplanation: () -> Void
     var onNextQuiz: (() -> Void)? = nil
+    var nextButtonTitle: String = "次の問題"
 
     var body: some View {
         ZStack {
@@ -124,9 +125,9 @@ struct QuizView: View {
             if let onNextQuiz {
                 Button(action: onNextQuiz) {
                     HStack(spacing: 6) {
-                        Text("次の問題")
+                        Text(nextButtonTitle)
                             .font(.system(size: 14, weight: .bold))
-                        Image(systemName: "arrow.right")
+                        Image(systemName: nextButtonTitle == "完了" ? "checkmark" : "arrow.right")
                             .font(.system(size: 13, weight: .bold))
                     }
                     .foregroundStyle(.white)

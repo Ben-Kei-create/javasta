@@ -5,6 +5,7 @@ struct LessonDetailView: View {
     var onSelectQuiz: ((String) -> Void)? = nil
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
+    @State private var progress = ProgressStore.shared
 
     @State private var glossaryRoot: GlossaryRoot? = nil
     @State private var glossaryPath: [String] = []
@@ -26,6 +27,7 @@ struct LessonDetailView: View {
                     }
 
                     keyPointsCard
+                    completionCard
 
                     if let onSelectQuiz, !lesson.relatedQuizIds.isEmpty {
                         relatedQuizSection(onSelectQuiz: onSelectQuiz)
@@ -276,6 +278,47 @@ struct LessonDetailView: View {
                         .stroke(Color.jbWarning.opacity(0.3), lineWidth: 1)
                 )
         )
+    }
+
+    // MARK: Completion
+
+    private var completionCard: some View {
+        let completed = progress.completedLessons.contains(lesson.id)
+        return Button(action: { progress.markLessonCompleted(lesson.id) }) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: completed ? "checkmark.circle.fill" : "checkmark.circle")
+                    .font(.system(size: 21, weight: .semibold))
+                    .foregroundStyle(completed ? Color.jbSuccess : Color.jbAccent)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(completed ? "レッスン完了済み" : "このレッスンを完了にする")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.jbText)
+                    Text(completed ? "関連問題で定着度を確認できます" : "学習マップに進捗として反映されます")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.jbSubtext)
+                }
+
+                Spacer()
+
+                if !completed {
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.jbAccent)
+                }
+            }
+            .padding(Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .fill(completed ? Color.jbSuccess.opacity(0.08) : Color.jbCard)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .stroke(completed ? Color.jbSuccess.opacity(0.35) : Color.jbAccent.opacity(0.3), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(completed)
     }
 
     // MARK: Related quiz

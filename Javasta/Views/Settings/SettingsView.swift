@@ -38,6 +38,24 @@ struct SettingsView: View {
                         )
                     }
 
+                    section(title: "問題データ") {
+                        VStack(spacing: 1) {
+                            SettingRow(
+                                icon: "checkmark.shield",
+                                title: "品質チェック",
+                                value: QuestionBank.validationIssues().isEmpty ? "OK" : "\(QuestionBank.validationIssues().count)件",
+                                tint: QuestionBank.validationIssues().isEmpty ? Color.jbText : Color.jbWarning,
+                                onTap: nil
+                            )
+                            SettingRow(
+                                icon: "square.stack.3d.up",
+                                title: "収録問題",
+                                value: "\(QuestionBank.allQuizzes.count)問",
+                                onTap: nil
+                            )
+                        }
+                    }
+
                     section(title: "データ") {
                         SettingRow(
                             icon: "arrow.counterclockwise",

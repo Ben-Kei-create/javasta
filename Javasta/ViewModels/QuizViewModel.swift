@@ -6,6 +6,7 @@ final class QuizViewModel {
     var quiz: Quiz
     var selectedChoiceId: String?
     var isAnswered = false
+    private var startedAt = Date()
 
     var selectedChoice: Quiz.Choice? {
         guard let id = selectedChoiceId else { return nil }
@@ -21,7 +22,12 @@ final class QuizViewModel {
     func select(_ choice: Quiz.Choice) {
         guard !isAnswered else { return }
         selectedChoiceId = choice.id
-        ProgressStore.shared.recordAnswer(correct: choice.correct)
+        let elapsedSeconds = max(1, Int(Date().timeIntervalSince(startedAt).rounded()))
+        ProgressStore.shared.recordAnswer(
+            quiz: quiz,
+            choice: choice,
+            elapsedSeconds: elapsedSeconds
+        )
         withAnimation(.jbSpring) {
             isAnswered = true
         }
@@ -31,6 +37,7 @@ final class QuizViewModel {
         withAnimation(.jbFast) {
             selectedChoiceId = nil
             isAnswered = false
+            startedAt = Date()
         }
     }
 }

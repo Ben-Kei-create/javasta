@@ -20,6 +20,8 @@ enum JavaLevel: String, Codable, CaseIterable, Equatable {
 }
 
 enum QuizCategory: String, Codable {
+    case javaBasics         = "java-basics"
+    case classes            = "classes"
     case overloadResolution = "overload-resolution"
     case exceptionHandling  = "exception-handling"
     case collections        = "collections"
@@ -30,9 +32,18 @@ enum QuizCategory: String, Codable {
     case dataTypes          = "data-types"
     case string             = "string"
     case optionalApi        = "optional-api"
+    case moduleSystem       = "module-system"
+    case concurrency        = "concurrency"
+    case io                 = "io"
+    case jdbc               = "jdbc"
+    case localization       = "localization"
+    case annotations        = "annotations"
+    case secureCoding       = "secure-coding"
 
     var displayName: String {
         switch self {
+        case .javaBasics:        return "Java基礎"
+        case .classes:           return "クラス・メソッド"
         case .overloadResolution: return "オーバーロード解決"
         case .exceptionHandling:  return "例外処理"
         case .collections:        return "コレクション"
@@ -43,6 +54,13 @@ enum QuizCategory: String, Codable {
         case .dataTypes:          return "データ型・演算子"
         case .string:             return "文字列"
         case .optionalApi:        return "Optional"
+        case .moduleSystem:       return "モジュール"
+        case .concurrency:        return "並列処理"
+        case .io:                 return "I/O"
+        case .jdbc:               return "JDBC"
+        case .localization:       return "ローカライズ"
+        case .annotations:        return "アノテーション"
+        case .secureCoding:       return "セキュアコーディング"
         }
     }
 }

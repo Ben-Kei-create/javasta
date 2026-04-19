@@ -2,10 +2,11 @@ import SwiftUI
 
 struct AllQuizzesView: View {
     let level: JavaLevel
+    var version: JavaExamVersion = .se17
     var onSelect: (Quiz) -> Void
 
     private var quizzes: [Quiz] {
-        Quiz.samples.filter { $0.level == level }
+        QuestionBank.quizzes(version: version, level: level)
     }
 
     private var grouped: [(category: QuizCategory, quizzes: [Quiz])] {
