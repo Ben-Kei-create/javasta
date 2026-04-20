@@ -3,10 +3,25 @@ import SwiftUI
 struct SettingsView: View {
     @State private var progress = ProgressStore.shared
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
+    @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
     @State private var showResetConfirm = false
+    @State private var showExamDatePicker = false
+    @State private var pickerDate: Date = Date().addingTimeInterval(60 * 60 * 24 * 30)
     @Environment(\.dismiss) private var dismiss
 
     private let goalOptions = [3, 5, 10, 15]
+
+    private var examDate: Date? {
+        examDateTimestamp > 0 ? Date(timeIntervalSince1970: examDateTimestamp) : nil
+    }
+
+    private var examDateDisplay: String {
+        guard let date = examDate else { return "未設定" }
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ja_JP")
+        fmt.dateFormat = "yyyy/MM/dd HH:mm"
+        return fmt.string(from: date)
+    }
     private var validationIssues: [String] { QuestionBank.validationIssues() }
     private var explanationReport: ExplanationAuditReport { QuestionBank.explanationAuditReport() }
     private var appVersion: String {
@@ -25,6 +40,28 @@ struct SettingsView: View {
                         VStack(spacing: Spacing.xs) {
                             ForEach(goalOptions, id: \.self) { goal in
                                 goalRow(goal)
+                            }
+                        }
+                    }
+
+                    section(title: "受験日") {
+                        VStack(spacing: 1) {
+                            SettingRow(
+                                icon: "calendar",
+                                title: "受験日時",
+                                value: examDateDisplay,
+                                onTap: {
+                                    pickerDate = examDate ?? Date().addingTimeInterval(60 * 60 * 24 * 30)
+                                    showExamDatePicker = true
+                                }
+                            )
+                            if examDate != nil {
+                                SettingRow(
+                                    icon: "xmark.circle",
+                                    title: "受験日をクリア",
+                                    isDestructive: true,
+                                    onTap: { examDateTimestamp = 0 }
+                                )
                             }
                         }
                     }
@@ -91,6 +128,39 @@ struct SettingsView: View {
         .navigationTitle("設定")
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showExamDatePicker) {
+            NavigationStack {
+                VStack {
+                    DatePicker(
+                        "受験日時",
+                        selection: $pickerDate,
+                        in: Date()...,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.graphical)
+                    .padding()
+                    Spacer()
+                }
+                .background(Color.jbBackground.ignoresSafeArea())
+                .navigationTitle("受験日時を設定")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("キャンセル") { showExamDatePicker = false }
+                            .foregroundStyle(Color.jbSubtext)
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("保存") {
+                            examDateTimestamp = pickerDate.timeIntervalSince1970
+                            showExamDatePicker = false
+                        }
+                        .foregroundStyle(Color.jbAccent)
+                        .bold()
+                    }
+                }
+            }
+            .preferredColorScheme(.dark)
+        }
         .alert("学習進捗をリセット", isPresented: $showResetConfirm) {
             Button("キャンセル", role: .cancel) {}
             Button("リセット", role: .destructive) { progress.resetAll() }

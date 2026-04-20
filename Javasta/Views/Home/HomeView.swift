@@ -347,9 +347,15 @@ private struct MetricDetailItem: Identifiable {
 
 private struct HomeTimestampToggle: View {
     @AppStorage("homeTimestampVisible") private var isTimestampVisible = true
+    @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
+
+    private var examDate: Date? {
+        examDateTimestamp > 0 ? Date(timeIntervalSince1970: examDateTimestamp) : nil
+    }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
+            let hasExam = examDate != nil && (examDate! > timeline.date)
             Button(action: {
                 withAnimation(.jbFast) {
                     isTimestampVisible.toggle()
@@ -357,17 +363,18 @@ private struct HomeTimestampToggle: View {
             }) {
                 Group {
                     if isTimestampVisible {
-                        Text(Self.timestamp(timeline.date))
+                        Text(hasExam ? Self.countdown(from: timeline.date, to: examDate!) : Self.timestamp(timeline.date))
                             .font(.system(size: 10, weight: .semibold, design: .monospaced))
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
+                            .foregroundStyle(hasExam ? Color.jbError : Color.jbSubtext)
                             .transition(.opacity.combined(with: .move(edge: .trailing)))
                     } else {
                         Image(systemName: "clock")
                             .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.jbSubtext)
                     }
                 }
-                .foregroundStyle(Color.jbSubtext)
                 .frame(height: 22)
                 .frame(
                     minWidth: isTimestampVisible ? 126 : 22,
@@ -395,6 +402,19 @@ private struct HomeTimestampToggle: View {
             parts.minute ?? 0,
             parts.second ?? 0
         )
+    }
+
+    private static func countdown(_ now: Date = Date(), to exam: Date) -> String {
+        countdown(from: now, to: exam)
+    }
+
+    private static func countdown(from now: Date, to exam: Date) -> String {
+        let diff = max(0, exam.timeIntervalSince(now))
+        let days = Int(diff) / 86400
+        let hours = (Int(diff) % 86400) / 3600
+        let minutes = (Int(diff) % 3600) / 60
+        let seconds = Int(diff) % 60
+        return String(format: "受験まで %d日 %02d:%02d:%02d", days, hours, minutes, seconds)
     }
 }
 

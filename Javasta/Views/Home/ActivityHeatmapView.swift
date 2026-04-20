@@ -6,6 +6,31 @@ struct ActivityHeatmapView: View {
     let counts: [(dateKey: String, count: Int)]
     var weeks: Int = 12
 
+    @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
+    @State private var pulse: Bool = false
+    @State private var showExamAlert: Bool = false
+
+    private var examDate: Date? {
+        examDateTimestamp > 0 ? Date(timeIntervalSince1970: examDateTimestamp) : nil
+    }
+
+    private var examDateKey: String? {
+        guard let examDate else { return nil }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        fmt.calendar = Calendar(identifier: .gregorian)
+        fmt.timeZone = TimeZone.current
+        return fmt.string(from: examDate)
+    }
+
+    private var daysUntilExam: Int? {
+        guard let examDate else { return nil }
+        let cal = Calendar(identifier: .gregorian)
+        let start = cal.startOfDay(for: Date())
+        let target = cal.startOfDay(for: examDate)
+        return cal.dateComponents([.day], from: start, to: target).day
+    }
+
     private static let maxIntensityCount = 100
 
     // ドット & 余白
@@ -34,6 +59,26 @@ struct ActivityHeatmapView: View {
                 )
         )
         .padding(.horizontal, Spacing.md)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                pulse = true
+            }
+        }
+        .alert("受験日まで", isPresented: $showExamAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            if let days = daysUntilExam {
+                if days > 0 {
+                    Text("あと \(days) 日")
+                } else if days == 0 {
+                    Text("本日が受験日です")
+                } else {
+                    Text("受験日を過ぎています")
+                }
+            } else {
+                Text("受験日が設定されていません")
+            }
+        }
     }
 
     // MARK: Subviews
@@ -77,17 +122,32 @@ struct ActivityHeatmapView: View {
         }
     }
 
+    @ViewBuilder
     private func cell(for day: Day) -> some View {
-        RoundedRectangle(cornerRadius: 2)
-            .fill(cellColor(day))
-            .frame(width: cellSize, height: cellSize)
-            .overlay(
-                RoundedRectangle(cornerRadius: 2)
-                    .stroke(Color.jbBorder.opacity(day.isValid ? 0 : 0.4), lineWidth: 0.5)
-            )
-            .opacity(day.isValid ? 1 : 0)
-            .accessibilityLabel(Text("\(day.dateKey) \(day.count)問"))
-            .accessibilityHidden(!day.isValid)
+        let isExam = (day.dateKey == examDateKey) && !day.dateKey.isEmpty
+        if isExam {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.jbError)
+                .frame(width: cellSize, height: cellSize)
+                .opacity(pulse ? 1.0 : 0.35)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 2)
+                        .stroke(Color.jbError.opacity(0.8), lineWidth: 0.5)
+                )
+                .onTapGesture { showExamAlert = true }
+                .accessibilityLabel(Text("受験日 \(day.dateKey)"))
+        } else {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(cellColor(day))
+                .frame(width: cellSize, height: cellSize)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 2)
+                        .stroke(Color.jbBorder.opacity(day.isValid ? 0 : 0.4), lineWidth: 0.5)
+                )
+                .opacity(day.isValid ? 1 : 0)
+                .accessibilityLabel(Text("\(day.dateKey) \(day.count)問"))
+                .accessibilityHidden(!day.isValid)
+        }
     }
 
     private var legend: some View {
