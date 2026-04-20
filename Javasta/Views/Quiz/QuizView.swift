@@ -5,32 +5,49 @@ struct QuizView: View {
     var codeZoom: Double = 1.0
     var onShowExplanation: () -> Void
     var onNextQuiz: (() -> Void)? = nil
+    var nextButtonTitle: String = "次の問題"
 
     var body: some View {
         ZStack {
             Color.jbBackground.ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.lg) {
-                    codeBlock
-                    questionSection
-                    choicesSection
-
-                    if vm.isAnswered {
-                        resultSection
-                            .transition(.asymmetric(
-                                insertion: .push(from: .bottom).combined(with: .opacity),
-                                removal: .opacity
-                            ))
-                    }
-
-                    Spacer(minLength: Spacing.xxl)
+            GeometryReader { proxy in
+                ScrollView {
+                    contentLayout(size: proxy.size)
+                        .padding(Spacing.md)
+                        .animation(.jbSpring, value: vm.isAnswered)
                 }
-                .padding(Spacing.md)
-                .animation(.jbSpring, value: vm.isAnswered)
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    @ViewBuilder
+    private func contentLayout(size: CGSize) -> some View {
+        if shouldUseSplitLayout(size) {
+            HStack(alignment: .top, spacing: Spacing.md) {
+                codeBlock(compactHeight: splitCodeHeight(for: size))
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+
+                VStack(alignment: .leading, spacing: Spacing.lg) {
+                    questionSection
+                    choicesSection
+                    choicesHintSection
+                    answeredResultSection
+                    Spacer(minLength: Spacing.xl)
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                codeBlock()
+                questionSection
+                choicesSection
+                choicesHintSection
+                answeredResultSection
+                Spacer(minLength: Spacing.xxl)
+            }
+        }
     }
 
     // MARK: Markdown helper
@@ -47,8 +64,27 @@ struct QuizView: View {
 
     // MARK: Code block
 
-    private var codeBlock: some View {
-        CodeBlockView(code: vm.quiz.code, zoom: codeZoom)
+    @ViewBuilder
+    private func codeBlock(compactHeight: CGFloat = 220) -> some View {
+        if let codeTabs = vm.quiz.codeTabs, !codeTabs.isEmpty {
+            CodeBlockView(
+                tabs: codeTabs.map {
+                    CodeBlockView.FileTab(id: $0.id, filename: $0.filename, code: $0.code)
+                },
+                zoom: codeZoom,
+                compactHeight: compactHeight
+            )
+        } else {
+            CodeBlockView(code: vm.quiz.code, zoom: codeZoom, compactHeight: compactHeight)
+        }
+    }
+
+    private func shouldUseSplitLayout(_ size: CGSize) -> Bool {
+        size.width > size.height && size.width >= 680
+    }
+
+    private func splitCodeHeight(for size: CGSize) -> CGFloat {
+        min(max(size.height - Spacing.xl, 260), 560)
     }
 
     // MARK: Question
@@ -75,7 +111,37 @@ struct QuizView: View {
         }
     }
 
+    @ViewBuilder
+    private var choicesHintSection: some View {
+        if !vm.isAnswered {
+            HStack(alignment: .top, spacing: Spacing.xs) {
+                Image(systemName: "lightbulb")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.jbSubtext)
+                    .padding(.top, 1)
+
+                Text("選択後に、答えの簡単な解説が表示されます。")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.jbSubtext)
+                    .lineSpacing(2)
+            }
+            .padding(.horizontal, Spacing.xs)
+            .transition(.opacity)
+        }
+    }
+
     // MARK: Result
+
+    @ViewBuilder
+    private var answeredResultSection: some View {
+        if vm.isAnswered {
+            resultSection
+                .transition(.asymmetric(
+                    insertion: .push(from: .bottom).combined(with: .opacity),
+                    removal: .opacity
+                ))
+        }
+    }
 
     private var resultSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
@@ -139,9 +205,9 @@ struct QuizView: View {
             if let onNextQuiz {
                 Button(action: onNextQuiz) {
                     HStack(spacing: 6) {
-                        Text("次の問題")
+                        Text(nextButtonTitle)
                             .font(.system(size: 14, weight: .bold))
-                        Image(systemName: "arrow.right")
+                        Image(systemName: nextButtonTitle == "完了" ? "checkmark" : "arrow.right")
                             .font(.system(size: 13, weight: .bold))
                     }
                     .foregroundStyle(.white)

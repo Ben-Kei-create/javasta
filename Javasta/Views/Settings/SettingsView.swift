@@ -7,6 +7,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let goalOptions = [3, 5, 10, 15]
+    private var validationIssues: [String] { QuestionBank.validationIssues() }
+    private var explanationReport: ExplanationAuditReport { QuestionBank.explanationAuditReport() }
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
@@ -36,6 +38,35 @@ struct SettingsView: View {
                             value: "\(CodeZoom.percent(codeZoom))%",
                             onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
                         )
+                    }
+
+                    section(title: "問題データ") {
+                        VStack(spacing: 1) {
+                            SettingRow(
+                                icon: "checkmark.shield",
+                                title: "品質チェック",
+                                value: validationIssues.isEmpty ? "OK" : "\(validationIssues.count)件",
+                                tint: validationIssues.isEmpty ? Color.jbText : Color.jbWarning,
+                                onTap: nil
+                            )
+                            NavigationLink {
+                                ExplanationAuditView()
+                            } label: {
+                                SettingNavigationRow(
+                                    icon: "doc.text.magnifyingglass",
+                                    title: "解説チェック",
+                                    value: explanationReport.needsAttentionCount == 0 ? "OK" : "\(explanationReport.needsAttentionCount)件",
+                                    tint: explanationReport.needsAttentionCount == 0 ? Color.jbText : Color.jbWarning
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            SettingRow(
+                                icon: "square.stack.3d.up",
+                                title: "収録問題",
+                                value: "\(QuestionBank.allQuizzes.count)問",
+                                onTap: nil
+                            )
+                        }
                     }
 
                     section(title: "データ") {
@@ -205,5 +236,36 @@ struct SettingRow: View {
         }
         .buttonStyle(.plain)
         .disabled(onTap == nil)
+    }
+}
+
+struct SettingNavigationRow: View {
+    let icon: String
+    let title: String
+    var value: String? = nil
+    var tint: Color = Color.jbText
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 15))
+                .foregroundStyle(Color.jbAccent)
+                .frame(width: 24)
+            Text(title)
+                .font(.system(size: 15))
+                .foregroundStyle(tint)
+            Spacer()
+            if let value {
+                Text(value)
+                    .font(.system(size: 14).monospacedDigit())
+                    .foregroundStyle(Color.jbSubtext)
+            }
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11))
+                .foregroundStyle(Color.jbSubtext)
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, 12)
+        .background(Color.jbCard)
     }
 }

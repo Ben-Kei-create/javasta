@@ -2,6 +2,10 @@ import Foundation
 
 extension GlossaryTerm {
     static let samples: [GlossaryTerm] = [
+        jdk,
+        jvm,
+        sourceFile,
+        entryPoint,
         compile,
         overload,
         staticBinding,
@@ -30,6 +34,84 @@ extension GlossaryTerm {
     }
 
     // MARK: - 用語
+
+    static let jdk = GlossaryTerm(
+        id: "jdk",
+        term: "JDK",
+        aliases: ["Java Development Kit", "開発キット"],
+        summary: "Javaアプリを作るための開発キット。javacやjavaコマンドを含む。",
+        body: """
+**JDK** は Java Development Kit の略で、Javaプログラムを開発するための道具一式です。
+
+主な中身:
+
+- `javac`: [ソースファイル](javasta://term/source-file)を[バイトコード](javasta://term/bytecode)へ変換するコンパイラ
+- `java`: [JVM](javasta://term/jvm)上でクラスを実行するコマンド
+- 標準ライブラリと開発ツール
+
+Bronze相当の前提として、JDKでコンパイルし、JVMで実行する流れを押さえておくとSilver/Goldの理解がかなり楽になります。
+""",
+        relatedTermIds: ["jvm", "compile", "bytecode", "source-file"],
+        relatedLessonIds: ["lesson-bronze-java-platform"],
+        relatedQuizIds: []
+    )
+
+    static let jvm = GlossaryTerm(
+        id: "jvm",
+        term: "JVM",
+        aliases: ["Java Virtual Machine", "Java仮想マシン"],
+        summary: "Javaのバイトコードを実行する仮想マシン。",
+        body: """
+**JVM** は Java Virtual Machine の略で、[バイトコード](javasta://term/bytecode)を読み込んで実行する仮想マシンです。
+
+Javaはソースコードを直接実行するのではなく、まず `.class` ファイルに[コンパイル](javasta://term/compile)し、それをJVMが実行します。
+
+この仕組みにより、同じJavaプログラムをさまざまなOS上で動かしやすくしています。
+""",
+        relatedTermIds: ["jdk", "bytecode", "compile"],
+        relatedLessonIds: ["lesson-bronze-java-platform"],
+        relatedQuizIds: []
+    )
+
+    static let sourceFile = GlossaryTerm(
+        id: "source-file",
+        term: "ソースファイル",
+        aliases: [".java", "Javaファイル", "source file"],
+        summary: "開発者が書く `.java` ファイル。コンパイルされて `.class` になる。",
+        body: """
+**ソースファイル** は、開発者が書く `.java` ファイルです。
+
+`public class Test` を含むソースファイルは、原則として `Test.java` というファイル名にします。publicなトップレベルクラスは1ファイルに1つだけ、というルールも重要です。
+
+一方、publicでないトップレベルクラスは同じファイルに複数書くことも、別ファイルに分けることもできます。
+""",
+        relatedTermIds: ["compile", "bytecode", "entry-point"],
+        relatedLessonIds: ["lesson-bronze-java-platform"],
+        relatedQuizIds: ["silver-multifile-override-001"]
+    )
+
+    static let entryPoint = GlossaryTerm(
+        id: "entry-point",
+        term: "エントリポイント",
+        aliases: ["mainメソッド", "entry point"],
+        summary: "プログラム実行時に最初に呼ばれる入口。Javaではmainメソッド。",
+        body: """
+**エントリポイント** は、プログラムが実行を開始する入口です。
+
+Javaアプリケーションでは通常、次の形のmainメソッドが入口になります。
+
+```java
+public static void main(String[] args) {
+    // ここから実行開始
+}
+```
+
+`String[] args` は `String... args` と書くこともできます。
+""",
+        relatedTermIds: ["source-file", "static-binding"],
+        relatedLessonIds: ["lesson-silver-main-method"],
+        relatedQuizIds: []
+    )
 
     static let compile = GlossaryTerm(
         id: "compile",
