@@ -2,31 +2,35 @@ import Foundation
 
 extension GlossaryTerm {
     static let samples: [GlossaryTerm] = [
-        jdk,
-        jvm,
-        sourceFile,
-        entryPoint,
-        compile,
-        overload,
-        staticBinding,
-        dynamicBinding,
-        typePromotion,
-        boxing,
-        varargs,
-        genericsInvariance,
-        bytecode,
-        stringPool,
-        integerCache,
-        `fallthrough`,
-        finallyBlock,
-        referenceEquals,
-        streamApi,
-        lazyEvaluation,
-        intermediateOp,
-        terminalOp,
-        optionalType,
-        pecs,
-        wrapperClass,
+        // プラットフォーム
+        jdk, jvm, sourceFile, entryPoint, compile, bytecode,
+        // OOP基礎
+        classAndObject, constructor, inheritance, override, overload,
+        polymorphism, encapsulation, abstractClass, interfaceTerm,
+        staticKeyword, finalKeyword, instanceofTerm,
+        // 型・変換
+        typePromotion, boxing, wrapperClass, castingTerm, nullTerm,
+        varArgs2, varLocalType,
+        // 束縛・ディスパッチ
+        staticBinding, dynamicBinding,
+        // アクセス制御・構造
+        accessModifier, packageTerm, importTerm,
+        // 例外
+        finallyBlock, tryWithResources, checkedUnchecked,
+        // コレクション
+        collectionsFramework, arrayListTerm, hashMapTerm,
+        iteratorTerm, comparableTerm, comparatorTerm,
+        // 文字列
+        stringPool, referenceEquals, integerCache, stringBuilderTerm,
+        // ジェネリクス
+        genericsInvariance, pecs,
+        // 関数型・Stream
+        lambdaTerm, functionalInterface, methodReference,
+        streamApi, intermediateOp, terminalOp, lazyEvaluation, optionalType,
+        // 制御フロー
+        `fallthrough`, switchExpression,
+        // モダンJava
+        enumTerm, annotationTerm, recordTerm, sealedTerm,
     ]
 
     static func lookup(_ id: String) -> GlossaryTerm? {
@@ -591,5 +595,992 @@ Javaジェネリクスが [不変](javasta://term/generics-invariance) である
         relatedTermIds: ["generics-invariance"],
         relatedLessonIds: ["lesson-bounded-wildcards"],
         relatedQuizIds: ["gold-generics-001"]
+    )
+
+    // MARK: - OOP基礎
+
+    static let classAndObject = GlossaryTerm(
+        id: "class-object",
+        term: "クラスとオブジェクト",
+        aliases: ["class", "object", "インスタンス"],
+        summary: "クラスはオブジェクトの設計図。`new` でインスタンス（オブジェクト）を生成する。",
+        body: """
+**クラス** はフィールド（状態）とメソッド（振る舞い）をまとめた設計図です。`new` キーワードでヒープ上にインスタンスを生成します。
+
+```java
+class Dog {
+    String name;
+    void bark() { System.out.println("Woof!"); }
+}
+Dog d = new Dog();
+d.name = "Pochi";
+d.bark();
+```
+
+変数 `d` は実体ではなく **参照**（アドレス）を保持します。これが [== と equals](javasta://term/reference-equals) の挙動に直結します。
+""",
+        relatedTermIds: ["constructor", "reference-equals", "null"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let constructor = GlossaryTerm(
+        id: "constructor",
+        term: "コンストラクタ",
+        aliases: ["constructor", "コンストラクター"],
+        summary: "オブジェクト生成時に呼ばれる初期化専用のメソッド。クラス名と同じ名前で戻り値なし。",
+        body: """
+**コンストラクタ** はクラスと同名で戻り値のない特殊なメソッドで、`new` 時に自動で呼ばれます。
+
+```java
+class Point {
+    int x, y;
+    Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+```
+
+**デフォルトコンストラクタ**: 何も書かなければ引数なしが自動生成されます。ただし独自コンストラクタを1つでも書くとデフォルトは生成されません。
+
+**コンストラクタチェーン**: `this(...)` で同クラスの別コンストラクタ、`super(...)` で親コンストラクタを呼べます。
+""",
+        relatedTermIds: ["class-object", "inheritance", "static-keyword"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let inheritance = GlossaryTerm(
+        id: "inheritance",
+        term: "継承",
+        aliases: ["extends", "サブクラス", "スーパークラス"],
+        summary: "既存クラスの機能を引き継いで新しいクラスを作る仕組み。`extends` で宣言。",
+        body: """
+**継承** は `extends` キーワードで既存クラス（スーパークラス）の機能をそのまま引き継いだ新クラス（サブクラス）を作る仕組みです。
+
+```java
+class Animal { void eat() { ... } }
+class Dog extends Animal {
+    void bark() { ... }  // 追加
+}
+```
+
+Javaのクラス継承は **単一継承**（親は1つ）。複数の型を実装したい場合は [インターフェース](javasta://term/interface) を使います。
+
+サブクラスのコンストラクタは `super()` で親コンストラクタを呼ぶ必要があります（明示しなければ暗黙で呼ばれます）。
+
+[オーバーライド](javasta://term/override)と合わせて、[ポリモーフィズム](javasta://term/polymorphism)の基盤になります。
+""",
+        relatedTermIds: ["override", "polymorphism", "interface", "abstract-class"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let override = GlossaryTerm(
+        id: "override",
+        term: "オーバーライド",
+        aliases: ["@Override", "メソッドオーバーライド"],
+        summary: "親クラスのメソッドをサブクラスで再定義すること。動的束縛の対象になる。",
+        body: """
+**オーバーライド** とは、スーパークラスで定義されたインスタンスメソッドをサブクラスで再定義することです。`@Override` アノテーションを付けるとコンパイラがチェックします（推奨）。
+
+```java
+class Animal { String sound() { return "..."; } }
+class Cat extends Animal {
+    @Override
+    String sound() { return "Meow"; }
+}
+```
+
+オーバーライドは [動的束縛](javasta://term/dynamic-binding) の対象で、参照型ではなく実際のオブジェクトの型で決まります。
+
+[オーバーロード](javasta://term/overload)（同名別シグネチャ）と混同しないよう注意。
+""",
+        relatedTermIds: ["dynamic-binding", "inheritance", "overload", "annotation"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let polymorphism = GlossaryTerm(
+        id: "polymorphism",
+        term: "ポリモーフィズム",
+        aliases: ["多態性", "多相性", "polymorphism"],
+        summary: "同じ型の変数で異なるクラスのオブジェクトを扱い、実際の型に応じた動作をさせる仕組み。",
+        body: """
+**ポリモーフィズム**（多態性）は、スーパークラスや[インターフェース](javasta://term/interface)の参照変数で、異なるサブクラスのインスタンスを扱える仕組みです。
+
+```java
+Animal a = new Dog();
+Animal b = new Cat();
+a.sound();  // → Dogの実装
+b.sound();  // → Catの実装
+```
+
+これが機能するのは [動的束縛](javasta://term/dynamic-binding) のおかげ。[継承](javasta://term/inheritance)と[オーバーライド](javasta://term/override)によって成立します。
+
+ポリモーフィズムを使うとコードの切り替え（switch/if分岐）を減らし、拡張性の高い設計ができます。
+""",
+        relatedTermIds: ["dynamic-binding", "inheritance", "override", "interface"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let encapsulation = GlossaryTerm(
+        id: "encapsulation",
+        term: "カプセル化",
+        aliases: ["encapsulation", "情報隠蔽"],
+        summary: "フィールドを `private` にして外部から直接アクセスさせず、メソッド経由で操作させる設計原則。",
+        body: """
+**カプセル化** は、クラス内部のフィールドを `private` で隠蔽し、`getter`/`setter` などのメソッド経由でのみアクセスを許す設計原則です。
+
+```java
+class BankAccount {
+    private int balance;              // 直接触れない
+    void deposit(int amount) {
+        if (amount > 0) balance += amount;  // バリデーション込み
+    }
+    int getBalance() { return balance; }
+}
+```
+
+外部から直接 `balance` を書き換えられないので、不正な状態を防げます。[アクセス修飾子](javasta://term/access-modifier)と密接に関係します。
+""",
+        relatedTermIds: ["access-modifier", "class-object"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let abstractClass = GlossaryTerm(
+        id: "abstract-class",
+        term: "抽象クラス",
+        aliases: ["abstract class", "abstract"],
+        summary: "`abstract` 修飾子を持ち、直接インスタンス化できないクラス。未実装のメソッドを持てる。",
+        body: """
+**抽象クラス** は `abstract` キーワードで宣言され、インスタンスを直接生成できません。抽象メソッド（本体なし）を持てるのが特徴。
+
+```java
+abstract class Shape {
+    abstract double area();       // サブクラスが実装する
+    void print() {                // 実装済みメソッドも持てる
+        System.out.println(area());
+    }
+}
+class Circle extends Shape {
+    double r;
+    @Override double area() { return Math.PI * r * r; }
+}
+```
+
+[インターフェース](javasta://term/interface)との違い:
+
+| | 抽象クラス | インターフェース |
+|---|---|---|
+| 継承 | 単一 | 複数実装可 |
+| フィールド | 任意 | `public static final` のみ |
+| コンストラクタ | 持てる | 持てない |
+""",
+        relatedTermIds: ["interface", "inheritance", "override"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let interfaceTerm = GlossaryTerm(
+        id: "interface",
+        term: "インターフェース",
+        aliases: ["interface", "implements"],
+        summary: "実装の約束ごとを定義する型。クラスは複数のインターフェースを実装できる。",
+        body: """
+**インターフェース** は、クラスが実装すべきメソッドのシグネチャを定義する型です。Java 8以降は `default` メソッド（実装あり）や `static` メソッドも持てます。
+
+```java
+interface Flyable {
+    void fly();
+    default void land() { System.out.println("Landing"); }
+}
+class Bird implements Flyable {
+    @Override public void fly() { ... }
+}
+```
+
+クラスは `implements` で複数のインターフェースを実装できます（多重継承の代替）。
+
+[関数型インターフェース](javasta://term/functional-interface)（`@FunctionalInterface`）は[ラムダ式](javasta://term/lambda)で使われます。
+""",
+        relatedTermIds: ["abstract-class", "functional-interface", "lambda", "polymorphism"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let staticKeyword = GlossaryTerm(
+        id: "static-keyword",
+        term: "static",
+        aliases: ["static修飾子", "クラスメソッド", "クラス変数"],
+        summary: "インスタンスではなくクラスに属するフィールド・メソッドを宣言するキーワード。",
+        body: """
+`static` を付けたフィールド・メソッドは、インスタンスではなく **クラス** に属します。
+
+```java
+class Counter {
+    static int count = 0;      // 全インスタンス共有
+    Counter() { count++; }
+    static int getCount() { return count; }
+}
+Counter.getCount();  // インスタンスなしで呼べる
+```
+
+staticメソッドからは `this` や非staticメンバーにアクセスできません。[静的束縛](javasta://term/static-binding)の対象なのでオーバーライドも不可（隠蔽は可能）。
+
+`static` 初期化ブロックはクラスロード時に一度だけ実行されます。
+""",
+        relatedTermIds: ["static-binding", "entry-point"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let finalKeyword = GlossaryTerm(
+        id: "final-keyword",
+        term: "final",
+        aliases: ["final修飾子"],
+        summary: "変数なら再代入不可、メソッドならオーバーライド不可、クラスなら継承不可を意味するキーワード。",
+        body: """
+`final` はコンテキストによって意味が変わります。
+
+| 対象 | 意味 |
+|---|---|
+| ローカル変数 / フィールド | 一度代入したら変更不可 |
+| メソッド | サブクラスでオーバーライドできない |
+| クラス | 継承できない（`String` など）|
+
+```java
+final int MAX = 100;
+MAX = 200;  // コンパイルエラー
+```
+
+`final` フィールドはコンストラクタ内で初期化できます。`static final` は定数として使われることが多い（`PI` など）。
+""",
+        relatedTermIds: ["inheritance", "override", "static-keyword"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let instanceofTerm = GlossaryTerm(
+        id: "instanceof",
+        term: "instanceof",
+        aliases: ["型チェック", "パターンマッチ"],
+        summary: "オブジェクトが特定の型のインスタンスかを判定する演算子。Java 16以降はパターンマッチングに対応。",
+        body: """
+`instanceof` は実行時に型チェックを行う演算子です。
+
+```java
+Object obj = "hello";
+if (obj instanceof String) {
+    System.out.println("文字列です");
+}
+```
+
+**Java 16以降のパターンマッチング**:
+
+```java
+if (obj instanceof String s) {
+    System.out.println(s.length());  // sを直接使える
+}
+```
+
+`null` に対しては常に `false` を返します。[キャスト](javasta://term/casting)と組み合わせて使われることが多いが、パターンマッチングでキャストが不要になりました。
+""",
+        relatedTermIds: ["casting", "polymorphism"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let castingTerm = GlossaryTerm(
+        id: "casting",
+        term: "キャスト",
+        aliases: ["型変換", "ダウンキャスト", "アップキャスト"],
+        summary: "参照型や数値型を別の型に変換すること。アップキャストは安全、ダウンキャストは実行時に失敗しうる。",
+        body: """
+**キャスト** は型変換です。大きく2種類あります。
+
+**アップキャスト**（自動）: サブクラス → スーパークラス。安全なので自動で行われます。
+
+```java
+Dog d = new Dog();
+Animal a = d;   // アップキャスト（自動）
+```
+
+**ダウンキャスト**（明示）: スーパークラス → サブクラス。実際の型が合わない場合 `ClassCastException` が発生します。
+
+```java
+Animal a = new Cat();
+Dog d = (Dog) a;  // ClassCastException！実体はCat
+```
+
+事前に [instanceof](javasta://term/instanceof) で型を確認するのが安全です。
+""",
+        relatedTermIds: ["instanceof", "polymorphism", "dynamic-binding"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let nullTerm = GlossaryTerm(
+        id: "null",
+        term: "null",
+        aliases: ["NullPointerException", "NPE"],
+        summary: "参照型変数が「何も指していない」ことを表す特殊な値。アクセスすると NullPointerException になる。",
+        body: """
+`null` は参照型変数が何のオブジェクトも指していないことを示す特殊な値です。
+
+```java
+String s = null;
+s.length();  // NullPointerException!
+```
+
+`null` に対して `==` 比較は有効ですが、メソッド呼び出しは全て NPE になります。
+
+**対策**:
+
+- [Optional](javasta://term/optional) で null を型として表現する
+- `Objects.requireNonNull()` で早期に検出する
+- 入力値のバリデーションで null を弾く
+
+Java 14以降では NPE のメッセージが詳細になり、どの変数が null だったかを示します。
+""",
+        relatedTermIds: ["optional", "reference-equals"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let varArgs2 = GlossaryTerm(
+        id: "varargs",
+        term: "可変長引数",
+        aliases: ["varargs", "variable arguments"],
+        summary: "`型... 名` の構文で任意個の引数を配列として受け取れる機能。",
+        body: """
+**可変長引数** は、メソッド宣言で `String...` のように書くことで、任意個の引数を受け取れる機能です。受け取り側では配列として扱われます。
+
+```java
+static void log(String... messages) {
+    for (String m : messages) System.out.println(m);
+}
+log("a", "b", "c");
+```
+
+[オーバーロード](javasta://term/overload)解決では最後の手段として扱われ、他のすべてが該当しない場合のみ選ばれます。
+""",
+        relatedTermIds: ["overload"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let varLocalType = GlossaryTerm(
+        id: "var",
+        term: "var（ローカル型推論）",
+        aliases: ["local variable type inference", "var"],
+        summary: "Java 10以降。ローカル変数の型をコンパイラが推論してくれるキーワード。",
+        body: """
+`var` はローカル変数宣言時の型をコンパイラが右辺から推論するキーワードです（Java 10〜）。
+
+```java
+var list = new ArrayList<String>();  // ArrayList<String> と推論
+var i = 42;                          // int と推論
+```
+
+**使える場所**: ローカル変数のみ。フィールド、パラメータ、戻り値型には使えません。
+
+**注意**: `null` で初期化すると型が確定しないのでコンパイルエラー。
+
+型を明示したほうが読みやすい場面では使わないのが良い習慣です。
+""",
+        relatedTermIds: ["compile"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - アクセス制御・構造
+
+    static let accessModifier = GlossaryTerm(
+        id: "access-modifier",
+        term: "アクセス修飾子",
+        aliases: ["public", "protected", "private", "package-private"],
+        summary: "クラス・フィールド・メソッドの可視範囲を制御するキーワード。",
+        body: """
+Javaのアクセス修飾子は4種類あり、スコープが広い順に並べます。
+
+| 修飾子 | 同クラス | 同パッケージ | サブクラス | 他 |
+|---|---|---|---|---|
+| `public` | ✓ | ✓ | ✓ | ✓ |
+| `protected` | ✓ | ✓ | ✓ | — |
+| （なし）| ✓ | ✓ | — | — |
+| `private` | ✓ | — | — | — |
+
+（なし）は **パッケージプライベート** と呼ばれます。
+
+[カプセル化](javasta://term/encapsulation)の観点から、フィールドは原則 `private`、必要なものだけ公開するのが基本です。
+""",
+        relatedTermIds: ["encapsulation", "package"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let packageTerm = GlossaryTerm(
+        id: "package",
+        term: "パッケージ",
+        aliases: ["package", "パッケージ宣言"],
+        summary: "クラスを名前空間でグループ化する仕組み。ディレクトリ構造と対応する。",
+        body: """
+**パッケージ** は複数のクラスを名前空間でまとめる仕組みで、クラスの識別と[アクセス制御](javasta://term/access-modifier)に使われます。
+
+```java
+package com.example.app;   // ファイル先頭に宣言
+```
+
+ディレクトリ構造と一致させる必要があります（`com/example/app/MyClass.java`）。
+
+**デフォルトパッケージ**: `package` 宣言がないクラスはデフォルトパッケージに属しますが、本番コードでは使用を避けます。
+
+`java.lang` パッケージ（String, System 等）は自動でインポートされます。
+""",
+        relatedTermIds: ["access-modifier", "import"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let importTerm = GlossaryTerm(
+        id: "import",
+        term: "import",
+        aliases: ["import文", "static import"],
+        summary: "他パッケージのクラスを短い名前で使えるようにする宣言。",
+        body: """
+`import` 文を使うと、別パッケージのクラスをフルパスなしで参照できます。
+
+```java
+import java.util.ArrayList;
+import java.util.*;   // パッケージ全体（非推奨）
+```
+
+**static import**: クラス名なしで静的メンバーを参照できます。
+
+```java
+import static java.lang.Math.PI;
+import static java.lang.Math.*;
+double area = PI * r * r;
+```
+
+`import` はコンパイル時の糖衣構文にすぎず、実行時には影響しません。
+""",
+        relatedTermIds: ["package"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - 例外
+
+    static let tryWithResources = GlossaryTerm(
+        id: "try-with-resources",
+        term: "try-with-resources",
+        aliases: ["AutoCloseable", "リソース解放"],
+        summary: "try文でリソースを宣言すると、ブロック終了時に自動的に `close()` が呼ばれる構文（Java 7〜）。",
+        body: """
+`try-with-resources` は `AutoCloseable` を実装したリソースを自動クローズする構文です。
+
+```java
+try (BufferedReader br = new BufferedReader(new FileReader("file.txt"))) {
+    return br.readLine();
+} // br.close() が自動で呼ばれる
+```
+
+`finally` で手動クローズする古いコードより安全で簡潔。例外が発生してもリソースを確実に解放します。
+
+複数のリソースはセミコロンで区切れます。宣言と逆順に `close()` されます。
+""",
+        relatedTermIds: ["finally"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let checkedUnchecked = GlossaryTerm(
+        id: "checked-unchecked",
+        term: "検査例外 / 非検査例外",
+        aliases: ["checked exception", "unchecked exception", "RuntimeException"],
+        summary: "検査例外はコンパイル時に処理が義務付けられる。非検査例外（RuntimeException系）はその義務がない。",
+        body: """
+Javaの例外は大きく2種類あります。
+
+**検査例外（Checked Exception）**: `Exception` の直接サブクラス。メソッド呼び出し側が `try-catch` か `throws` 宣言を強制されます。
+
+```java
+void readFile() throws IOException { ... }
+```
+
+**非検査例外（Unchecked Exception）**: `RuntimeException` のサブクラス。コンパイラの強制なし。`NullPointerException`、`ArrayIndexOutOfBoundsException`、`ClassCastException` など。
+
+```java
+int[] arr = new int[3];
+arr[5] = 1;  // ArrayIndexOutOfBoundsException（実行時）
+```
+
+業務ロジックのエラーには検査例外、プログラムのバグには非検査例外、が基本的な使い分けです。
+""",
+        relatedTermIds: ["finally", "try-with-resources"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - コレクション
+
+    static let collectionsFramework = GlossaryTerm(
+        id: "collections",
+        term: "コレクションフレームワーク",
+        aliases: ["Collection", "List", "Set", "Map"],
+        summary: "データ構造（リスト・セット・マップ等）を統一的に扱うAPIセット。`java.util` パッケージ。",
+        body: """
+Javaの **コレクションフレームワーク** は `java.util` パッケージにあり、主なインターフェースは以下の通りです。
+
+- `List` — 順序あり・重複OK（[ArrayList](javasta://term/arraylist)、LinkedList）
+- `Set` — 順序なし（実装依存）・重複NG（HashSet、LinkedHashSet、TreeSet）
+- `Map` — キーと値のペア（[HashMap](javasta://term/hashmap)、TreeMap、LinkedHashMap）
+- `Queue` / `Deque` — キュー・両端キュー
+
+共通のユーティリティは `Collections` クラスに静的メソッドとして提供されます（`sort`, `shuffle`, `unmodifiableList` 等）。
+""",
+        relatedTermIds: ["arraylist", "hashmap", "iterator", "generics-invariance"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let arrayListTerm = GlossaryTerm(
+        id: "arraylist",
+        term: "ArrayList",
+        aliases: ["動的配列", "List実装"],
+        summary: "動的にサイズが変わる配列ベースの `List` 実装。ランダムアクセスが高速。",
+        body: """
+`ArrayList` は内部で配列を使う `List` 実装です。
+
+```java
+List<String> list = new ArrayList<>();
+list.add("Java");
+list.add("Silver");
+list.get(0);    // "Java"（O(1)）
+list.remove(0); // 後続要素がシフト（O(n)）
+```
+
+**特徴**:
+- ランダムアクセス `get(i)` が O(1)
+- 末尾への追加は均し O(1)（容量超過時に再確保）
+- 途中への挿入・削除は O(n)
+
+`LinkedList` との使い分け: 読み取り中心なら `ArrayList`、先頭・中間の挿入削除が多いなら `LinkedList`。
+
+ただし `LinkedList` は参照ポインタのオーバーヘッドがあるため、現代では `ArrayList` のほうが一般的に高速です。
+""",
+        relatedTermIds: ["collections", "iterator"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let hashMapTerm = GlossaryTerm(
+        id: "hashmap",
+        term: "HashMap",
+        aliases: ["Map", "ハッシュマップ", "キーと値"],
+        summary: "キーと値のペアを管理する `Map` 実装。検索・追加・削除が平均 O(1)。順序は保証しない。",
+        body: """
+`HashMap` はハッシュテーブルを使った `Map` 実装です。
+
+```java
+Map<String, Integer> map = new HashMap<>();
+map.put("apple", 1);
+map.put("banana", 2);
+map.get("apple");           // 1
+map.getOrDefault("grape", 0); // 0（未登録のデフォルト値）
+```
+
+**特徴**:
+- `put` / `get` / `containsKey` が平均 O(1)
+- 挿入順を保持しない（順序が必要なら `LinkedHashMap`）
+- キーの重複は上書き、値の重複は許容
+
+**null の扱い**: キーに `null` を1つ、値は複数 `null` を持てます。
+
+スレッドセーフが必要なら `ConcurrentHashMap` を使います。
+""",
+        relatedTermIds: ["collections", "reference-equals"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let iteratorTerm = GlossaryTerm(
+        id: "iterator",
+        term: "Iterator",
+        aliases: ["反復子", "hasNext", "next"],
+        summary: "コレクションの要素を順に取り出すインターフェース。拡張for文の内部でも使われる。",
+        body: """
+`Iterator` はコレクションを走査するインターフェースです。`hasNext()` と `next()` の2メソッドが中心。
+
+```java
+List<String> list = List.of("a", "b", "c");
+Iterator<String> it = list.iterator();
+while (it.hasNext()) {
+    System.out.println(it.next());
+}
+```
+
+実際には **拡張 for 文**（for-each）が `Iterator` を内部で使っています。
+
+```java
+for (String s : list) { ... }
+```
+
+`Iterator.remove()` を使うと走査中に安全に要素を削除できます（直接 `list.remove()` を呼ぶと `ConcurrentModificationException` になる）。
+""",
+        relatedTermIds: ["collections", "arraylist"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let comparableTerm = GlossaryTerm(
+        id: "comparable",
+        term: "Comparable",
+        aliases: ["compareTo", "自然順序", "Comparable<T>"],
+        summary: "クラス自身が「自然な順序」を定義するインターフェース。`compareTo` を実装する。",
+        body: """
+`Comparable<T>` は「自然な順序」をクラス自身が定義するインターフェースで、`compareTo` を実装します。
+
+```java
+class Student implements Comparable<Student> {
+    int score;
+    @Override public int compareTo(Student other) {
+        return this.score - other.score;  // 昇順
+    }
+}
+```
+
+`Collections.sort()` や `TreeSet` は `Comparable` を使って並べます。
+
+`compareTo` の戻り値の約束:
+- 負: `this < other`
+- 0: `this == other`
+- 正: `this > other`
+
+複数の基準で並べたい場合は [Comparator](javasta://term/comparator) を使います。
+""",
+        relatedTermIds: ["comparator", "collections"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let comparatorTerm = GlossaryTerm(
+        id: "comparator",
+        term: "Comparator",
+        aliases: ["compare", "外部比較器", "Comparator<T>"],
+        summary: "クラスの外部から比較ロジックを定義する関数型インターフェース。ラムダ式と相性がよい。",
+        body: """
+`Comparator<T>` はクラスの外から比較ロジックを定義する[関数型インターフェース](javasta://term/functional-interface)です。
+
+```java
+// ラムダ式で定義
+Comparator<Student> byScore = (a, b) -> a.score - b.score;
+
+// メソッド参照 + チェーン
+List<Student> sorted = students.stream()
+    .sorted(Comparator.comparing(Student::getName)
+                      .thenComparingInt(Student::getScore))
+    .toList();
+```
+
+[Comparable](javasta://term/comparable)が「自然な順序1つ」なのに対し、`Comparator` は「複数の並び方を外部で定義」できる柔軟性があります。
+""",
+        relatedTermIds: ["comparable", "functional-interface", "lambda", "stream"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - 文字列
+
+    static let stringBuilderTerm = GlossaryTerm(
+        id: "string-builder",
+        term: "StringBuilder",
+        aliases: ["StringBuffer", "文字列結合", "append"],
+        summary: "可変の文字列バッファ。ループ内での文字列結合は `String +` より大幅に高速。",
+        body: """
+`String` は不変（immutable）なので `+` で結合するたびに新しいオブジェクトが生成されます。ループ内での結合は `StringBuilder` を使うべきです。
+
+```java
+// 非推奨（毎回新しいStringオブジェクト）
+String result = "";
+for (int i = 0; i < 100; i++) result += i;
+
+// 推奨
+StringBuilder sb = new StringBuilder();
+for (int i = 0; i < 100; i++) sb.append(i);
+String result = sb.toString();
+```
+
+主なメソッド: `append()`, `insert()`, `delete()`, `reverse()`, `toString()`
+
+スレッドセーフが必要なら `StringBuffer`（ただし低速）を使います。単一スレッドでは `StringBuilder` 一択。
+""",
+        relatedTermIds: ["string-pool"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - 関数型
+
+    static let lambdaTerm = GlossaryTerm(
+        id: "lambda",
+        term: "ラムダ式",
+        aliases: ["lambda expression", "アロー演算子", "->"],
+        summary: "匿名関数を簡潔に書くための構文（Java 8〜）。関数型インターフェースの実装に使う。",
+        body: """
+**ラムダ式** は [関数型インターフェース](javasta://term/functional-interface) の無名実装を簡潔に書く構文です。
+
+```java
+// 従来の匿名クラス
+Runnable r = new Runnable() {
+    @Override public void run() { System.out.println("Hello"); }
+};
+
+// ラムダ式
+Runnable r = () -> System.out.println("Hello");
+```
+
+**書き方のバリエーション**:
+
+```java
+(x) -> x * 2           // 引数1つ、式1つ
+x -> x * 2             // 括弧省略可
+(a, b) -> a + b        // 引数2つ
+(x) -> { return x; }  // 複数文はブロック必須
+```
+
+[メソッド参照](javasta://term/method-reference)でさらに短く書ける場合があります。
+""",
+        relatedTermIds: ["functional-interface", "method-reference", "stream"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let functionalInterface = GlossaryTerm(
+        id: "functional-interface",
+        term: "関数型インターフェース",
+        aliases: ["@FunctionalInterface", "SAM", "Runnable", "Predicate", "Function", "Consumer", "Supplier"],
+        summary: "抽象メソッドが1つだけのインターフェース。ラムダ式やメソッド参照で実装できる。",
+        body: """
+**関数型インターフェース** は抽象メソッドが1つだけのインターフェースです。`@FunctionalInterface` を付けると複数の抽象メソッドがあればコンパイルエラーになります。
+
+`java.util.function` パッケージの代表的なもの:
+
+| インターフェース | シグネチャ | 用途 |
+|---|---|---|
+| `Predicate<T>` | `T → boolean` | 条件判定 |
+| `Function<T,R>` | `T → R` | 変換 |
+| `Consumer<T>` | `T → void` | 副作用 |
+| `Supplier<T>` | `() → T` | 生成 |
+| `BiFunction<T,U,R>` | `(T,U) → R` | 2引数変換 |
+
+```java
+Predicate<String> isLong = s -> s.length() > 5;
+isLong.test("hello");   // false
+```
+""",
+        relatedTermIds: ["lambda", "method-reference", "interface"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let methodReference = GlossaryTerm(
+        id: "method-reference",
+        term: "メソッド参照",
+        aliases: ["method reference", "::", "コロンコロン"],
+        summary: "既存のメソッドをラムダ式の代わりに `クラス::メソッド名` 形式で渡す構文。",
+        body: """
+**メソッド参照** は [ラムダ式](javasta://term/lambda) をさらに短く書ける構文で、`::` を使います。
+
+4種類あります。
+
+| 種類 | 書き方 | 等価なラムダ |
+|---|---|---|
+| 静的メソッド | `Integer::parseInt` | `s -> Integer.parseInt(s)` |
+| インスタンス（任意） | `String::toUpperCase` | `s -> s.toUpperCase()` |
+| インスタンス（特定） | `obj::method` | `x -> obj.method(x)` |
+| コンストラクタ | `ArrayList::new` | `() -> new ArrayList<>()` |
+
+```java
+List<String> words = List.of("b", "a", "c");
+words.stream().sorted(String::compareTo).toList();
+```
+""",
+        relatedTermIds: ["lambda", "functional-interface", "stream"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - 制御フロー追加
+
+    static let switchExpression = GlossaryTerm(
+        id: "switch-expression",
+        term: "switch式",
+        aliases: ["switch expression", "->", "yield"],
+        summary: "Java 14で正式化。`case ->` 構文でフォールスルーなし・値を返せる式としてのswitch。",
+        body: """
+Java 14以降の **switch式** は、従来の `switch文` の問題（[フォールスルー](javasta://term/fallthrough)、値を返せない）を解決します。
+
+```java
+String result = switch (day) {
+    case MONDAY, FRIDAY -> "平日";
+    case SATURDAY, SUNDAY -> "週末";
+    default -> "その他";
+};
+```
+
+複数文が必要な場合は `yield` で値を返します。
+
+```java
+int val = switch (x) {
+    case 1 -> 10;
+    case 2 -> {
+        int r = compute(x);
+        yield r * 2;
+    }
+    default -> 0;
+};
+```
+
+`->` 構文ではフォールスルーは発生しません。
+""",
+        relatedTermIds: ["fallthrough"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - モダンJava
+
+    static let enumTerm = GlossaryTerm(
+        id: "enum",
+        term: "enum（列挙型）",
+        aliases: ["Enum", "列挙型", "定数"],
+        summary: "決まった値の集合を型安全に表すクラス。メソッドやフィールドも持てる。",
+        body: """
+`enum` は決まった定数セットを型安全に表す特殊なクラスです。
+
+```java
+enum Season { SPRING, SUMMER, FALL, WINTER }
+Season s = Season.SUMMER;
+```
+
+**フィールド・メソッドを持てる**:
+
+```java
+enum Planet {
+    EARTH(5.97e24, 6.37e6),
+    MARS(6.42e23, 3.39e6);
+
+    final double mass, radius;
+    Planet(double mass, double radius) {
+        this.mass = mass; this.radius = radius;
+    }
+    double gravity() { return 6.67e-11 * mass / (radius * radius); }
+}
+```
+
+switch文で全ケースを網羅しているかコンパイラが確認でき、バグを防げます。`ordinal()`（0始まりの番号）や `name()` も組み込まれています。
+""",
+        relatedTermIds: ["switch-expression", "static-keyword"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let annotationTerm = GlossaryTerm(
+        id: "annotation",
+        term: "アノテーション",
+        aliases: ["@annotation", "メタデータ"],
+        summary: "コード要素にメタデータを付与する `@` 構文。コンパイラやフレームワークが読み取る。",
+        body: """
+**アノテーション** は `@` で始まり、クラス・メソッド・フィールドなどにメタデータを付与します。
+
+代表的な組み込みアノテーション:
+
+| アノテーション | 用途 |
+|---|---|
+| `@Override` | オーバーライドを明示、コンパイルチェック |
+| `@Deprecated` | 非推奨API、警告を出す |
+| `@SuppressWarnings` | 特定の警告を抑制 |
+| `@FunctionalInterface` | 関数型インターフェースを明示 |
+
+フレームワーク（Spring、JUnit等）は独自アノテーション（`@Test`, `@Autowired` 等）を多用します。アノテーション自体はコードの動作を変えず、ツールやランタイムが読み取って動作します。
+""",
+        relatedTermIds: ["override", "functional-interface"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let recordTerm = GlossaryTerm(
+        id: "record",
+        term: "record（レコード）",
+        aliases: ["Java 16", "不変データクラス"],
+        summary: "Java 16で正式化。フィールドの宣言だけでコンストラクタ・getter・equals・hashCode・toStringを自動生成。",
+        body: """
+`record` は不変データクラスを簡潔に書くための構文（Java 16〜）。
+
+```java
+record Point(int x, int y) {}
+
+Point p = new Point(3, 4);
+p.x();        // getter（フィールド名と同名）
+p.toString(); // "Point[x=3, y=4]"
+p.equals(new Point(3, 4));  // true
+```
+
+自動生成されるもの:
+- コンストラクタ（全フィールド）
+- フィールドに対応する getter
+- `equals`, `hashCode`, `toString`
+
+フィールドは暗黙的に `private final`。カスタム検証はコンパクトコンストラクタで行えます。
+
+```java
+record Range(int min, int max) {
+    Range {
+        if (min > max) throw new IllegalArgumentException();
+    }
+}
+```
+""",
+        relatedTermIds: ["encapsulation", "final-keyword"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let sealedTerm = GlossaryTerm(
+        id: "sealed",
+        term: "sealed クラス/インターフェース",
+        aliases: ["sealed", "permits", "Java 17"],
+        summary: "Java 17で正式化。継承できるサブクラスを `permits` で明示的に制限する。",
+        body: """
+`sealed` は継承を許可するクラスを明示的に制限する機能です（Java 17〜）。
+
+```java
+sealed interface Shape permits Circle, Rectangle, Triangle {}
+record Circle(double radius) implements Shape {}
+record Rectangle(double w, double h) implements Shape {}
+final class Triangle implements Shape { ... }
+```
+
+`permits` に列挙したクラスしか実装・継承できません。サブクラスは `final`・`sealed`・`non-sealed` のいずれかを宣言します。
+
+switch式でパターンマッチングと組み合わせると、全ケースの網羅チェックができます。
+
+```java
+double area = switch (shape) {
+    case Circle c    -> Math.PI * c.radius() * c.radius();
+    case Rectangle r -> r.w() * r.h();
+    case Triangle t  -> ...;
+};
+```
+""",
+        relatedTermIds: ["inheritance", "interface", "switch-expression", "record"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
     )
 }

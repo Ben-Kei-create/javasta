@@ -299,6 +299,8 @@ private struct MockExamCard: View {
     let count: Int
     let onStart: (MockExamVariant) -> Void
 
+    @State private var selectedVariant: MockExamVariant? = nil
+
     private var spec: MockExamSpec {
         MockExamSpec.official(version: version, level: level)
     }
@@ -328,23 +330,33 @@ private struct MockExamCard: View {
             HStack(spacing: 6) {
                 ForEach(MockExamVariant.allCases) { variant in
                     let questionCount = min(spec.questionCount(for: variant), count)
-                    Button(action: { onStart(variant) }) {
+                    let isSelected = selectedVariant == variant
+                    Button(action: {
+                        withAnimation(.jbFast) {
+                            if isSelected {
+                                onStart(variant)
+                                selectedVariant = nil
+                            } else {
+                                selectedVariant = variant
+                            }
+                        }
+                    }) {
                         VStack(spacing: 1) {
                             Text(variant.shortTitle)
                                 .font(.system(size: 12, weight: .bold).monospacedDigit())
-                                .foregroundStyle(variant == .full ? .white : Color.jbText)
+                                .foregroundStyle(isSelected ? .white : Color.jbText)
                                 .lineLimit(1)
                             Text(spec.durationText(for: questionCount))
                                 .font(.system(size: 9, weight: .semibold).monospacedDigit())
-                                .foregroundStyle(variant == .full ? .white.opacity(0.82) : Color.jbSubtext)
+                                .foregroundStyle(isSelected ? .white.opacity(0.82) : Color.jbSubtext)
                         }
                         .frame(width: 54, height: 38)
                         .background(
                             RoundedRectangle(cornerRadius: Radius.sm)
-                                .fill(variant == .full ? Color.jbAccent : Color.jbBackground)
+                                .fill(isSelected ? Color.jbAccent : Color.jbBackground)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: Radius.sm)
-                                        .stroke(variant == .full ? Color.jbAccent.opacity(0.45) : Color.jbBorder, lineWidth: 1)
+                                        .stroke(isSelected ? Color.jbAccent.opacity(0.45) : Color.jbBorder, lineWidth: 1)
                                 )
                         )
                     }

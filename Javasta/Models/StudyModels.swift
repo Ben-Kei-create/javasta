@@ -197,7 +197,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
     case mockExam
 
     static let allCases: [QuizPracticeMode] = [.daily, .weak, .mistakes, .unattempted, .mockExam]
-    static let homeModes: [QuizPracticeMode] = [.daily, .unattempted]
+    static let homeModes: [QuizPracticeMode] = [.daily, .unattempted, .mockExam]
 
     var id: String { rawValue }
 

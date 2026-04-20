@@ -4,8 +4,18 @@ import SwiftUI
 /// 横方向に「古い週 → 今週」、縦方向に曜日（月〜日）で並ぶコンパクト版。
 struct ActivityHeatmapView: View {
     let counts: [(dateKey: String, count: Int)]
-    var weeks: Int = 12
-    var futureWeeks: Int = 4
+    private let pastWeeks: Int = 8
+
+    private var futureWeeks: Int {
+        let cal = Calendar(identifier: .gregorian)
+        guard let examDate else { return 4 }
+        let today = cal.startOfDay(for: Date())
+        let examDay = cal.startOfDay(for: examDate)
+        guard let days = cal.dateComponents([.day], from: today, to: examDay).day, days > 0 else { return 4 }
+        return max(4, (days / 7) + 2)
+    }
+
+    private var weeks: Int { pastWeeks + futureWeeks }
 
     @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
     @State private var pulse: Bool = false
@@ -207,7 +217,6 @@ struct ActivityHeatmapView: View {
         let countsDict: [String: Int] = Dictionary(uniqueKeysWithValues: counts.map { ($0.dateKey, $0.count) })
 
         let today = cal.startOfDay(for: Date())
-        let pastWeeks = max(weeks - futureWeeks, 1)
         // 開始日: 今日が属する週の月曜から pastWeeks-1 週前
         let weekday = cal.component(.weekday, from: today)
         let mondayOffset = (weekday + 5) % 7

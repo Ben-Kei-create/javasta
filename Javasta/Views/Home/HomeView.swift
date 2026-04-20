@@ -10,6 +10,7 @@ struct HomeView: View {
     @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
     @AppStorage("homeSectionOrderV1") private var homeSectionOrderRaw: String = HomeSectionID.defaultOrderRaw
+    @State private var hoveredSection: HomeSectionID? = nil
 
     private var selectedVersion: JavaExamVersion {
         JavaExamVersion(rawValue: selectedExamVersionRaw) ?? .se17
@@ -32,15 +33,41 @@ struct HomeView: View {
             ZStack {
                 Color.jbBackground.ignoresSafeArea()
 
-                ScrollView {
+                ScrollView(.vertical) {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         headerSection
 
                         ForEach(sectionOrder, id: \.self) { sectionId in
                             reorderableSection(for: sectionId)
+                                .transition(.scale(scale: 0.96).combined(with: .opacity))
                         }
+
+                        Color.clear
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 60)
+                            .dropDestination(for: String.self) { items, _ in
+                                guard let first = items.first,
+                                      let src = HomeSectionID(rawValue: first) else { return false }
+                                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                    var order = sectionOrder
+                                    order.removeAll { $0 == src }
+                                    order.append(src)
+                                    homeSectionOrderRaw = HomeSectionID.encode(order)
+                                }
+                                hoveredSection = nil
+                                return true
+                            } isTargeted: { targeted in
+                                if !targeted && hoveredSection == nil { }
+                            }
                     }
                     .padding(.bottom, Spacing.lg)
+                    .animation(.spring(response: 0.45, dampingFraction: 0.82), value: sectionOrder)
+                    .background(
+                        Color.jbAccent
+                            .opacity(isReordering ? 0.06 : 0)
+                            .ignoresSafeArea()
+                            .animation(.easeInOut(duration: 0.25), value: isReordering)
+                    )
                 }
             }
             .navigationBarHidden(true)
@@ -145,15 +172,18 @@ struct HomeView: View {
                 )
             }
 
-            if let expandedMetric {
-                MetricDetailTray(
-                    title: expandedMetric.detailTitle,
-                    items: metricDetails(for: expandedMetric)
-                )
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
+            // 常にスペースを確保し、opacity で表示/非表示を切り替える（レイアウトシフト防止）
+            MetricDetailTray(
+                title: expandedMetric?.detailTitle ?? " ",
+                items: expandedMetric.map { metricDetails(for: $0) } ?? [
+                    MetricDetailItem(label: " ", value: " "),
+                    MetricDetailItem(label: " ", value: " "),
+                    MetricDetailItem(label: " ", value: " ")
+                ]
+            )
+            .opacity(expandedMetric != nil ? 1 : 0)
+            .animation(.jbFast, value: expandedMetric)
         }
-        .animation(.jbFast, value: expandedMetric)
         .padding(Spacing.sm)
         .background(
             RoundedRectangle(cornerRadius: Radius.md)
@@ -172,7 +202,7 @@ struct HomeView: View {
                 Image(systemName: "arrow.counterclockwise")
                     .foregroundStyle(Color.jbWarning)
                     .font(.system(size: 12, weight: .bold))
-                Text("復習キュー")
+                Text("復習")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Color.jbText)
                 Text("\(reviewQueueQuizzes.count)問")
@@ -220,10 +250,8 @@ struct HomeView: View {
     // MARK: Practice modes
 
     private var practiceModesSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            sectionHeader("練習を開始", trailing: "\(QuestionBank.quizzes(version: selectedVersion, level: selectedLevel).count)問")
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.sm) {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.sm) {
                 ForEach(QuizPracticeMode.homeModes) { mode in
                     PracticeModeCard(
                         mode: mode,
@@ -233,20 +261,8 @@ struct HomeView: View {
                 }
             }
             .padding(.horizontal, Spacing.md)
+            .padding(.vertical, 2)
         }
-    }
-
-    private func sectionHeader(_ title: String, trailing: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(Color.jbText)
-            Spacer()
-            Text(trailing)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.jbSubtext)
-        }
-        .padding(.horizontal, Spacing.md)
     }
 
     private func start(_ mode: QuizPracticeMode) {
@@ -284,7 +300,7 @@ struct HomeView: View {
         case .streak:
             return [
                 MetricDetailItem(label: "今日", value: "\(progress.todayAnswered)/\(progress.dailyGoal)問"),
-                MetricDetailItem(label: "復習キュー", value: "\(reviewQueueQuizzes.count)問"),
+                MetricDetailItem(label: "復習", value: "\(reviewQueueQuizzes.count)問"),
                 MetricDetailItem(label: "完了レッスン", value: "\(progress.completedLessons.count)件")
             ]
         case .answered:
@@ -306,6 +322,8 @@ struct HomeView: View {
         return decoded.filter { HomeSectionID.allCases.contains($0) }
     }
 
+    private var isReordering: Bool { hoveredSection != nil }
+
     @ViewBuilder
     private func reorderableSection(for id: HomeSectionID) -> some View {
         let content = sectionContent(for: id)
@@ -313,15 +331,36 @@ struct HomeView: View {
             EmptyView()
         } else {
             content
+                .padding(.vertical, 2)
+                .background(
+                    RoundedRectangle(cornerRadius: Radius.md)
+                        .fill(Color.jbAccent.opacity(hoveredSection == id ? 0.14 : (isReordering ? 0.05 : 0)))
+                        .padding(.horizontal, Spacing.sm)
+                        .animation(.easeInOut(duration: 0.22), value: hoveredSection)
+                )
+                .scaleEffect(hoveredSection == id ? 1.02 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: hoveredSection)
                 .draggable(id.rawValue) {
                     dragPreview(for: id)
                 }
                 .dropDestination(for: String.self) { items, _ in
                     guard let first = items.first,
                           let src = HomeSectionID(rawValue: first),
-                          src != id else { return false }
-                    moveSection(src, before: id)
+                          src != id else {
+                        hoveredSection = nil
+                        return false
+                    }
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        moveSection(src, before: id)
+                    }
+                    hoveredSection = nil
                     return true
+                } isTargeted: { targeted in
+                    if targeted {
+                        hoveredSection = id
+                    } else if hoveredSection == id {
+                        hoveredSection = nil
+                    }
                 }
         }
     }
@@ -405,7 +444,7 @@ enum HomeSectionID: String, CaseIterable, Codable, Hashable {
         switch self {
         case .commandCenter: return "ステータス"
         case .heatmap: return "学習マップ"
-        case .reviewQueue: return "復習キュー"
+        case .reviewQueue: return "復習"
         case .practiceModes: return "練習を開始"
         case .levelSection: return "問題リスト"
         }
@@ -678,7 +717,7 @@ private struct PracticeModeCard: View {
                     .foregroundStyle(isPrimary ? .white.opacity(0.8) : Color.jbSubtext)
             }
             .padding(Spacing.sm)
-            .frame(maxWidth: .infinity, minHeight: 74, alignment: .leading)
+            .frame(width: 200, height: 74, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: Radius.md)
                     .fill(isPrimary ? Color.jbAccent : Color.jbCard)
@@ -701,14 +740,14 @@ struct LevelSectionView: View {
     let onSelect: (Quiz) -> Void
     let onStartSession: (QuizSession) -> Void
 
+    private let previewCount = 5
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
+        ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Spacing.sm) {
-                Text(level.displayName)
-                    .font(.system(size: 19, weight: .bold))
-                    .foregroundStyle(Color.jbText)
-                LevelBadgeView(level: level)
-                Spacer()
+                ForEach(quizzes.prefix(previewCount)) { quiz in
+                    QuizCardView(quiz: quiz, onTap: { onSelect(quiz) })
+                }
                 NavigationLink {
                     AllQuizzesView(
                         level: level,
@@ -717,26 +756,28 @@ struct LevelSectionView: View {
                         onStartSession: onStartSession
                     )
                 } label: {
-                    HStack(spacing: 2) {
+                    VStack(spacing: Spacing.xs) {
+                        Image(systemName: "chevron.right.2")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(Color.jbAccent)
                         Text("すべて見る")
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.jbAccent)
                     }
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.jbAccent)
+                    .frame(width: 80, height: 118)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .fill(Color.jbCard)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Radius.md)
+                                    .stroke(Color.jbAccent.opacity(0.35), lineWidth: 1)
+                            )
+                    )
                 }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, Spacing.md)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.sm) {
-                    ForEach(quizzes) { quiz in
-                        QuizCardView(quiz: quiz, onTap: { onSelect(quiz) })
-                    }
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, 4)
-            }
+            .padding(.vertical, 4)
         }
     }
 }
