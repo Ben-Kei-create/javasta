@@ -31,7 +31,6 @@ struct HomeView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         headerSection
-                        dailyProgressCard
 
                         if !reviewQueueQuizzes.isEmpty {
                             reviewQueueSection
@@ -40,13 +39,6 @@ struct HomeView: View {
                         ActivityHeatmapView(
                             counts: progress.recentDailyCounts(days: ProgressStore.historyWindowDays)
                         )
-                        ForEach(JavaLevel.allCases, id: \.self) { level in
-                            LevelSectionView(
-                                level: level,
-                                quizzes: Quiz.samples.filter { $0.level == level },
-                                onSelect: { selectedQuiz = $0 }
-                            )
-                        }
                         commandCenter
                         practiceModesSection
                         LevelSectionView(
@@ -192,12 +184,15 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Spacing.sm) {
                     ForEach(reviewQueueQuizzes) { quiz in
-                        ReviewQueueCard(quiz: quiz, onTap: { selectedQuiz = quiz })
+                        ReviewQueueCard(quiz: quiz, onTap: { activeSession = QuizSession.single(quiz) })
                     }
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, 2)
             }
+        }
+    }
+
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
@@ -690,6 +685,8 @@ struct QuizSheetView: View {
                 return .systemAction
             })
         }
+    }
+
     private var isLastQuiz: Bool {
         currentIndex >= session.quizzes.count - 1
     }

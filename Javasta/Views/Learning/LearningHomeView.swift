@@ -21,9 +21,6 @@ struct LearningHomeView: View {
                         headerSection
                         glossaryCard
 
-                        ForEach(JavaLevel.allCases, id: \.self) { level in
-                            levelSection(level: level)
-                        }
                         levelPicker
                         levelSection(level: selectedLevel)
                             .id(selectedLevel)
@@ -123,6 +120,8 @@ struct LearningHomeView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in

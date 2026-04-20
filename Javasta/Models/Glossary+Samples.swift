@@ -17,7 +17,7 @@ extension GlossaryTerm {
         bytecode,
         stringPool,
         integerCache,
-        fallthrough,
+        `fallthrough`,
         finallyBlock,
         referenceEquals,
         streamApi,
@@ -392,7 +392,7 @@ Integer d = 200;   // 別インスタンス → c == d は false
 
     // MARK: - 制御フロー
 
-    static let fallthrough = GlossaryTerm(
+    static let `fallthrough` = GlossaryTerm(
         id: "fallthrough",
         term: "フォールスルー",
         aliases: ["fall-through", "switch break忘れ"],

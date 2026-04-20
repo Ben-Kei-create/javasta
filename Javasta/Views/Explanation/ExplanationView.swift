@@ -96,6 +96,9 @@ struct ExplanationView: View {
             let byLesson = lessonId.map { term.relatedLessonIds.contains($0) } ?? false
             let byQuiz = !quizIds.isDisjoint(with: term.relatedQuizIds)
             return byLesson || byQuiz
+        }
+    }
+
     @ViewBuilder
     private func explanationCodeView(maxHeight: CGFloat) -> some View {
         if let codeTabs = vm.explanation.codeTabs, !codeTabs.isEmpty {

@@ -7,7 +7,6 @@ struct LessonDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var progress = ProgressStore.shared
 
-    @State private var progress = ProgressStore.shared
     @State private var glossaryRoot: GlossaryRoot? = nil
     @State private var glossaryPath: [String] = []
 
@@ -306,6 +305,8 @@ struct LessonDetailView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
     private var completionCard: some View {
         let completed = progress.completedLessons.contains(lesson.id)
         return Button(action: { progress.markLessonCompleted(lesson.id) }) {
