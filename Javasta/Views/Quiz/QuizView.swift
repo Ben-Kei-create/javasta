@@ -50,6 +50,18 @@ struct QuizView: View {
         }
     }
 
+    // MARK: Markdown helper
+
+    private func markdownBody(_ source: String) -> Text {
+        let opts = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace
+        )
+        if let attr = try? AttributedString(markdown: source, options: opts) {
+            return Text(attr)
+        }
+        return Text(source)
+    }
+
     // MARK: Code block
 
     @ViewBuilder
@@ -143,16 +155,19 @@ struct QuizView: View {
             }
 
             if let choice = vm.selectedChoice {
-                Text(choice.explanation)
+                markdownBody(choice.explanation)
                     .font(.system(size: 14))
                     .foregroundStyle(Color.jbText)
                     .lineSpacing(4)
+                    .tint(Color.jbAccent)
             }
 
-            Text(vm.quiz.designIntent)
+            markdownBody(vm.quiz.designIntent)
                 .font(.system(size: 13).italic())
                 .foregroundStyle(Color.jbSubtext)
+                .tint(Color.jbAccent)
                 .padding(Spacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: Radius.sm)
                         .fill(Color.jbBackground)

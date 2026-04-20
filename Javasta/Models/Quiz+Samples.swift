@@ -1000,19 +1000,19 @@ public class Test {
         choices: [
             Choice(id: "a", text: "int: 5",
                    correct: true, misconception: nil,
-                   explanation: "5はintリテラル。Javaのオーバーロード解決は完全一致を最優先するため、print(int)が選ばれます。"),
+                   explanation: "5はintリテラル。Javaの[オーバーロード](javasta://term/overload)解決は完全一致を最優先するため、print(int)が選ばれます。"),
             Choice(id: "b", text: "long: 5",
                    correct: false, misconception: "型の自動昇格が常に起こると誤解",
-                   explanation: "int→longへの昇格は完全一致するメソッドがない場合のみ。ここではprint(int)と完全一致するため昇格しません。"),
+                   explanation: "int→longへの[型昇格](javasta://term/type-promotion)は完全一致するメソッドがない場合のみ。ここではprint(int)と完全一致するため昇格しません。"),
             Choice(id: "c", text: "コンパイルエラー",
                    correct: false, misconception: "オーバーロードが曖昧と誤解",
-                   explanation: "5はintリテラルなのでprint(int)と完全一致します。曖昧さはなく、コンパイルエラーにはなりません。"),
+                   explanation: "5はintリテラルなのでprint(int)と完全一致します。曖昧さはなく、[コンパイル](javasta://term/compile)エラーにはなりません。"),
             Choice(id: "d", text: "実行時エラー",
                    correct: false, misconception: nil,
                    explanation: "このコードに実行時エラーの要因はありません。正常にコンパイル・実行されます。"),
         ],
         explanationRef: "explain-silver-overload-001",
-        designIntent: "Javaのオーバーロード解決は「完全一致 → 型昇格 → オートボクシング → 可変長引数」の順で試みられます。"
+        designIntent: "Javaの[オーバーロード](javasta://term/overload)解決は「完全一致 → [型昇格](javasta://term/type-promotion) → [オートボクシング](javasta://term/boxing) → [可変長引数](javasta://term/varargs)」の順で試みられます。"
     )
 
     static let silverException001 = Quiz(

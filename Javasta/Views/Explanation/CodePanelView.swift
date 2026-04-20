@@ -132,7 +132,16 @@ struct CodePanelView: View {
     var predictLines: Set<Int> = []
     var zoom: Double = 1.0
 
+    /// ピンチ中の一時倍率。gesture 終了で永続ストレージへ。
+    @State private var pinchLiveZoom: Double? = nil
+    @AppStorage("codeZoom") private var storedZoom: Double = CodeZoom.default
+
+    private var effectiveZoom: Double { pinchLiveZoom ?? zoom }
     private var lines: [[CodeToken]] { JavaTokenizer.tokenize(code) }
+
+    /// ピンチで許容するズーム範囲
+    private static let minZoom: Double = 0.5
+    private static let maxZoom: Double = 2.5
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -144,7 +153,7 @@ struct CodePanelView: View {
                             tokens: tokens,
                             isHighlighted: highlightLines.contains(idx + 1),
                             hasPredict: predictLines.contains(idx + 1),
-                            zoom: zoom
+                            zoom: effectiveZoom
                         )
                         .id(idx + 1)
                     }
@@ -158,7 +167,22 @@ struct CodePanelView: View {
                     }
                 }
             }
+            .gesture(pinchGesture)
         }
+    }
+
+    private var pinchGesture: some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                let candidate = zoom * Double(value)
+                pinchLiveZoom = min(max(candidate, Self.minZoom), Self.maxZoom)
+            }
+            .onEnded { _ in
+                if let live = pinchLiveZoom {
+                    storedZoom = (live * 100).rounded() / 100
+                }
+                pinchLiveZoom = nil
+            }
     }
 }
 

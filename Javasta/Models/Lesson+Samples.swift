@@ -74,9 +74,10 @@ public class Test {
             ),
         ],
         keyPoints: [
-            "オーバーロードはコンパイル時に静的に解決される",
-            "完全一致 > 型昇格 > ボクシング > 可変長引数 の優先順位",
-            "完全一致があれば、型昇格は試みられない",
+            "呼び先はコンパイル時に決まる（静的束縛）",
+            "優先度: 完全一致 ≻ 型昇格 ≻ ボクシング ≻ 可変長引数",
+            "print(5) と print(5L) は別メソッドに解決される（リテラルの型が効く）",
+            "int と Integer の両方があると、int リテラルは必ず int 側へ",
         ],
         relatedQuizIds: ["silver-overload-001"]
     )
@@ -92,7 +93,7 @@ public class Test {
             Section(
                 id: "s1",
                 heading: "finallyは必ず実行される",
-                body: "try / catch ブロックを抜ける前に、finally ブロックは必ず実行されます。return / break / continue / throw のいずれで抜けても同じです。",
+                body: "`try` / `catch` ブロックを抜ける前に、[finally](javasta://term/finally) ブロックは必ず実行されます。`return` / `break` / `continue` / `throw` のいずれで抜けても同じ。通常は **リソース解放** 専用に使います。",
                 code: nil,
                 highlightLines: [],
                 callout: nil
@@ -100,7 +101,7 @@ public class Test {
             Section(
                 id: "s2",
                 heading: "tryのreturnは保留される",
-                body: "tryブロック内で return X を実行した瞬間、戻り値Xは一時退避されます。その後 finally が実行され、finally が終わってから初めて呼び出し元に戻ります。",
+                body: "tryブロック内で `return X` を実行した瞬間、戻り値 X は一時退避されます。その後 [finally](javasta://term/finally) が実行され、finally が終わってから初めて呼び出し元に戻ります。",
                 code: """
 static int calc() {
     try {
@@ -120,7 +121,7 @@ static int calc() {
             Section(
                 id: "s3",
                 heading: "推奨: finallyにはreturn/throwを書かない",
-                body: "finallyは「リソース解放」「ログ出力」など副作用専用に使い、戻り値や例外を変更してはいけません。可読性のためにも、tryのreturnを尊重するのがベストプラクティスです。",
+                body: "[finally](javasta://term/finally) は「リソース解放」「ログ出力」など副作用専用に使い、戻り値や例外を変更してはいけません。可読性のためにも、tryのreturnを尊重するのがベストプラクティスです。",
                 code: nil,
                 highlightLines: [],
                 callout: Callout(
@@ -130,9 +131,10 @@ static int calc() {
             ),
         ],
         keyPoints: [
-            "finallyは return/break/throw を貫いて必ず実行される",
-            "finallyの return は try の return を上書きする",
-            "finallyに return / throw を書くのは原則アンチパターン",
+            "finally は return/break/throw を貫いて必ず実行される",
+            "tryのreturn値は一時退避 → finally終了後に返される",
+            "finally 内で return/throw を書くと、tryの結果も例外も握りつぶす",
+            "リソース解放は try-with-resources で書けるならそちらへ",
         ],
         relatedQuizIds: ["silver-exception-001"]
     )
@@ -159,7 +161,7 @@ List<Number> nums = ints;  // ❌ コンパイルエラー
             Section(
                 id: "s2",
                 heading: "<? extends T> で共変にする",
-                body: "<? extends Number> と書くと、Number またはそのサブタイプ（Integer, Long, Double等）のリストを受け取れるようになります。これを上限境界ワイルドカード（upper bounded wildcard）と呼びます。",
+                body: "`<? extends Number>` と書くと、Number またはそのサブタイプ（[Integer](javasta://term/wrapper-class), Long, Double等）のリストを受け取れるようになります。これを **上限境界ワイルドカード** （upper bounded wildcard）と呼びます。",
                 code: """
 static double sum(List<? extends Number> list) {
     double total = 0;
@@ -181,7 +183,7 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
             Section(
                 id: "s3",
                 heading: "PECS: Producer Extends, Consumer Super",
-                body: "「データを取り出す（Producer）なら extends、データを入れる（Consumer）なら super」と覚えます。値を読みたい時は <? extends T>、値を入れたい時は <? super T>。",
+                body: "「データを取り出す（Producer）なら `extends`、データを入れる（Consumer）なら `super`」と覚えます。値を読みたい時は `<? extends T>`、値を入れたい時は `<? super T>`。詳細は [PECS](javasta://term/pecs) を参照。",
                 code: nil,
                 highlightLines: [],
                 callout: Callout(
@@ -201,8 +203,8 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
         keyPoints: [
             "ジェネリクスは不変。List<Integer> ≠ List<Number>",
             "<? extends T> は T のサブタイプのリストを受け取れる（共変）",
-            "<? extends T> からは読み取りのみ可能（書き込み不可）",
-            "PECS: Producer Extends, Consumer Super",
+            "<? super T> は T のスーパータイプのリストを受け取れる（反変）",
+            "PECS の覚え方: 取り出す = Extends / 入れる = Super",
         ],
         relatedQuizIds: ["gold-generics-001"]
     )

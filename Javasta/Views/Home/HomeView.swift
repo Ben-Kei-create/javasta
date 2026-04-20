@@ -17,6 +17,12 @@ struct HomeView: View {
         JavaLevel(rawValue: selectedLevelRaw) ?? .silver
     }
 
+    private var reviewQueueQuizzes: [Quiz] {
+        progress.reviewQueueQuizIds.compactMap { id in
+            Quiz.samples.first(where: { $0.id == id })
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -25,6 +31,22 @@ struct HomeView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         headerSection
+                        dailyProgressCard
+
+                        if !reviewQueueQuizzes.isEmpty {
+                            reviewQueueSection
+                        }
+
+                        ActivityHeatmapView(
+                            counts: progress.recentDailyCounts(days: ProgressStore.historyWindowDays)
+                        )
+                        ForEach(JavaLevel.allCases, id: \.self) { level in
+                            LevelSectionView(
+                                level: level,
+                                quizzes: Quiz.samples.filter { $0.level == level },
+                                onSelect: { selectedQuiz = $0 }
+                            )
+                        }
                         commandCenter
                         practiceModesSection
                         LevelSectionView(
@@ -146,6 +168,36 @@ struct HomeView: View {
         .padding(.horizontal, Spacing.md)
     }
 
+    private var reviewQueueSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: "arrow.counterclockwise.circle.fill")
+                    .foregroundStyle(Color.jbWarning)
+                    .font(.system(size: 14))
+                Text("復習キュー")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(Color.jbText)
+                Text("\(reviewQueueQuizzes.count)問")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.jbSubtext)
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.md)
+
+            Text("誤答した問題を自動で保存。正解するとキューから外れます。")
+                .font(.system(size: 12))
+                .foregroundStyle(Color.jbSubtext)
+                .padding(.horizontal, Spacing.md)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.sm) {
+                    ForEach(reviewQueueQuizzes) { quiz in
+                        ReviewQueueCard(quiz: quiz, onTap: { selectedQuiz = quiz })
+                    }
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, 2)
+            }
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
@@ -464,6 +516,55 @@ struct QuizCardView: View {
     }
 }
 
+// MARK: - ReviewQueueCard
+
+private struct ReviewQueueCard: View {
+    let quiz: Quiz
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack {
+                    Label("復習", systemImage: "arrow.counterclockwise")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.jbWarning)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.jbSubtext)
+                }
+
+                Text(quiz.question)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.jbText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                Spacer(minLength: 0)
+
+                Text(quiz.categoryDisplayName)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.jbSubtext)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Color.jbBackground))
+            }
+            .padding(Spacing.md)
+            .frame(width: 210, height: 118)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .fill(Color.jbCard)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .stroke(Color.jbWarning.opacity(0.5), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - QuizSheetView
 
 struct QuizSheetView: View {
@@ -475,8 +576,14 @@ struct QuizSheetView: View {
     @State private var correctCount = 0
     @State private var showSessionResult = false
     @State private var activeExplanation: Explanation?
+    @State private var glossaryRoot: GlossaryRoot? = nil
+    @State private var glossaryPath: [String] = []
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
+
+    private struct GlossaryRoot: Identifiable, Hashable {
+        let id: String
+    }
 
     init(quiz: Quiz) {
         self.init(session: QuizSession.single(quiz))
@@ -537,11 +644,52 @@ struct QuizSheetView: View {
                 .sensoryFeedback(.selection, trigger: codeZoom)
             }
         }
+        .environment(\.openURL, OpenURLAction { url in
+            if let id = GlossaryTerm.parse(url: url) {
+                glossaryRoot = GlossaryRoot(id: id)
+                return .handled
+            }
+            return .systemAction
+        })
+        .sheet(item: $glossaryRoot, onDismiss: { glossaryPath.removeAll() }) { root in
+            glossarySheet(rootId: root.id)
+        }
         .fullScreenCover(item: $activeExplanation) { explanation in
             ExplanationView(explanation: explanation, level: currentQuiz.level, onDismiss: { activeExplanation = nil })
         }
     }
 
+    @ViewBuilder
+    private func glossarySheet(rootId: String) -> some View {
+        if let term = GlossaryTerm.lookup(rootId) {
+            let origin = GlossaryDetailView.Origin(
+                icon: "pencil.and.list.clipboard",
+                label: currentQuiz.categoryDisplayName,
+                action: { glossaryRoot = nil }
+            )
+            NavigationStack(path: $glossaryPath) {
+                GlossaryDetailView(term: term, origin: origin)
+                    .navigationDestination(for: String.self) { id in
+                        if let next = GlossaryTerm.lookup(id) {
+                            GlossaryDetailView(term: next, origin: origin)
+                        }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("閉じる") { glossaryRoot = nil }
+                                .foregroundStyle(Color.jbSubtext)
+                        }
+                    }
+            }
+            .preferredColorScheme(.dark)
+            .environment(\.openURL, OpenURLAction { url in
+                if let id = GlossaryTerm.parse(url: url) {
+                    glossaryPath.append(id)
+                    return .handled
+                }
+                return .systemAction
+            })
+        }
     private var isLastQuiz: Bool {
         currentIndex >= session.quizzes.count - 1
     }

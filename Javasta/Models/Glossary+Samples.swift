@@ -15,6 +15,18 @@ extension GlossaryTerm {
         varargs,
         genericsInvariance,
         bytecode,
+        stringPool,
+        integerCache,
+        fallthrough,
+        finallyBlock,
+        referenceEquals,
+        streamApi,
+        lazyEvaluation,
+        intermediateOp,
+        terminalOp,
+        optionalType,
+        pecs,
+        wrapperClass,
     ]
 
     static func lookup(_ id: String) -> GlossaryTerm? {
@@ -270,9 +282,313 @@ log("a", "b", "c");
         body: """
 Javaのジェネリクス型は **不変** （invariant）です。`Integer` が `Number` のサブタイプであっても、`List<Integer>` は `List<Number>` のサブタイプではありません。
 
-この制約を緩めるためにワイルドカード（`<? extends T>` `<? super T>`）を使います。詳しくは関連レッスン「上限境界ワイルドカード」を参照。
+この制約を緩めるためにワイルドカード（`<? extends T>` `<? super T>`）を使います。覚え方は [PECS](javasta://term/pecs)。
+""",
+        relatedTermIds: ["pecs"],
+        relatedLessonIds: ["lesson-bounded-wildcards"],
+        relatedQuizIds: ["gold-generics-001"]
+    )
+
+    // MARK: - 文字列 / 参照
+
+    static let stringPool = GlossaryTerm(
+        id: "string-pool",
+        term: "文字列定数プール",
+        aliases: ["string pool", "intern pool", "リテラルプール"],
+        summary: "同じ内容のStringリテラルを1つの参照に集約するJVM内部のキャッシュ領域。",
+        body: """
+**文字列定数プール** は、JVMが `"hello"` などの文字列リテラルをユニーク化して保持する領域です。
+
+```java
+String a = "hello";
+String b = "hello";
+a == b;   // true （プール内で同じ参照）
+```
+
+一方、`new String("hello")` は明示的にヒープへ新しいオブジェクトを作るのでプール外になります。
+
+```java
+String c = new String("hello");
+a == c;         // false
+a.equals(c);    // true
+```
+
+[== と equals の違い](javasta://term/reference-equals) と合わせて理解しておくと落とし穴を避けられます。
+""",
+        relatedTermIds: ["reference-equals"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["silver-string-001"]
+    )
+
+    static let referenceEquals = GlossaryTerm(
+        id: "reference-equals",
+        term: "== と equals",
+        aliases: ["参照比較", "内容比較"],
+        summary: "`==` は参照の同一性、`equals()` は中身の等価性を比較する。",
+        body: """
+- `==` は **参照の同一性** （同じオブジェクトか）を比較
+- `equals()` は **内容の等価性** （中身が等しいか）を比較
+
+プリミティブ同士の `==` は値比較で問題ありません。参照型（String, Integer等）で中身の等しさを調べたいときは必ず `equals()` を使います。
+
+```java
+String a = "hello";
+String b = new String("hello");
+a == b;        // false（別オブジェクト）
+a.equals(b);   // true
+```
+
+関連: [文字列定数プール](javasta://term/string-pool)、[Integerキャッシュ](javasta://term/integer-cache)
+""",
+        relatedTermIds: ["string-pool", "integer-cache"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["silver-string-001", "silver-autoboxing-001"]
+    )
+
+    static let integerCache = GlossaryTerm(
+        id: "integer-cache",
+        term: "Integerキャッシュ",
+        aliases: ["Integer cache", "valueOfキャッシュ"],
+        summary: "`Integer.valueOf` が `-128〜127` の範囲で同じインスタンスを再利用する仕組み。",
+        body: """
+`Integer.valueOf(n)` は `-128 ≤ n ≤ 127` の範囲の値に対して、事前に用意した単一のインスタンスを返します。[オートボクシング](javasta://term/boxing) で `Integer i = 100` と書いたときに内部で呼ばれるのがこれです。
+
+```java
+Integer a = 100;   // キャッシュから返る
+Integer b = 100;   // 同じインスタンス → a == b は true
+Integer c = 200;   // 範囲外 → 新しいインスタンス
+Integer d = 200;   // 別インスタンス → c == d は false
+```
+
+実務では Wrapper 同士の比較は必ず [equals](javasta://term/reference-equals) を使うのが鉄則。
+""",
+        relatedTermIds: ["boxing", "reference-equals", "wrapper-class"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["silver-autoboxing-001"]
+    )
+
+    static let wrapperClass = GlossaryTerm(
+        id: "wrapper-class",
+        term: "ラッパークラス",
+        aliases: ["wrapper class", "Integer", "Long", "Double"],
+        summary: "プリミティブ型に対応する参照型（Integer, Long, Double, Boolean等）。",
+        body: """
+**ラッパークラス** は、プリミティブ型をオブジェクトとして扱うためのクラスです。
+
+| プリミティブ | ラッパー |
+|-----|-----|
+| `int` | `Integer` |
+| `long` | `Long` |
+| `double` | `Double` |
+| `boolean` | `Boolean` |
+| `char` | `Character` |
+
+コレクション (`List<Integer>`) やジェネリクス経由で使うときに必要になります。[オートボクシング](javasta://term/boxing) で自動変換されますが、`==` 比較や [Integerキャッシュ](javasta://term/integer-cache) の落とし穴に注意。
+""",
+        relatedTermIds: ["boxing", "integer-cache"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - 制御フロー
+
+    static let fallthrough = GlossaryTerm(
+        id: "fallthrough",
+        term: "フォールスルー",
+        aliases: ["fall-through", "switch break忘れ"],
+        summary: "`switch` 文でマッチした case から `break` なく次の case に流れ込む挙動。",
+        body: """
+従来型の `switch` 文は、case にマッチすると **そのまま次の case の処理へ流れ落ちます**。`break` で明示的に抜けない限り続くのが特徴。
+
+```java
+switch (x) {
+    case 1: System.out.print("A");
+    case 2: System.out.print("B");   // ← break なし
+    case 3: System.out.print("C");
+        break;
+    case 4: System.out.print("D");
+}
+// x = 2 のとき → "BC"
+```
+
+Java 14 以降の新しい **switch式** (`case 2 -> ...`) ではフォールスルーは起きません。新規コードはなるべく switch式で書くのが安全。
 """,
         relatedTermIds: [],
+        relatedLessonIds: [],
+        relatedQuizIds: ["silver-switch-001"]
+    )
+
+    // MARK: - 例外
+
+    static let finallyBlock = GlossaryTerm(
+        id: "finally",
+        term: "finally",
+        aliases: ["finallyブロック"],
+        summary: "try/catch を抜けるときに必ず実行されるブロック。リソース解放専用。",
+        body: """
+**finally** ブロックは `try` の後ろに置き、tryやcatchから **どう抜けても必ず実行** されます（return/throw/break/continueを貫通）。
+
+```java
+try {
+    return 1;
+} finally {
+    // ここが必ず動く
+}
+```
+
+落とし穴: finally 内に `return` や `throw` を書くと、tryのreturn値や例外が **上書き** されます。finallyはあくまで **リソース解放** や **ログ出力** に留めるのが原則。
+
+リソース解放は try-with-resources で書けるならそちらが安全。
+""",
+        relatedTermIds: [],
+        relatedLessonIds: ["lesson-finally-and-return"],
+        relatedQuizIds: ["silver-exception-001"]
+    )
+
+    // MARK: - Stream / ラムダ
+
+    static let streamApi = GlossaryTerm(
+        id: "stream",
+        term: "Stream API",
+        aliases: ["stream", "ストリーム"],
+        summary: "コレクションを宣言的に変換・集約するためのAPI。中間操作と終端操作で構成される。",
+        body: """
+**Stream API** は Java 8 で導入された、コレクションを宣言的に処理するためのAPIです。
+
+一つのストリームは「source → [中間操作](javasta://term/intermediate-operation) ×N → [終端操作](javasta://term/terminal-operation)」というパイプラインで構成されます。
+
+```java
+int sum = List.of(1, 2, 3, 4, 5).stream()
+    .filter(n -> n % 2 == 0)     // 中間操作
+    .mapToInt(Integer::intValue) // 中間操作
+    .sum();                      // 終端操作
+```
+
+中間操作は [遅延評価](javasta://term/lazy-evaluation) されるため、終端操作が呼ばれるまで実際には動きません。
+""",
+        relatedTermIds: ["intermediate-operation", "terminal-operation", "lazy-evaluation"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["gold-stream-001"]
+    )
+
+    static let intermediateOp = GlossaryTerm(
+        id: "intermediate-operation",
+        term: "中間操作",
+        aliases: ["intermediate operation"],
+        summary: "Streamを変換して別のStreamを返す操作（filter, map, sorted 等）。",
+        body: """
+**中間操作** は [Stream](javasta://term/stream) に対するパイプラインのビルディングブロックで、新たな Stream を返します。代表例:
+
+- `filter(Predicate)` — 条件を満たす要素のみ通す
+- `map(Function)` — 各要素を変換
+- `sorted()` — 並べ替え
+- `distinct()` — 重複除去
+
+ここで重要なのが [遅延評価](javasta://term/lazy-evaluation)。中間操作は「何をするか」をパイプラインに記録するだけで、終端操作が呼ばれるまで実行されません。
+""",
+        relatedTermIds: ["stream", "terminal-operation", "lazy-evaluation"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let terminalOp = GlossaryTerm(
+        id: "terminal-operation",
+        term: "終端操作",
+        aliases: ["terminal operation"],
+        summary: "Streamを消費して結果を生む操作（sum, collect, forEach 等）。呼ばれて初めてパイプラインが動く。",
+        body: """
+**終端操作** は [Stream](javasta://term/stream) を消費し、Stream 以外の結果を返します。代表例:
+
+- `sum()` / `count()` / `average()` — 集約
+- `collect(Collectors.toList())` — コレクションへ変換
+- `forEach(...)` — 副作用的に処理
+- `findFirst()` / `anyMatch(...)` — 検索
+
+終端操作が呼ばれた瞬間、積み上げていた [中間操作](javasta://term/intermediate-operation) 群が順に実行されます。ストリームは使い捨てなので、同じ Stream に対して複数回終端操作を呼ぶことはできません。
+""",
+        relatedTermIds: ["stream", "intermediate-operation", "lazy-evaluation"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    static let lazyEvaluation = GlossaryTerm(
+        id: "lazy-evaluation",
+        term: "遅延評価",
+        aliases: ["lazy evaluation", "遅延"],
+        summary: "値や処理を「必要になるまで走らせない」評価戦略。Streamの中間操作もこれ。",
+        body: """
+**遅延評価** とは、評価のトリガーが引かれるまで実際の計算を走らせない戦略です。
+
+[Stream](javasta://term/stream) の [中間操作](javasta://term/intermediate-operation) は典型例で、`filter` や `map` を繋げてもその場では何も起きず、[終端操作](javasta://term/terminal-operation) が呼ばれて初めて要素ごとにパイプラインが流れます。
+
+メリット:
+
+- 無駄な計算を省ける（`findFirst` で途中で打ち切れる）
+- 無限ストリームも扱える
+""",
+        relatedTermIds: ["stream", "intermediate-operation", "terminal-operation"],
+        relatedLessonIds: [],
+        relatedQuizIds: []
+    )
+
+    // MARK: - Optional
+
+    static let optionalType = GlossaryTerm(
+        id: "optional",
+        term: "Optional",
+        aliases: ["java.util.Optional"],
+        summary: "「値があるかもしれないし、無いかもしれない」を型で表すコンテナ。nullの安全な代替。",
+        body: """
+**Optional** は値の有無を型で表現するラッパーで、`null` を撒き散らすコードを安全に書き換えるために Java 8 で導入されました。
+
+生成方法:
+
+- `Optional.of(v)` — `v` が `null` なら即 `NullPointerException`
+- `Optional.ofNullable(v)` — `v` が `null` なら空Optionalを返す
+
+操作:
+
+- `map(Function)` — 値があれば変換、なければ何もしない
+- `orElse(default)` — 値があればそれ、無ければ `default`
+- `orElseThrow()` — 無ければ例外
+
+```java
+String r = Optional.ofNullable(s)
+    .map(String::toUpperCase)
+    .orElse("DEFAULT");
+```
+
+フィールド型として Optional を使うのは推奨されません（戻り値型として使うのが本来の用途）。
+""",
+        relatedTermIds: [],
+        relatedLessonIds: [],
+        relatedQuizIds: ["gold-optional-001"]
+    )
+
+    // MARK: - ジェネリクス
+
+    static let pecs = GlossaryTerm(
+        id: "pecs",
+        term: "PECS",
+        aliases: ["Producer Extends Consumer Super"],
+        summary: "Producer Extends, Consumer Super ― ジェネリクスのワイルドカードを選ぶ覚え方。",
+        body: """
+**PECS** は Effective Java で紹介された有名な指針です。
+
+- **Producer Extends** — 値を **取り出す** 側なら `<? extends T>`
+- **Consumer Super** — 値を **入れる** 側なら `<? super T>`
+
+```java
+// Producer: 読み取り専用
+void sum(List<? extends Number> src)  { for (Number n : src) { ... } }
+
+// Consumer: 書き込み専用
+void fill(List<? super Integer> dst)  { dst.add(42); }
+```
+
+Javaジェネリクスが [不変](javasta://term/generics-invariance) であるために必要になるテクニック。
+""",
+        relatedTermIds: ["generics-invariance"],
         relatedLessonIds: ["lesson-bounded-wildcards"],
         relatedQuizIds: ["gold-generics-001"]
     )

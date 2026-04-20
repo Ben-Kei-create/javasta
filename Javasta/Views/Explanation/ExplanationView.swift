@@ -86,6 +86,16 @@ struct ExplanationView: View {
         }
     }
 
+    private var relatedGlossaryTerms: [GlossaryTerm] {
+        let lessonId = vm.explanation.relatedLessonId
+        let quizIds = Set(Quiz.samples
+            .filter { $0.explanationRef == vm.explanation.id }
+            .map(\.id))
+
+        return GlossaryTerm.samples.filter { term in
+            let byLesson = lessonId.map { term.relatedLessonIds.contains($0) } ?? false
+            let byQuiz = !quizIds.isDisjoint(with: term.relatedQuizIds)
+            return byLesson || byQuiz
     @ViewBuilder
     private func explanationCodeView(maxHeight: CGFloat) -> some View {
         if let codeTabs = vm.explanation.codeTabs, !codeTabs.isEmpty {
@@ -212,6 +222,15 @@ struct ExplanationView: View {
                 Spacer()
             }
 
+            if !relatedGlossaryTerms.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("関連用語")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.jbSubtext)
+                    termPills
+                }
+            }
+
             if let lessonId = vm.explanation.relatedLessonId,
                let lesson = Lesson.sample(for: lessonId) {
                 Button(action: { activeLesson = lesson }) {
@@ -254,6 +273,27 @@ struct ExplanationView: View {
                         .stroke(Color.jbSuccess.opacity(0.3), lineWidth: 1)
                 )
         )
+    }
+
+    private var termPills: some View {
+        let terms = Array(relatedGlossaryTerms.prefix(6))
+        return LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 6)], alignment: .leading, spacing: 6) {
+            ForEach(terms, id: \.id) { term in
+                Text(term.term)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.jbAccent)
+                    .lineLimit(1)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(
+                        Capsule()
+                            .fill(Color.jbAccent.opacity(0.12))
+                            .overlay(
+                                Capsule().stroke(Color.jbAccent.opacity(0.35), lineWidth: 1)
+                            )
+                    )
+            }
+        }
     }
 }
 
