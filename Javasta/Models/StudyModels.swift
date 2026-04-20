@@ -253,6 +253,7 @@ struct QuizSession: Identifiable {
     let version: JavaExamVersion
     let quizzes: [Quiz]
     var customTitle: String? = nil
+    var mockExamVariant: MockExamVariant? = nil
 
     var title: String { customTitle ?? mode.title }
     var subtitle: String { "\(level.displayName) / \(version.displayName)" }

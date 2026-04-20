@@ -6,6 +6,8 @@ struct ActivityHeatmapView: View {
     let counts: [(dateKey: String, count: Int)]
     var weeks: Int = 12
 
+    private static let maxIntensityCount = 100
+
     // ドット & 余白
     private let cellSize: CGFloat = 8
     private let cellSpacing: CGFloat = 2
@@ -84,6 +86,8 @@ struct ActivityHeatmapView: View {
                     .stroke(Color.jbBorder.opacity(day.isValid ? 0 : 0.4), lineWidth: 0.5)
             )
             .opacity(day.isValid ? 1 : 0)
+            .accessibilityLabel(Text("\(day.dateKey) \(day.count)問"))
+            .accessibilityHidden(!day.isValid)
     }
 
     private var legend: some View {
@@ -96,7 +100,7 @@ struct ActivityHeatmapView: View {
                     .fill(colorForLevel(i))
                     .frame(width: cellSize, height: cellSize)
             }
-            Text("多")
+            Text("\(Self.maxIntensityCount)問+")
                 .font(.system(size: 9))
                 .foregroundStyle(Color.jbSubtext)
 
@@ -171,11 +175,16 @@ struct ActivityHeatmapView: View {
 
     private func level(for count: Int) -> Int {
         switch count {
-        case 0:      return 0
-        case 1...2:  return 1
-        case 3...5:  return 2
-        case 6...9:  return 3
-        default:     return 4
+        case 0:
+            return 0
+        case 1...25:
+            return 1
+        case 26...50:
+            return 2
+        case 51..<Self.maxIntensityCount:
+            return 3
+        default:
+            return 4
         }
     }
 

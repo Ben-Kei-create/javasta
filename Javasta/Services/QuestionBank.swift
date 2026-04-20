@@ -85,6 +85,28 @@ enum QuestionBank {
         return QuizSession(mode: mode, level: level, version: version, quizzes: quizzes)
     }
 
+    static func makeMockExamSession(
+        variant: MockExamVariant,
+        version: JavaExamVersion,
+        level: JavaLevel
+    ) -> QuizSession? {
+        let pool = quizzes(version: version, level: level)
+        guard !pool.isEmpty else { return nil }
+
+        let spec = MockExamSpec.official(version: version, level: level)
+        let limit = min(spec.questionCount(for: variant), pool.count)
+        let selected = Array(pool.shuffled().prefix(limit))
+
+        return QuizSession(
+            mode: .mockExam,
+            level: level,
+            version: version,
+            quizzes: selected,
+            customTitle: variant.displayName,
+            mockExamVariant: variant
+        )
+    }
+
     static func coverage(version: JavaExamVersion, level: JavaLevel) -> [(objective: ExamObjective, count: Int)] {
         ExamObjectiveCatalog.objectives(for: version, level: level).map { objective in
             let categories = coverageCategories(for: objective.category)

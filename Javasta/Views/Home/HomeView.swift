@@ -737,50 +737,56 @@ struct QuizSheetView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            if showSessionResult {
-                QuizSessionResultView(
-                    session: session,
-                    correctCount: correctCount,
-                    onClose: { dismiss() }
-                )
+        Group {
+            if session.mode == .mockExam {
+                MockExamView(session: session)
             } else {
-                QuizView(
-                    vm: quizVM,
-                    codeZoom: codeZoom,
-                    onShowExplanation: {
-                        activeExplanation = Explanation.sample(for: currentQuiz.explanationRef)
-                    },
-                    onNextQuiz: { goToNextQuiz() },
-                    nextButtonTitle: isLastQuiz ? "完了" : "次の問題"
-                )
-                .id(currentQuiz.id)
-                .navigationTitle(session.title)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("閉じる") { dismiss() }
-                            .foregroundStyle(Color.jbSubtext)
-                    }
-                    ToolbarItem(placement: .principal) {
-                        VStack(spacing: 1) {
-                            Text(session.title)
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(Color.jbText)
-                            Text("\(currentIndex + 1) / \(session.quizzes.count) ・ \(currentQuiz.categoryDisplayName)")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(Color.jbSubtext)
-                        }
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        LevelBadgeView(
-                            level: currentQuiz.level,
-                            zoomPercent: CodeZoom.percent(codeZoom),
-                            onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
+                NavigationStack {
+                    if showSessionResult {
+                        QuizSessionResultView(
+                            session: session,
+                            correctCount: correctCount,
+                            onClose: { dismiss() }
                         )
+                    } else {
+                        QuizView(
+                            vm: quizVM,
+                            codeZoom: codeZoom,
+                            onShowExplanation: {
+                                activeExplanation = Explanation.sample(for: currentQuiz.explanationRef)
+                            },
+                            onNextQuiz: { goToNextQuiz() },
+                            nextButtonTitle: isLastQuiz ? "完了" : "次の問題"
+                        )
+                        .id(currentQuiz.id)
+                        .navigationTitle(session.title)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button("閉じる") { dismiss() }
+                                    .foregroundStyle(Color.jbSubtext)
+                            }
+                            ToolbarItem(placement: .principal) {
+                                VStack(spacing: 1) {
+                                    Text(session.title)
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundStyle(Color.jbText)
+                                    Text("\(currentIndex + 1) / \(session.quizzes.count) ・ \(currentQuiz.categoryDisplayName)")
+                                        .font(.system(size: 10, weight: .medium))
+                                        .foregroundStyle(Color.jbSubtext)
+                                }
+                            }
+                            ToolbarItem(placement: .topBarTrailing) {
+                                LevelBadgeView(
+                                    level: currentQuiz.level,
+                                    zoomPercent: CodeZoom.percent(codeZoom),
+                                    onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
+                                )
+                            }
+                        }
+                        .sensoryFeedback(.selection, trigger: codeZoom)
                     }
                 }
-                .sensoryFeedback(.selection, trigger: codeZoom)
             }
         }
         .environment(\.openURL, OpenURLAction { url in

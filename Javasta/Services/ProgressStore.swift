@@ -20,6 +20,7 @@ final class ProgressStore {
         static let reviewQueueQuizIds = "progress.reviewQueueQuizIds" // [String]
         static let answerHistory     = "progress.answerHistory"    // [QuizAnswerRecord]
         static let bookmarkedQuizzes = "progress.bookmarkedQuizzes"
+        static let mockExamAttempts  = "progress.mockExamAttempts"  // [MockExamAttempt]
     }
 
     /// 保持する履歴日数（ヒートマップ用）
@@ -39,6 +40,7 @@ final class ProgressStore {
     var reviewQueueQuizIds: [String]
     var answerHistory: [QuizAnswerRecord]
     var bookmarkedQuizIds: Set<String>
+    var mockExamAttempts: [MockExamAttempt]
 
     var accuracyPercent: Int {
         guard totalAnswered > 0 else { return 0 }
@@ -55,6 +57,7 @@ final class ProgressStore {
         self.completedLessons = Set(defaults.stringArray(forKey: Key.completedLessons) ?? [])
         self.answerHistory = Self.loadAnswerHistory(from: defaults)
         self.bookmarkedQuizIds = Set(defaults.stringArray(forKey: Key.bookmarkedQuizzes) ?? [])
+        self.mockExamAttempts = Self.pruneMockExamAttempts(Self.loadMockExamAttempts(from: defaults))
         let storedTodayKey = defaults.string(forKey: Key.todayDateKey)
         if storedTodayKey == Self.todayKey() {
             self.todayAnswered = defaults.integer(forKey: Key.todayAnswered)
@@ -113,7 +116,7 @@ final class ProgressStore {
     }
 
     func recordAnswer(quiz: Quiz, choice: Quiz.Choice, elapsedSeconds: Int? = nil) {
-        recordAnswer(correct: choice.correct)
+        recordAnswer(quizId: quiz.id, correct: choice.correct)
         let record = QuizAnswerRecord(
             quizId: quiz.id,
             level: quiz.level,
@@ -128,6 +131,56 @@ final class ProgressStore {
             answerHistory = Array(answerHistory.suffix(2_000))
         }
         saveAnswerHistory()
+    }
+
+    func recordMockExamAttempt(_ attempt: MockExamAttempt, quizzes: [Quiz]) {
+        rolloverDayIfNeeded()
+        bumpStreakIfFirstOfDay()
+
+        totalAnswered += attempt.questionCount
+        totalCorrect += attempt.correctCount
+        todayAnswered += attempt.questionCount
+
+        let key = Self.todayKey()
+        dailyHistory[key, default: 0] += attempt.questionCount
+        dailyHistory = Self.prune(dailyHistory, windowDays: Self.historyWindowDays)
+
+        let quizById = Dictionary(uniqueKeysWithValues: quizzes.map { ($0.id, $0) })
+        for answer in attempt.answers {
+            guard let quiz = quizById[answer.quizId] else { continue }
+            answerHistory.append(
+                QuizAnswerRecord(
+                    quizId: quiz.id,
+                    level: quiz.level,
+                    category: quiz.category,
+                    tags: quiz.tags,
+                    selectedChoiceId: answer.selectedChoiceId ?? "",
+                    correct: answer.correct,
+                    answeredAt: attempt.completedAt,
+                    elapsedSeconds: answer.elapsedSeconds
+                )
+            )
+
+            reviewQueueQuizIds.removeAll { $0 == quiz.id }
+            if !answer.correct {
+                reviewQueueQuizIds.append(quiz.id)
+            }
+        }
+
+        if answerHistory.count > 2_000 {
+            answerHistory = Array(answerHistory.suffix(2_000))
+        }
+        reviewQueueQuizIds = Self.deduplicated(reviewQueueQuizIds)
+        mockExamAttempts = Self.pruneMockExamAttempts(mockExamAttempts + [attempt])
+
+        defaults.set(totalAnswered, forKey: Key.totalAnswered)
+        defaults.set(totalCorrect, forKey: Key.totalCorrect)
+        defaults.set(todayAnswered, forKey: Key.todayAnswered)
+        defaults.set(key, forKey: Key.todayDateKey)
+        defaults.set(dailyHistory, forKey: Key.dailyHistory)
+        defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
+        saveAnswerHistory()
+        saveMockExamAttempts()
     }
 
     func markLessonCompleted(_ lessonId: String) {
@@ -208,6 +261,16 @@ final class ProgressStore {
         return Int((Double(correct) / Double(records.count) * 100).rounded())
     }
 
+    func mockExamAttempts(
+        version: JavaExamVersion,
+        level: JavaLevel,
+        variant: MockExamVariant
+    ) -> [MockExamAttempt] {
+        mockExamAttempts
+            .filter { $0.version == version && $0.level == level && $0.variant == variant }
+            .sorted { $0.completedAt < $1.completedAt }
+    }
+
     func resetAll() {
         totalAnswered = 0
         totalCorrect = 0
@@ -218,6 +281,7 @@ final class ProgressStore {
         reviewQueueQuizIds = []
         answerHistory = []
         bookmarkedQuizIds = []
+        mockExamAttempts = []
         defaults.removeObject(forKey: Key.totalAnswered)
         defaults.removeObject(forKey: Key.totalCorrect)
         defaults.removeObject(forKey: Key.streakDays)
@@ -229,6 +293,7 @@ final class ProgressStore {
         defaults.removeObject(forKey: Key.reviewQueueQuizIds)
         defaults.removeObject(forKey: Key.answerHistory)
         defaults.removeObject(forKey: Key.bookmarkedQuizzes)
+        defaults.removeObject(forKey: Key.mockExamAttempts)
     }
 
     // MARK: 内部
@@ -263,6 +328,11 @@ final class ProgressStore {
         defaults.set(data, forKey: Key.answerHistory)
     }
 
+    private func saveMockExamAttempts() {
+        guard let data = try? JSONEncoder().encode(mockExamAttempts) else { return }
+        defaults.set(data, forKey: Key.mockExamAttempts)
+    }
+
     // MARK: 日付ヘルパー
 
     private static func loadAnswerHistory(from defaults: UserDefaults) -> [QuizAnswerRecord] {
@@ -272,9 +342,28 @@ final class ProgressStore {
         return records
     }
 
+    private static func loadMockExamAttempts(from defaults: UserDefaults) -> [MockExamAttempt] {
+        guard let data = defaults.data(forKey: Key.mockExamAttempts),
+              let attempts = try? JSONDecoder().decode([MockExamAttempt].self, from: data)
+        else { return [] }
+        return attempts
+    }
+
     private static func deduplicated(_ ids: [String]) -> [String] {
         var seen = Set<String>()
         return ids.filter { seen.insert($0).inserted }
+    }
+
+    private static func pruneMockExamAttempts(_ attempts: [MockExamAttempt]) -> [MockExamAttempt] {
+        let grouped = Dictionary(grouping: attempts) { attempt in
+            "\(attempt.version.rawValue)-\(attempt.level.rawValue)-\(attempt.variant.rawValue)"
+        }
+
+        return grouped.values
+            .flatMap { group in
+                group.sorted { $0.completedAt < $1.completedAt }.suffix(10)
+            }
+            .sorted { $0.completedAt < $1.completedAt }
     }
 
     private static let dateFormatter: DateFormatter = {
