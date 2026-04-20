@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var showExamClearConfirm = false
     @State private var pickerDate: Date = Date().addingTimeInterval(60 * 60 * 24 * 30)
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     private let goalOptions = [3, 5, 10, 15]
 
@@ -16,15 +17,24 @@ struct SettingsView: View {
         examDateTimestamp > 0 ? Date(timeIntervalSince1970: examDateTimestamp) : nil
     }
 
-    private var examDateDisplay: String {
-        guard let date = examDate else { return "未設定" }
+    private static let examDateFormatter: DateFormatter = {
         let fmt = DateFormatter()
         fmt.locale = Locale(identifier: "ja_JP")
-        fmt.dateFormat = "yyyy/MM/dd HH:mm"
-        return fmt.string(from: date)
+        fmt.dateFormat = "yyyy/MM/dd (E) HH:mm"
+        return fmt
+    }()
+
+    private var examDateDisplay: String {
+        guard let date = examDate else { return "未設定" }
+        return Self.examDateFormatter.string(from: date)
     }
-    private var validationIssues: [String] { QuestionBank.validationIssues() }
-    private var explanationReport: ExplanationAuditReport { QuestionBank.explanationAuditReport() }
+
+    private var daysUntilExam: Int? {
+        guard let date = examDate else { return nil }
+        let days = Calendar.current.dateComponents([.day], from: .now, to: date).day ?? 0
+        return max(0, days)
+    }
+
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
@@ -37,87 +47,94 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
+
+                    // MARK: 学習目標
                     section(title: "学習目標") {
-                        VStack(spacing: Spacing.xs) {
-                            ForEach(goalOptions, id: \.self) { goal in
+                        VStack(spacing: 0) {
+                            ForEach(Array(goalOptions.enumerated()), id: \.element) { index, goal in
+                                if index > 0 {
+                                    Divider()
+                                        .background(Color.jbBorder)
+                                        .padding(.horizontal, Spacing.md)
+                                }
                                 goalRow(goal)
                             }
                         }
                     }
 
+                    // MARK: 受験日
                     section(title: "受験日") {
-                        VStack(spacing: 1) {
-                            SettingRow(
-                                icon: "calendar",
-                                title: "受験日時",
-                                value: examDateDisplay,
-                                onTap: {
-                                    pickerDate = examDate ?? Date().addingTimeInterval(60 * 60 * 24 * 30)
-                                    showExamDatePicker = true
+                        VStack(spacing: 0) {
+                            examDateRow
+                            if let days = daysUntilExam {
+                                Divider()
+                                    .background(Color.jbBorder)
+                                    .padding(.horizontal, Spacing.md)
+                                HStack(spacing: Spacing.sm) {
+                                    Image(systemName: "hourglass")
+                                        .font(.system(size: 15))
+                                        .foregroundStyle(days <= 7 ? Color.jbError : Color.jbAccent)
+                                        .frame(width: 24)
+                                    Text("試験まで")
+                                        .font(.system(size: 15))
+                                        .foregroundStyle(Color.jbText)
+                                    Spacer()
+                                    Text(days == 0 ? "今日！" : "\(days)日")
+                                        .font(.system(size: 14, weight: .semibold).monospacedDigit())
+                                        .foregroundStyle(days <= 7 ? Color.jbError : Color.jbSubtext)
                                 }
-                            )
-                            if examDate != nil {
-                                SettingRow(
-                                    icon: "xmark.circle",
-                                    title: "受験日をクリア",
-                                    isDestructive: true,
-                                    onTap: { showExamClearConfirm = true }
-                                )
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, 12)
+                                .background(Color.jbCard)
                             }
                         }
                     }
 
+                    // MARK: 表示
                     section(title: "表示") {
                         SettingRow(
                             icon: "textformat.size",
                             title: "コード文字サイズ",
                             value: "\(CodeZoom.percent(codeZoom))%",
-                            onTap: { codeZoom = CodeZoom.next(after: codeZoom) }
+                            onTap: {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                codeZoom = CodeZoom.next(after: codeZoom)
+                            }
                         )
                     }
 
-                    section(title: "問題データ") {
-                        VStack(spacing: 1) {
-                            SettingRow(
-                                icon: "checkmark.shield",
-                                title: "品質チェック",
-                                value: validationIssues.isEmpty ? "OK" : "\(validationIssues.count)件",
-                                tint: validationIssues.isEmpty ? Color.jbText : Color.jbWarning,
-                                onTap: nil
-                            )
-                            NavigationLink {
-                                ExplanationAuditView()
-                            } label: {
-                                SettingNavigationRow(
-                                    icon: "doc.text.magnifyingglass",
-                                    title: "解説チェック",
-                                    value: explanationReport.needsAttentionCount == 0 ? "OK" : "\(explanationReport.needsAttentionCount)件",
-                                    tint: explanationReport.needsAttentionCount == 0 ? Color.jbText : Color.jbWarning
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            SettingRow(
-                                icon: "square.stack.3d.up",
-                                title: "収録問題",
-                                value: "\(QuestionBank.allQuizzes.count)問",
-                                onTap: nil
-                            )
-                        }
-                    }
-
+                    // MARK: データ
                     section(title: "データ") {
                         SettingRow(
                             icon: "arrow.counterclockwise",
                             title: "学習進捗をリセット",
                             isDestructive: true,
-                            onTap: { showResetConfirm = true }
+                            onTap: {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                showResetConfirm = true
+                            }
                         )
                     }
 
+                    // MARK: アプリについて
                     section(title: "アプリについて") {
-                        VStack(spacing: 1) {
+                        VStack(spacing: 0) {
                             SettingRow(icon: "info.circle", title: "バージョン", value: appVersion, onTap: nil)
-                            SettingRow(icon: "envelope", title: "フィードバックを送る", onTap: {})
+                            Divider()
+                                .background(Color.jbBorder)
+                                .padding(.horizontal, Spacing.md)
+                            SettingRow(
+                                icon: "envelope",
+                                title: "フィードバックを送る",
+                                onTap: {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    let subject = "Javasta フィードバック v\(appVersion)"
+                                    let encoded = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                                    if let url = URL(string: "mailto:fsmall.worldm@gmail.com?subject=\(encoded)") {
+                                        openURL(url)
+                                    }
+                                }
+                            )
                         }
                     }
 
@@ -130,8 +147,77 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showExamDatePicker) {
-            NavigationStack {
-                VStack {
+            examDatePickerSheet
+        }
+        .alert("受験日をクリア", isPresented: $showExamClearConfirm) {
+            Button("キャンセル", role: .cancel) {}
+            Button("クリア", role: .destructive) {
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                examDateTimestamp = 0
+            }
+        } message: {
+            Text("設定した受験日時を削除します。")
+        }
+        .alert("学習進捗をリセット", isPresented: $showResetConfirm) {
+            Button("キャンセル", role: .cancel) {}
+            Button("リセット", role: .destructive) {
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                progress.resetAll()
+            }
+        } message: {
+            Text("正答数・連続日数・完了レッスンがすべて消去されます。")
+        }
+    }
+
+    // MARK: - Exam date row (inline clear button)
+
+    private var examDateRow: some View {
+        Button(action: {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            pickerDate = examDate ?? Date().addingTimeInterval(60 * 60 * 24 * 30)
+            showExamDatePicker = true
+        }) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.jbAccent)
+                    .frame(width: 24)
+                Text("受験日時")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.jbText)
+                Spacer()
+                Text(examDateDisplay)
+                    .font(.system(size: 13).monospacedDigit())
+                    .foregroundStyle(examDate != nil ? Color.jbAccent : Color.jbSubtext)
+                if examDate != nil {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        showExamClearConfirm = true
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 17))
+                            .foregroundStyle(Color.jbSubtext)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.jbSubtext)
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, 12)
+            .background(Color.jbCard)
+        }
+        .buttonStyle(JBScaledButtonStyle(scaleAmount: 0.97))
+    }
+
+    // MARK: - Exam date picker sheet
+
+    private var examDatePickerSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: Spacing.lg) {
                     DatePicker(
                         "受験日時",
                         selection: $pickerDate,
@@ -139,67 +225,101 @@ struct SettingsView: View {
                         displayedComponents: [.date, .hourAndMinute]
                     )
                     .datePickerStyle(.graphical)
-                    .padding()
-                    Spacer()
-                }
-                .background(Color.jbBackground.ignoresSafeArea())
-                .navigationTitle("受験日時を設定")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("キャンセル") { showExamDatePicker = false }
+                    .tint(Color.jbAccent)
+                    .padding(.horizontal, Spacing.sm)
+
+                    // Quick-select chips
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text("クイック選択")
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(Color.jbSubtext)
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("保存") {
-                            examDateTimestamp = pickerDate.timeIntervalSince1970
-                            showExamDatePicker = false
+                            .tracking(0.4)
+                            .padding(.horizontal, Spacing.sm)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: Spacing.sm) {
+                                ForEach([30, 60, 90, 120], id: \.self) { days in
+                                    Button(action: {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        pickerDate = Date().addingTimeInterval(Double(days) * 86400)
+                                    }) {
+                                        Text("\(days)日後")
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundStyle(Color.jbText)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 8)
+                                            .background(Color.jbCard)
+                                            .clipShape(Capsule())
+                                            .overlay(Capsule().stroke(Color.jbBorder, lineWidth: 1))
+                                    }
+                                    .buttonStyle(JBScaledButtonStyle())
+                                }
+                            }
+                            .padding(.horizontal, Spacing.md)
                         }
-                        .foregroundStyle(Color.jbAccent)
-                        .bold()
                     }
+
+                    Spacer(minLength: Spacing.xxl)
                 }
             }
-            .preferredColorScheme(.dark)
+            .background(Color.jbBackground.ignoresSafeArea())
+            .navigationTitle("受験日時を設定")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("キャンセル") { showExamDatePicker = false }
+                        .foregroundStyle(Color.jbSubtext)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("保存") {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        examDateTimestamp = pickerDate.timeIntervalSince1970
+                        showExamDatePicker = false
+                    }
+                    .foregroundStyle(Color.jbAccent)
+                    .bold()
+                }
+            }
         }
-        .alert("受験日をクリア", isPresented: $showExamClearConfirm) {
-            Button("キャンセル", role: .cancel) {}
-            Button("クリア", role: .destructive) { examDateTimestamp = 0 }
-        } message: {
-            Text("設定した受験日時を削除します。")
-        }
-        .alert("学習進捗をリセット", isPresented: $showResetConfirm) {
-            Button("キャンセル", role: .cancel) {}
-            Button("リセット", role: .destructive) { progress.resetAll() }
-        } message: {
-            Text("正答数・連続日数・完了レッスンがすべて消去されます。")
-        }
+        .preferredColorScheme(.dark)
     }
 
-    // MARK: Goal row
+    // MARK: - Goal row
 
     private func goalRow(_ goal: Int) -> some View {
         let selected = progress.dailyGoal == goal
-        return Button(action: { progress.setDailyGoal(goal) }) {
-            HStack {
+        return Button(action: {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            progress.setDailyGoal(goal)
+        }) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 18))
+                    .foregroundStyle(selected ? Color.jbAccent : Color.jbSubtext)
+                    .frame(width: 24)
                 Text("1日 \(goal) 問")
-                    .font(.system(size: 15))
-                    .foregroundStyle(Color.jbText)
+                    .font(.system(size: 15, weight: selected ? .semibold : .regular))
+                    .foregroundStyle(selected ? Color.jbText : Color.jbSubtext)
                 Spacer()
                 if selected {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 13, weight: .bold))
+                    Text("設定中")
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(Color.jbAccent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.jbAccent.opacity(0.15))
+                        .clipShape(Capsule())
                 }
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, 12)
-            .background(Color.jbCard)
+            .background(selected ? Color.jbAccent.opacity(0.07) : Color.jbCard)
+            .animation(.easeInOut(duration: 0.15), value: selected)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(JBScaledButtonStyle(scaleAmount: 0.97))
     }
 
-    // MARK: Section helper
+    // MARK: - Section helper
 
     @ViewBuilder
     private func section<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -258,7 +378,7 @@ struct SettingRow: View {
             .padding(.vertical, 12)
             .background(Color.jbCard)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(onTap != nil ? JBScaledButtonStyle(scaleAmount: 0.97) : JBScaledButtonStyle(scaleAmount: 1.0))
         .disabled(onTap == nil)
     }
 }
