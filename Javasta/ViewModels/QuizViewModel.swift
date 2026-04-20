@@ -21,7 +21,7 @@ final class QuizViewModel {
     func select(_ choice: Quiz.Choice) {
         guard !isAnswered else { return }
         selectedChoiceId = choice.id
-        ProgressStore.shared.recordAnswer(correct: choice.correct)
+        ProgressStore.shared.recordAnswer(quizId: quiz.id, correct: choice.correct)
         withAnimation(.jbSpring) {
             isAnswered = true
         }
