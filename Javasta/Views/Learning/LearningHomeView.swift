@@ -110,6 +110,7 @@ struct LearningHomeView: View {
                     .foregroundStyle(Color.jbSubtext)
             }
             .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: Radius.md)
                     .fill(Color.jbCard)
@@ -120,6 +121,7 @@ struct LearningHomeView: View {
             )
         }
         .buttonStyle(.plain)
+        .padding(.horizontal, Spacing.md)
     }
 
     private var levelPicker: some View {

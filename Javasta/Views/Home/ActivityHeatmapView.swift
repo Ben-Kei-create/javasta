@@ -7,13 +7,13 @@ struct ActivityHeatmapView: View {
     var weeks: Int = 12
 
     // ドット & 余白
-    private let cellSize: CGFloat = 10
-    private let cellSpacing: CGFloat = 3
+    private let cellSize: CGFloat = 8
+    private let cellSpacing: CGFloat = 2
     // 週（列）の並び: 古い週 → 今週
     private var columns: [[Day]] { makeColumns() }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             header
             HStack(alignment: .top, spacing: cellSpacing) {
                 dayLabels
@@ -21,7 +21,7 @@ struct ActivityHeatmapView: View {
             }
             legend
         }
-        .padding(Spacing.md)
+        .padding(Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: Radius.md)

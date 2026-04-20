@@ -21,8 +21,6 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
-                    statsCard
-
                     section(title: "学習目標") {
                         VStack(spacing: Spacing.xs) {
                             ForEach(goalOptions, id: \.self) { goal in
@@ -101,37 +99,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: Stats card
-
-    private var statsCard: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("これまでの累計")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(Color.jbSubtext)
-
-            HStack(spacing: Spacing.lg) {
-                StatItem(label: "解答数", value: "\(progress.totalAnswered)", color: Color.jbAccent)
-                StatItem(label: "正解数", value: "\(progress.totalCorrect)", color: Color.jbSuccess)
-                StatItem(
-                    label: "正答率",
-                    value: progress.totalAnswered > 0 ? "\(progress.accuracyPercent)%" : "—",
-                    color: Color.jbText
-                )
-                StatItem(label: "連続", value: "\(progress.streakDays)日", color: Color.jbWarning)
-            }
-        }
-        .padding(Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
-    }
-
     // MARK: Goal row
 
     private func goalRow(_ goal: Int) -> some View {
@@ -172,26 +139,6 @@ struct SettingsView: View {
                         .stroke(Color.jbBorder, lineWidth: 1)
                 )
         }
-    }
-}
-
-// MARK: - StatItem
-
-private struct StatItem: View {
-    let label: String
-    let value: String
-    let color: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-                .font(.system(size: 11))
-                .foregroundStyle(Color.jbSubtext)
-            Text(value)
-                .font(.system(size: 18, weight: .bold).monospacedDigit())
-                .foregroundStyle(color)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

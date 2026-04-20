@@ -6,6 +6,7 @@ struct HomeView: View {
     @State private var showSettings = false
     @State private var showEmptySessionAlert = false
     @State private var emptySessionMessage = ""
+    @State private var expandedMetric: HomeMetric?
     @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
 
@@ -29,17 +30,16 @@ struct HomeView: View {
                 Color.jbBackground.ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: Spacing.xl) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         headerSection
 
-                        if !reviewQueueQuizzes.isEmpty {
-                            reviewQueueSection
-                        }
-
+                        commandCenter
                         ActivityHeatmapView(
                             counts: progress.recentDailyCounts(days: ProgressStore.historyWindowDays)
                         )
-                        commandCenter
+                        if !reviewQueueQuizzes.isEmpty {
+                            reviewQueueSection
+                        }
                         practiceModesSection
                         LevelSectionView(
                             level: selectedLevel,
@@ -51,7 +51,7 @@ struct HomeView: View {
                         .id(selectedLevel)
                         .transition(.opacity.combined(with: .move(edge: .trailing)))
                     }
-                    .padding(.bottom, Spacing.xxl)
+                    .padding(.bottom, Spacing.lg)
                 }
             }
             .navigationBarHidden(true)
@@ -78,17 +78,6 @@ struct HomeView: View {
                 Text("JavaSta")
                     .font(.system(size: 30, weight: .bold, design: .default))
                     .foregroundStyle(Color.jbText)
-                HStack(spacing: 6) {
-                    Text("Javaの本質を理解しよう")
-                    Text(selectedVersion.examCode(for: selectedLevel))
-                        .font(.system(size: 11, weight: .bold).monospacedDigit())
-                        .foregroundStyle(Color.jbAccent)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(Capsule().fill(Color.jbAccent.opacity(0.12)))
-                }
-                .font(.system(size: 14))
-                .foregroundStyle(Color.jbSubtext)
             }
 
             Spacer()
@@ -100,21 +89,24 @@ struct HomeView: View {
             }
         }
         .padding(.horizontal, Spacing.md)
-        .padding(.top, Spacing.lg)
+        .padding(.top, Spacing.md)
     }
 
     // MARK: Command center
 
     private var commandCenter: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(alignment: .top, spacing: Spacing.md) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(selectedLevel.displayName)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(Color.jbText)
                     Text("\(selectedVersion.displayName) / \(selectedVersion.examCode(for: selectedLevel))")
-                        .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                        .font(.system(size: 11, weight: .bold).monospacedDigit())
                         .foregroundStyle(Color.jbAccent)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.jbAccent.opacity(0.12)))
                 }
 
                 Spacer()
@@ -132,23 +124,38 @@ struct HomeView: View {
                     title: "正答率",
                     value: progress.answerAttemptCount(level: selectedLevel) > 0 ? "\(progress.levelAccuracyPercent(selectedLevel))%" : "—",
                     icon: "chart.line.uptrend.xyaxis",
-                    color: accuracyColor
+                    color: accuracyColor,
+                    isSelected: expandedMetric == .accuracy,
+                    onTap: { toggleMetric(.accuracy) }
                 )
                 CommandMetric(
                     title: "連続",
                     value: "\(progress.streakDays)日",
                     icon: "flame.fill",
-                    color: Color.jbWarning
+                    color: Color.jbWarning,
+                    isSelected: expandedMetric == .streak,
+                    onTap: { toggleMetric(.streak) }
                 )
                 CommandMetric(
                     title: "解答済み",
                     value: "\(progress.answeredCount(level: selectedLevel))問",
                     icon: "checkmark.seal.fill",
-                    color: Color.jbSuccess
+                    color: Color.jbSuccess,
+                    isSelected: expandedMetric == .answered,
+                    onTap: { toggleMetric(.answered) }
                 )
             }
+
+            if let expandedMetric {
+                MetricDetailTray(
+                    title: expandedMetric.detailTitle,
+                    items: metricDetails(for: expandedMetric)
+                )
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .padding(Spacing.md)
+        .animation(.jbFast, value: expandedMetric)
+        .padding(Spacing.sm)
         .background(
             RoundedRectangle(cornerRadius: Radius.md)
                 .fill(Color.jbCard)
@@ -161,28 +168,23 @@ struct HomeView: View {
     }
 
     private var reviewQueueSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(spacing: Spacing.xs) {
-                Image(systemName: "arrow.counterclockwise.circle.fill")
+                Image(systemName: "arrow.counterclockwise")
                     .foregroundStyle(Color.jbWarning)
-                    .font(.system(size: 14))
+                    .font(.system(size: 12, weight: .bold))
                 Text("復習キュー")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Color.jbText)
                 Text("\(reviewQueueQuizzes.count)問")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Color.jbSubtext)
                 Spacer()
             }
             .padding(.horizontal, Spacing.md)
 
-            Text("誤答した問題を自動で保存。正解するとキューから外れます。")
-                .font(.system(size: 12))
-                .foregroundStyle(Color.jbSubtext)
-                .padding(.horizontal, Spacing.md)
-
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.sm) {
+                HStack(spacing: Spacing.xs) {
                     ForEach(reviewQueueQuizzes) { quiz in
                         ReviewQueueCard(quiz: quiz, onTap: { activeSession = QuizSession.single(quiz) })
                     }
@@ -205,7 +207,7 @@ struct HomeView: View {
                         .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(selectedLevel == level ? .white : Color.jbSubtext)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 34)
+                        .frame(height: 30)
                         .background(
                             RoundedRectangle(cornerRadius: Radius.sm)
                                 .fill(selectedLevel == level ? Color.jbAccent : Color.jbBackground)
@@ -262,6 +264,39 @@ struct HomeView: View {
         }
     }
 
+    private func toggleMetric(_ metric: HomeMetric) {
+        withAnimation(.jbFast) {
+            expandedMetric = expandedMetric == metric ? nil : metric
+        }
+    }
+
+    private func metricDetails(for metric: HomeMetric) -> [MetricDetailItem] {
+        let levelRecords = progress.answerHistory.filter { $0.level == selectedLevel }
+        let levelCorrect = levelRecords.filter(\.correct).count
+        let levelQuizCount = QuestionBank.quizzes(version: selectedVersion, level: selectedLevel).count
+
+        switch metric {
+        case .accuracy:
+            return [
+                MetricDetailItem(label: "総回答数", value: "\(progress.totalAnswered)回"),
+                MetricDetailItem(label: "総正解数", value: "\(progress.totalCorrect)回"),
+                MetricDetailItem(label: selectedLevel.displayName, value: "\(levelCorrect)/\(levelRecords.count)")
+            ]
+        case .streak:
+            return [
+                MetricDetailItem(label: "今日", value: "\(progress.todayAnswered)/\(progress.dailyGoal)問"),
+                MetricDetailItem(label: "復習キュー", value: "\(reviewQueueQuizzes.count)問"),
+                MetricDetailItem(label: "完了レッスン", value: "\(progress.completedLessons.count)件")
+            ]
+        case .answered:
+            return [
+                MetricDetailItem(label: "この級", value: "\(progress.answeredCount(level: selectedLevel))/\(levelQuizCount)問"),
+                MetricDetailItem(label: "全体", value: "\(progress.answeredCount())問"),
+                MetricDetailItem(label: "保存", value: "\(progress.bookmarkedQuizIds.count)問")
+            ]
+        }
+    }
+
     private var accuracyColor: Color {
         guard progress.answerAttemptCount(level: selectedLevel) > 0 else { return Color.jbSubtext }
         let p = progress.levelAccuracyPercent(selectedLevel)
@@ -271,11 +306,37 @@ struct HomeView: View {
     }
 }
 
+// MARK: - HomeMetric
+
+private enum HomeMetric: String, Identifiable {
+    case accuracy
+    case streak
+    case answered
+
+    var id: String { rawValue }
+
+    var detailTitle: String {
+        switch self {
+        case .accuracy: return "回答の内訳"
+        case .streak: return "今日の状態"
+        case .answered: return "進捗の内訳"
+        }
+    }
+}
+
+private struct MetricDetailItem: Identifiable {
+    let label: String
+    let value: String
+
+    var id: String { label }
+}
+
 // MARK: - TodayStudyCounterView
 
 private struct TodayStudyCounterView: View {
     let answered: Int
     let dailyGoal: Int
+    @AppStorage("homeTimestampVisible") private var isTimestampVisible = true
 
     private var reachedGoal: Bool {
         answered >= dailyGoal
@@ -284,16 +345,28 @@ private struct TodayStudyCounterView: View {
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
             TimelineView(.periodic(from: .now, by: 1)) { timeline in
-                HStack(spacing: 5) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 9, weight: .bold))
-                    Text(Self.timestamp(timeline.date))
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                Button(action: {
+                    withAnimation(.jbFast) {
+                        isTimestampVisible.toggle()
+                    }
+                }) {
+                    HStack(spacing: isTimestampVisible ? 5 : 0) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 10, weight: .bold))
+                        if isTimestampVisible {
+                            Text(Self.timestamp(timeline.date))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                                .transition(.opacity.combined(with: .move(edge: .trailing)))
+                        }
+                    }
+                    .foregroundStyle(Color.jbSubtext)
+                    .frame(width: isTimestampVisible ? 178 : 20, alignment: .trailing)
+                    .contentShape(Rectangle())
                 }
-                .foregroundStyle(Color.jbSubtext)
-                .frame(maxWidth: 178, alignment: .trailing)
+                .buttonStyle(.plain)
+                .accessibilityLabel(isTimestampVisible ? "日時を隠す" : "日時を表示")
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
@@ -324,30 +397,37 @@ private struct TodayStudyCounterView: View {
     }
 }
 
-// MARK: - CommandMetric
+// MARK: - MetricDetailTray
 
-private struct CommandMetric: View {
+private struct MetricDetailTray: View {
     let title: String
-    let value: String
-    let icon: String
-    let color: Color
+    let items: [MetricDetailItem]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(color)
-            Text(value)
-                .font(.system(size: 17, weight: .bold).monospacedDigit())
-                .foregroundStyle(Color.jbText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+        HStack(spacing: Spacing.sm) {
             Text(title)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(Color.jbSubtext)
+                .frame(width: 64, alignment: .leading)
+
+            ForEach(items) { item in
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.value)
+                        .font(.system(size: 13, weight: .bold).monospacedDigit())
+                        .foregroundStyle(Color.jbText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    Text(item.label)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(Color.jbSubtext)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
-        .padding(Spacing.sm)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: Radius.sm)
                 .fill(Color.jbBackground)
@@ -356,6 +436,47 @@ private struct CommandMetric: View {
                         .stroke(Color.jbBorder, lineWidth: 1)
                 )
         )
+    }
+}
+
+// MARK: - CommandMetric
+
+private struct CommandMetric: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 5) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(color)
+                Text(value)
+                    .font(.system(size: 16, weight: .bold).monospacedDigit())
+                    .foregroundStyle(Color.jbText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(Color.jbSubtext)
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, 7)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.sm)
+                    .fill(Color.jbBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .stroke(isSelected ? color.opacity(0.8) : Color.jbBorder, lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -368,34 +489,36 @@ private struct PracticeModeCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack {
-                    Image(systemName: mode.icon)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(isPrimary ? .white : Color.jbAccent)
-                        .frame(width: 30, height: 30)
-                        .background(
-                            Circle().fill(isPrimary ? Color.white.opacity(0.18) : Color.jbAccent.opacity(0.12))
-                        )
-                    Spacer()
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(isPrimary ? .white.opacity(0.8) : Color.jbSubtext)
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: mode.icon)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(isPrimary ? .white : Color.jbAccent)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        Circle().fill(isPrimary ? Color.white.opacity(0.18) : Color.jbAccent.opacity(0.12))
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(mode.title)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(isPrimary ? .white : Color.jbText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Text(mode.subtitle)
+                        .font(.system(size: 10))
+                        .foregroundStyle(isPrimary ? .white.opacity(0.76) : Color.jbSubtext)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
                 }
 
-                Text(mode.title)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(isPrimary ? .white : Color.jbText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                Text(mode.subtitle)
-                    .font(.system(size: 11))
-                    .foregroundStyle(isPrimary ? .white.opacity(0.76) : Color.jbSubtext)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                Spacer(minLength: Spacing.xs)
+
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(isPrimary ? .white.opacity(0.8) : Color.jbSubtext)
             }
-            .padding(Spacing.md)
-            .frame(maxWidth: .infinity, minHeight: 128, alignment: .topLeading)
+            .padding(Spacing.sm)
+            .frame(maxWidth: .infinity, minHeight: 74, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: Radius.md)
                     .fill(isPrimary ? Color.jbAccent : Color.jbCard)
@@ -519,40 +642,38 @@ private struct ReviewQueueCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                HStack {
-                    Label("復習", systemImage: "arrow.counterclockwise")
-                        .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.jbWarning)
+                    .frame(width: 24, height: 24)
+                    .background(Circle().fill(Color.jbWarning.opacity(0.12)))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(quiz.categoryDisplayName)
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(Color.jbWarning)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.jbSubtext)
+                        .lineLimit(1)
+                    Text(quiz.question)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.jbText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                 }
 
-                Text(quiz.question)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.jbText)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                Spacer(minLength: 0)
-
-                Text(quiz.categoryDisplayName)
-                    .font(.system(size: 10))
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(Color.jbSubtext)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.jbBackground))
             }
-            .padding(Spacing.md)
-            .frame(width: 210, height: 118)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, 7)
+            .frame(width: 176, height: 50)
             .background(
-                RoundedRectangle(cornerRadius: Radius.md)
+                RoundedRectangle(cornerRadius: Radius.sm)
                     .fill(Color.jbCard)
                     .overlay(
-                        RoundedRectangle(cornerRadius: Radius.md)
-                            .stroke(Color.jbWarning.opacity(0.5), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .stroke(Color.jbWarning.opacity(0.32), lineWidth: 1)
                     )
             )
         }
