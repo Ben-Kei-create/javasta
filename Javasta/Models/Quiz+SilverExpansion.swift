@@ -44,8 +44,48 @@ extension Quiz {
         silverInheritance006,
         silverException005,
         silverLambda003,
+        silverPolymorphismHiding001,
     ]
 
+    
+    static let silverPolymorphismHiding001 = Quiz(
+        id: "silver-inheritance-001",
+        level: .silver,
+        category: "inheritance",
+        tags: ["Polymorphism", "Hiding", "MemberAccess", "Heap"],
+        code: """
+    class Coffee {
+        int price = 500;
+        void info() { System.out.println("Coffee: " + price); }
+    }
+
+    class SpecialtyCoffee extends Coffee {
+        int price = 800;
+        @Override
+        void info() { System.out.println("Specialty: " + price); }
+    }
+
+    public class CafeApp {
+        public static void main(String[] args) {
+            Coffee myDrink = new SpecialtyCoffee();
+            System.out.println("Order Price: " + myDrink.price);
+            myDrink.info();
+        }
+    }
+    """,
+        question: "このコードをコンパイル・実行したときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "Order Price: 800\\nSpecialty: 800", correct: false, misconception: "フィールドもメソッド同様にポリモーフィズムが適用されるという誤解", explanation: "Javaにおいて、フィールドのアクセスは参照変数の型（Coffee）に基づいて静的に決定されます。メソッドのように実行時のインスタンス（SpecialtyCoffee）に基づいた上書きは行われません。"),
+            Choice(id: "b", text: "Order Price: 500\\nSpecialty: 800", correct: true, misconception: nil, explanation: "正解です。フィールドアクセスは変数 myDrink の宣言型である Coffee クラスを参照し、メソッド呼び出しはヒープ上の実体である SpecialtyCoffee クラスのオーバーライドされたメソッドを実行します。"),
+            Choice(id: "c", text: "Order Price: 500\\nCoffee: 500", correct: false, misconception: "オーバーライドされたメソッドが呼ばれないという誤解", explanation: "インスタンスメソッドは実行時の型に基づいて動的に決定（動的結合）されます。そのため、myDrink 変数が Coffee 型であっても、実体が SpecialtyCoffee であればオーバーライドされた info() が実行されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "サブクラスで同名のフィールドを再定義できないという誤解", explanation: "サブクラスで親クラスと同じ名前のフィールドを定義することは文法上可能です。これは「隠蔽（Hiding）」と呼ばれ、オーバーライドとは全く別の仕組みで動作します。")
+        ],
+        explanationRef: "explain-silver-inheritance-001",
+        designIntent: "「メソッドは動的（ヒープ上の実体依存）」「フィールドは静的（スタック上の型依存）」というJavaの根本的なメモリアクセス仕様を視覚的に理解させ、ポリモーフィズムの深い理解を促す。"
+    )
+
+    
+    
     // MARK: - Silver: Javaの基本 (mainメソッド)
 
     static let silverJavaBasics003 = Quiz(

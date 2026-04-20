@@ -61,6 +61,8 @@ extension Explanation {
     }
 
     private static func quickTrace(for quiz: Quiz, ref: String) -> Explanation {
+        
+        
         let lines = quiz.code.components(separatedBy: .newlines)
         let mainLine = lines.firstIndex { $0.contains("main(") }.map { $0 + 1 } ?? 1
         let outputLine = lines.lastIndex { $0.contains("System.out") }.map { $0 + 1 } ?? max(lines.count, 1)
@@ -149,6 +151,114 @@ extension Explanation {
                      predict: nil)
             ]
         )
+    
+    static let silverPolymorphismHiding001Explanation = Explanation(
+        id: "explain-silver-inheritance-001",
+        initialCode: """
+    class Coffee {
+        int price = 500;
+        void info() { System.out.println("Coffee: " + price); }
+    }
+
+    class SpecialtyCoffee extends Coffee {
+        int price = 800;
+        @Override
+        void info() { System.out.println("Specialty: " + price); }
+    }
+
+    public class CafeApp {
+        public static void main(String[] args) {
+            Coffee myDrink = new SpecialtyCoffee();
+            System.out.println("Order Price: " + myDrink.price);
+            myDrink.info();
+        }
+    }
+    """,
+        steps: [
+            Step(
+                index: 1,
+                narration: "mainメソッドが呼び出され、実行が始まります。",
+                highlightLines: [1],
+                variables: [],
+                callStack: [CallStackFrame(method: "main", line: 15)],
+                heap: [],
+                predict: nil
+            ),
+            Step(
+                index: 2,
+                narration: "ヒープ領域に SpecialtyCoffee のインスタンス(obj_1)が生成されます。このとき、SpecialtyCoffee自身のpriceと、継承したCoffeeのpriceの両方がメモリ上に確保されます。",
+                highlightLines: [2],
+                variables: [
+                    Variable(name: "myDrink", type: "Coffee", value: "参照 -> obj_1", scope: "main")
+                ],
+                callStack: [CallStackFrame(method: "main", line: 16)],
+                heap: [
+                    HeapObject(id: "obj_1", type: "SpecialtyCoffee", fields: [
+                        "Coffee.price": "500",
+                        "SpecialtyCoffee.price": "800"
+                    ])
+                ],
+                predict: nil
+            ),
+            Step(
+                index: 3,
+                narration: "myDrink.price にアクセスします。変数 myDrink の宣言型は Coffee であるため、JVMは Coffee クラスの price フィールド（500）を参照します。これが『フィールドの隠蔽』です。",
+                highlightLines: [3],
+                variables: [
+                    Variable(name: "myDrink", type: "Coffee", value: "参照 -> obj_1", scope: "main")
+                ],
+                callStack: [CallStackFrame(method: "main", line: 17)],
+                heap: [
+                    HeapObject(id: "obj_1", type: "SpecialtyCoffee", fields: [
+                        "Coffee.price": "500",
+                        "SpecialtyCoffee.price": "800"
+                    ])
+                ],
+                predict: PredictPrompt(
+                    question: "次に myDrink.info() を呼び出します。どちらのクラスのメソッドが実行されるでしょうか？",
+                    choices: ["Coffee型の宣言を優先して Coffeeクラスの info()", "実体である obj_1 の型を優先して SpecialtyCoffeeクラスの info()"],
+                    answerIndex: 1,
+                    hint: "メソッドは実行時の『実体』の型に紐づけられます。これを動的結合と呼びます。",
+                    afterExplanation: "正解です！実体である SpecialtyCoffee のメソッドが呼ばれるため、出力にはそのクラスの挙動が反映されます。"
+                )
+            ),
+            Step(
+                index: 4,
+                narration: "myDrink.info() が実行されます。JVMは実体である obj_1 の型を確認し、SpecialtyCoffee でオーバーライドされた info() を動的に呼び出します。このメソッド内では、SpecialtyCoffee 自身の price (800) が参照されます。",
+                highlightLines: [4],
+                variables: [
+                    Variable(name: "myDrink", type: "Coffee", value: "参照 -> obj_1", scope: "main")
+                ],
+                callStack: [
+                    CallStackFrame(method: "SpecialtyCoffee.info", line: 11),
+                    CallStackFrame(method: "main", line: 18)
+                ],
+                heap: [
+                    HeapObject(id: "obj_1", type: "SpecialtyCoffee", fields: [
+                        "Coffee.price": "500",
+                        "SpecialtyCoffee.price": "800"
+                    ])
+                ],
+                predict: nil
+            ),
+            Step(
+                index: 5,
+                narration: "メソッドの実行が終了し、mainメソッドに戻ります。最終的な出力は 'Order Price: 500' と 'Specialty: 800' になります。",
+                highlightLines: [5],
+                variables: [
+                    Variable(name: "myDrink", type: "Coffee", value: "参照 -> obj_1", scope: "main")
+                ],
+                callStack: [CallStackFrame(method: "main", line: 18)],
+                heap: [
+                    HeapObject(id: "obj_1", type: "SpecialtyCoffee", fields: [
+                        "Coffee.price": "500",
+                        "SpecialtyCoffee.price": "800"
+                    ])
+                ],
+                predict: nil
+            )
+        ]
+    )
 
         // MARK: - 解説: オーバーライドと例外
         static let silverInheritanceException001Explanation = Explanation(
