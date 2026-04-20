@@ -1,5 +1,11 @@
 import Foundation
 
+enum ExplanationTraceStatus: Equatable {
+    case authored
+    case placeholder
+    case missing
+}
+
 struct Explanation: Codable, Identifiable {
     let id: String
     var relatedLessonId: String? = nil

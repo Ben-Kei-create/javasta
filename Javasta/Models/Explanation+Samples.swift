@@ -25,6 +25,18 @@ extension Explanation {
         authoredSamples[ref] != nil
     }
 
+    static func traceStatus(for ref: String) -> ExplanationTraceStatus {
+        if authoredSamples[ref] != nil {
+            return .authored
+        }
+
+        if Quiz.samples.contains(where: { $0.explanationRef == ref }) {
+            return .placeholder
+        }
+
+        return .missing
+    }
+
     private static var authoredSamples: [String: Explanation] {
         [
             goldLambdaEffectivelyFinal001Explanation.id: goldLambdaEffectivelyFinal001Explanation,

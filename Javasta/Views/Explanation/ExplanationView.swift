@@ -37,6 +37,8 @@ struct ExplanationView: View {
 
                     ScrollView {
                         VStack(alignment: .leading, spacing: Spacing.md) {
+                            traceStatusBanner
+
                             Text(vm.currentStep.narration)
                                 .font(.system(size: 15))
                                 .foregroundStyle(Color.jbText)
@@ -99,6 +101,14 @@ struct ExplanationView: View {
         }
     }
 
+    private var traceStatus: ExplanationTraceStatus {
+        Explanation.traceStatus(for: vm.explanation.id)
+    }
+
+    private var linkedQuiz: Quiz? {
+        Quiz.samples.first { $0.explanationRef == vm.explanation.id }
+    }
+
     @ViewBuilder
     private func explanationCodeView(maxHeight: CGFloat) -> some View {
         if let codeTabs = vm.explanation.codeTabs, !codeTabs.isEmpty {
@@ -149,6 +159,8 @@ struct ExplanationView: View {
                 .foregroundStyle(Color.jbSubtext)
                 .monospacedDigit()
 
+            TraceStatusPill(status: traceStatus)
+
             LevelBadgeView(
                 level: level,
                 zoomPercent: CodeZoom.percent(codeZoom),
@@ -157,6 +169,38 @@ struct ExplanationView: View {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)
+    }
+
+    @ViewBuilder
+    private var traceStatusBanner: some View {
+        if traceStatus != .authored {
+            HStack(alignment: .top, spacing: Spacing.sm) {
+                Image(systemName: traceStatus.icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(traceStatus.tint)
+                    .padding(.top, 1)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(traceStatus.bannerTitle)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(traceStatus.tint)
+                    Text(traceStatus.bannerBody(ref: vm.explanation.id, quizId: linkedQuiz?.id))
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.jbSubtext)
+                        .lineSpacing(2)
+                }
+            }
+            .padding(Spacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.sm)
+                    .fill(traceStatus.tint.opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .stroke(traceStatus.tint.opacity(0.25), lineWidth: 1)
+                    )
+            )
+        }
     }
 
     // MARK: Navigation bar
@@ -296,6 +340,70 @@ struct ExplanationView: View {
                             )
                     )
             }
+        }
+    }
+}
+
+// MARK: - TraceStatusPill
+
+private struct TraceStatusPill: View {
+    let status: ExplanationTraceStatus
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: status.icon)
+                .font(.system(size: 8, weight: .bold))
+            Text(status.shortTitle)
+                .font(.system(size: 9, weight: .bold))
+        }
+        .foregroundStyle(status.tint)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(Capsule().fill(status.tint.opacity(0.12)))
+    }
+}
+
+private extension ExplanationTraceStatus {
+    var shortTitle: String {
+        switch self {
+        case .authored: return "手書き"
+        case .placeholder: return "汎用"
+        case .missing: return "未解決"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .authored: return "checkmark.seal.fill"
+        case .placeholder: return "doc.text"
+        case .missing: return "link.badge.plus"
+        }
+    }
+
+    var tint: Color {
+        switch self {
+        case .authored: return Color.jbSuccess
+        case .placeholder: return Color.jbWarning
+        case .missing: return Color.jbError
+        }
+    }
+
+    var bannerTitle: String {
+        switch self {
+        case .authored: return "手書き解説"
+        case .placeholder: return "汎用解説で表示中"
+        case .missing: return "解説の紐付け未解決"
+        }
+    }
+
+    func bannerBody(ref: String, quizId: String?) -> String {
+        switch self {
+        case .authored:
+            return "この問題には手書きの実行追跡があります。"
+        case .placeholder:
+            return "quickTrace による自動生成の3ステップ解説です。quiz: \(quizId ?? "-") / ref: \(ref)"
+        case .missing:
+            return "Explanation.sample(for:) で解決できません。quiz: \(quizId ?? "-") / ref: \(ref)"
         }
     }
 }

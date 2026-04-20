@@ -4,6 +4,7 @@ import Observation
 @Observable
 final class QuizViewModel {
     var quiz: Quiz
+    var displayedChoices: [Quiz.Choice]
     var selectedChoiceId: String?
     var isAnswered = false
     private var startedAt = Date()
@@ -17,6 +18,7 @@ final class QuizViewModel {
 
     init(quiz: Quiz) {
         self.quiz = quiz
+        self.displayedChoices = quiz.choices.shuffled()
     }
 
     func select(_ choice: Quiz.Choice) {
@@ -39,6 +41,7 @@ final class QuizViewModel {
             selectedChoiceId = nil
             isAnswered = false
             startedAt = Date()
+            displayedChoices = quiz.choices.shuffled()
         }
     }
 }

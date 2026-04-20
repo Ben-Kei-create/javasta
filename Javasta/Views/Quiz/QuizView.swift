@@ -100,7 +100,7 @@ struct QuizView: View {
 
     private var choicesSection: some View {
         VStack(spacing: Spacing.sm) {
-            ForEach(vm.quiz.choices) { choice in
+            ForEach(vm.displayedChoices) { choice in
                 QuizChoiceButton(
                     choice: choice,
                     isSelected: vm.selectedChoiceId == choice.id,
@@ -192,6 +192,7 @@ struct QuizView: View {
                         .font(.system(size: 15))
                     Text("実行を追う")
                         .font(.system(size: 14, weight: .semibold))
+                    traceStatusBadge
                 }
                 .foregroundStyle(Color.jbAccent)
                 .frame(maxWidth: .infinity)
@@ -199,8 +200,9 @@ struct QuizView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: Radius.md)
                         .stroke(Color.jbAccent, lineWidth: 1.5)
-                )
+                    )
             }
+            .disabled(explanationTraceStatus == .missing)
 
             if let onNextQuiz {
                 Button(action: onNextQuiz) {
@@ -219,6 +221,32 @@ struct QuizView: View {
                     )
                 }
             }
+        }
+    }
+
+    private var explanationTraceStatus: ExplanationTraceStatus {
+        Explanation.traceStatus(for: vm.quiz.explanationRef)
+    }
+
+    @ViewBuilder
+    private var traceStatusBadge: some View {
+        switch explanationTraceStatus {
+        case .authored:
+            EmptyView()
+        case .placeholder:
+            Text("汎用")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Color.jbWarning)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.jbWarning.opacity(0.14)))
+        case .missing:
+            Text("未解決")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Color.jbError)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.jbError.opacity(0.14)))
         }
     }
 }
