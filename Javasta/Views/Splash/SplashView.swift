@@ -14,6 +14,7 @@ struct SplashView: View {
     @State private var stage: Stage = .boot
     @State private var pulse = false
     @State private var fadeOut = false
+    @State private var launchHaptic = 0
 
     var body: some View {
         GeometryReader { proxy in
@@ -46,6 +47,7 @@ struct SplashView: View {
         }
         .opacity(fadeOut ? 0 : 1)
         .preferredColorScheme(.dark)
+        .sensoryFeedback(.selection, trigger: launchHaptic)
         .task {
             await runAnimation()
         }
@@ -132,7 +134,7 @@ struct SplashView: View {
                 .stroke(Color.jbBorder, lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.28), radius: 18, x: 0, y: 14)
-        .animation(.jbFast, value: stage)
+        .animation(.spring(response: 0.42, dampingFraction: 0.82), value: stage)
     }
 
     private var titleBar: some View {
@@ -221,7 +223,7 @@ struct SplashView: View {
             .opacity(stage.rawValue >= Stage.ready.rawValue ? 1 : 0)
         }
         .padding(.vertical, compactHeight ? 4 : 10)
-        .animation(.spring(response: 0.58, dampingFraction: 0.78), value: stage)
+        .animation(.spring(response: 0.68, dampingFraction: 0.8), value: stage)
     }
 
     private var statusPill: some View {
@@ -247,7 +249,7 @@ struct SplashView: View {
             Capsule()
                 .stroke(Color.jbBorder, lineWidth: 1)
         )
-        .animation(.easeInOut(duration: 0.75).repeatForever(autoreverses: true), value: pulse)
+        .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: pulse)
     }
 
     // MARK: - Animation
@@ -255,22 +257,23 @@ struct SplashView: View {
     private func runAnimation() async {
         pulse = true
 
-        try? await Task.sleep(nanoseconds: 180_000_000)
-        withAnimation(.jbFast) { stage = .compile }
+        try? await Task.sleep(nanoseconds: 230_000_000)
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) { stage = .compile }
 
-        try? await Task.sleep(nanoseconds: 360_000_000)
-        withAnimation(.jbFast) { stage = .link }
+        try? await Task.sleep(nanoseconds: 430_000_000)
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) { stage = .link }
 
-        try? await Task.sleep(nanoseconds: 320_000_000)
-        withAnimation(.spring(response: 0.48, dampingFraction: 0.78)) { stage = .reveal }
+        try? await Task.sleep(nanoseconds: 390_000_000)
+        withAnimation(.spring(response: 0.58, dampingFraction: 0.8)) { stage = .reveal }
 
-        try? await Task.sleep(nanoseconds: 420_000_000)
-        withAnimation(.jbSpring) { stage = .ready }
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        withAnimation(.spring(response: 0.62, dampingFraction: 0.82)) { stage = .ready }
+        launchHaptic += 1
 
-        try? await Task.sleep(nanoseconds: 760_000_000)
-        withAnimation(.easeInOut(duration: 0.38)) { fadeOut = true }
+        try? await Task.sleep(nanoseconds: 880_000_000)
+        withAnimation(.easeInOut(duration: 0.45)) { fadeOut = true }
 
-        try? await Task.sleep(nanoseconds: 400_000_000)
+        try? await Task.sleep(nanoseconds: 460_000_000)
         onFinish()
     }
 }

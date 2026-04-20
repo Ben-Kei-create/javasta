@@ -63,7 +63,11 @@ final class ProgressStore {
         }
         let rawHistory = defaults.dictionary(forKey: Key.dailyHistory) as? [String: Int] ?? [:]
         self.dailyHistory = Self.prune(rawHistory, windowDays: Self.historyWindowDays)
-        self.reviewQueueQuizIds = defaults.stringArray(forKey: Key.reviewQueueQuizIds) ?? []
+        let storedReviewQueue = defaults.stringArray(forKey: Key.reviewQueueQuizIds) ?? []
+        self.reviewQueueQuizIds = Self.deduplicated(storedReviewQueue)
+        if storedReviewQueue != reviewQueueQuizIds {
+            defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
+        }
     }
 
     // MARK: API
@@ -87,9 +91,11 @@ final class ProgressStore {
         defaults.set(dailyHistory,   forKey: Key.dailyHistory)
 
         if !quizId.isEmpty {
+            reviewQueueQuizIds = Self.deduplicated(reviewQueueQuizIds)
             if correct {
                 reviewQueueQuizIds.removeAll { $0 == quizId }
-            } else if !reviewQueueQuizIds.contains(quizId) {
+            } else {
+                reviewQueueQuizIds.removeAll { $0 == quizId }
                 reviewQueueQuizIds.append(quizId)
             }
             defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
@@ -264,6 +270,11 @@ final class ProgressStore {
               let records = try? JSONDecoder().decode([QuizAnswerRecord].self, from: data)
         else { return [] }
         return records
+    }
+
+    private static func deduplicated(_ ids: [String]) -> [String] {
+        var seen = Set<String>()
+        return ids.filter { seen.insert($0).inserted }
     }
 
     private static let dateFormatter: DateFormatter = {

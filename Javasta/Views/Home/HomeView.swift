@@ -19,8 +19,10 @@ struct HomeView: View {
     }
 
     private var reviewQueueQuizzes: [Quiz] {
-        progress.reviewQueueQuizIds.compactMap { id in
-            Quiz.samples.first(where: { $0.id == id })
+        var seen = Set<String>()
+        return progress.reviewQueueQuizIds.compactMap { id in
+            guard seen.insert(id).inserted else { return nil }
+            return QuestionBank.quiz(id: id)
         }
     }
 
@@ -73,23 +75,29 @@ struct HomeView: View {
     // MARK: Header
 
     private var headerSection: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("JavaSta")
-                    .font(.system(size: 30, weight: .bold, design: .default))
-                    .foregroundStyle(Color.jbText)
-            }
+        HStack(alignment: .center, spacing: Spacing.sm) {
+            Text("JavaSta")
+                .font(.system(size: 30, weight: .bold, design: .default))
+                .foregroundStyle(Color.jbText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
 
-            Spacer()
+            Spacer(minLength: Spacing.xs)
+
+            HomeTimestampToggle()
+                .layoutPriority(1)
+                .offset(y: -1)
 
             Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 18))
                     .foregroundStyle(Color.jbSubtext)
+                    .frame(width: 34, height: 34)
             }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, Spacing.md)
-        .padding(.top, Spacing.md)
+        .padding(.top, Spacing.sm)
     }
 
     // MARK: Command center
@@ -104,9 +112,13 @@ struct HomeView: View {
                     Text("\(selectedVersion.displayName) / \(selectedVersion.examCode(for: selectedLevel))")
                         .font(.system(size: 11, weight: .bold).monospacedDigit())
                         .foregroundStyle(Color.jbAccent)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.68)
+                        .allowsTightening(true)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(Capsule().fill(Color.jbAccent.opacity(0.12)))
+                        .layoutPriority(1)
                 }
 
                 Spacer()
@@ -331,52 +343,49 @@ private struct MetricDetailItem: Identifiable {
     var id: String { label }
 }
 
-// MARK: - TodayStudyCounterView
+// MARK: - HomeTimestampToggle
 
-private struct TodayStudyCounterView: View {
-    let answered: Int
-    let dailyGoal: Int
+private struct HomeTimestampToggle: View {
     @AppStorage("homeTimestampVisible") private var isTimestampVisible = true
 
-    private var reachedGoal: Bool {
-        answered >= dailyGoal
-    }
-
     var body: some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            TimelineView(.periodic(from: .now, by: 1)) { timeline in
-                Button(action: {
-                    withAnimation(.jbFast) {
-                        isTimestampVisible.toggle()
-                    }
-                }) {
-                    HStack(spacing: isTimestampVisible ? 5 : 0) {
-                        Image(systemName: "clock.fill")
-                            .font(.system(size: 10, weight: .bold))
-                        if isTimestampVisible {
-                            Text(Self.timestamp(timeline.date))
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.7)
-                                .transition(.opacity.combined(with: .move(edge: .trailing)))
-                        }
-                    }
-                    .foregroundStyle(Color.jbSubtext)
-                    .frame(width: isTimestampVisible ? 178 : 20, alignment: .trailing)
-                    .contentShape(Rectangle())
+        TimelineView(.periodic(from: .now, by: 1)) { timeline in
+            Button(action: {
+                withAnimation(.jbFast) {
+                    isTimestampVisible.toggle()
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(isTimestampVisible ? "日時を隠す" : "日時を表示")
+            }) {
+                HStack(spacing: isTimestampVisible ? 5 : 0) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 10, weight: .bold))
+                    if isTimestampVisible {
+                        Text(Self.timestamp(timeline.date))
+                            .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .transition(.opacity.combined(with: .move(edge: .trailing)))
+                    }
+                }
+                .foregroundStyle(Color.jbSubtext)
+                .padding(.horizontal, isTimestampVisible ? 8 : 0)
+                .frame(height: 28)
+                .frame(
+                    minWidth: isTimestampVisible ? 126 : 24,
+                    maxWidth: isTimestampVisible ? 178 : 24,
+                    alignment: .trailing
+                )
+                .background(
+                    Capsule()
+                        .fill(isTimestampVisible ? Color.jbCard.opacity(0.72) : Color.clear)
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(isTimestampVisible ? Color.jbBorder : Color.clear, lineWidth: 1)
+                )
+                .contentShape(Rectangle())
             }
-
-            HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text("\(answered)")
-                    .font(.system(size: 28, weight: .bold).monospacedDigit())
-                    .foregroundStyle(reachedGoal ? Color.jbSuccess : Color.jbAccent)
-                Text("/\(dailyGoal)")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.jbSubtext)
-            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isTimestampVisible ? "日時を隠す" : "日時を表示")
         }
     }
 
@@ -394,6 +403,28 @@ private struct TodayStudyCounterView: View {
             parts.minute ?? 0,
             parts.second ?? 0
         )
+    }
+}
+
+// MARK: - TodayStudyCounterView
+
+private struct TodayStudyCounterView: View {
+    let answered: Int
+    let dailyGoal: Int
+
+    private var reachedGoal: Bool {
+        answered >= dailyGoal
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 2) {
+            Text("\(answered)")
+                .font(.system(size: 28, weight: .bold).monospacedDigit())
+                .foregroundStyle(reachedGoal ? Color.jbSuccess : Color.jbAccent)
+            Text("/\(dailyGoal)")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color.jbSubtext)
+        }
     }
 }
 
