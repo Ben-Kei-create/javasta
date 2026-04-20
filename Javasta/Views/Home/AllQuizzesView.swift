@@ -1,5 +1,21 @@
 import SwiftUI
 
+private enum AllQuizzesLayout {
+    static let topActionCardHeight: CGFloat = 78
+    static let topActionIconSize: CGFloat = 46
+    static let expandAnimation = Animation.snappy(duration: 0.24, extraBounce: 0.04)
+
+    static var expandTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity
+                .combined(with: .move(edge: .top))
+                .combined(with: .scale(scale: 0.985, anchor: .top)),
+            removal: .opacity
+                .combined(with: .scale(scale: 0.99, anchor: .top))
+        )
+    }
+}
+
 struct AllQuizzesView: View {
     let level: JavaLevel
     var version: JavaExamVersion = .se17
@@ -37,11 +53,7 @@ struct AllQuizzesView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
                     summaryHeader
-                    mockExamCard
-
-                    if !selectedQuizIds.isEmpty {
-                        selectedStudyBar
-                    }
+                    topActionCard
 
                     VStack(spacing: Spacing.sm) {
                         ForEach(grouped, id: \.category) { group in
@@ -94,65 +106,39 @@ struct AllQuizzesView: View {
         .padding(.horizontal, Spacing.md)
     }
 
-    private var mockExamCard: some View {
-        MockExamCard(
-            level: level,
-            version: version,
-            count: quizzes.count,
-            onStart: {
-                if let session = QuestionBank.makeSession(
-                    mode: .mockExam,
-                    version: version,
+    @ViewBuilder
+    private var topActionCard: some View {
+        Group {
+            if selectedQuizIds.isEmpty {
+                MockExamCard(
                     level: level,
-                    progress: progress
-                ) {
-                    onStartSession(session)
-                }
-            }
-        )
-        .padding(.horizontal, Spacing.md)
-    }
-
-    private var selectedStudyBar: some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.jbSuccess)
-
-            Text("\(selectedQuizIds.count)問 選択中")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(Color.jbText)
-
-            Spacer()
-
-            Button(action: {
-                onStartSession(selectedSession(quizzes: selectedQuizzes, title: "選択した問題"))
-            }) {
-                HStack(spacing: 4) {
-                    Text("まとめて解く")
-                    Image(systemName: "arrow.right")
-                }
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, 7)
-                .background(Capsule().fill(Color.jbAccent))
+                    version: version,
+                    count: quizzes.count,
+                    onStart: {
+                        if let session = QuestionBank.makeSession(
+                            mode: .mockExam,
+                            version: version,
+                            level: level,
+                            progress: progress
+                        ) {
+                            onStartSession(session)
+                        }
+                    }
+                )
+            } else {
+                SelectedQuizzesActionCard(
+                    selectedCount: selectedQuizIds.count,
+                    onStart: {
+                        onStartSession(selectedSession(quizzes: selectedQuizzes, title: "選択した問題"))
+                    }
+                )
             }
         }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbSuccess.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbSuccess.opacity(0.3), lineWidth: 1)
-                )
-        )
         .padding(.horizontal, Spacing.md)
     }
 
     private func toggleExpanded(_ category: QuizCategory) {
-        withAnimation(.jbSpring) {
+        withAnimation(AllQuizzesLayout.expandAnimation) {
             if expandedCategories.contains(category) {
                 expandedCategories.remove(category)
             } else {
@@ -192,6 +178,64 @@ struct AllQuizzesView: View {
     }
 }
 
+// MARK: - SelectedQuizzesActionCard
+
+private struct SelectedQuizzesActionCard: View {
+    let selectedCount: Int
+    let onStart: () -> Void
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: AllQuizzesLayout.topActionIconSize, height: AllQuizzesLayout.topActionIconSize)
+                .background(Circle().fill(Color.jbSuccess))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(selectedCount)問 選択中")
+                    .font(.system(size: 18, weight: .bold).monospacedDigit())
+                    .foregroundStyle(Color.jbText)
+                Text("選んだ問題だけをまとめて学習")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.jbSubtext)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+            }
+
+            Spacer()
+
+            Button(action: onStart) {
+                HStack(spacing: 5) {
+                    Text("開始")
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 11, weight: .bold))
+                }
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 13)
+                .frame(height: 34)
+                .background(
+                    Capsule().fill(Color.jbAccent)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(height: AllQuizzesLayout.topActionIconSize)
+        .padding(.horizontal, Spacing.md)
+        .frame(maxWidth: .infinity)
+        .frame(height: AllQuizzesLayout.topActionCardHeight)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.md)
+                .fill(Color.jbCard)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.md)
+                        .stroke(Color.jbSuccess.opacity(0.35), lineWidth: 1.5)
+                )
+        )
+    }
+}
+
 // MARK: - MockExamCard
 
 private struct MockExamCard: View {
@@ -206,7 +250,7 @@ private struct MockExamCard: View {
                 Image(systemName: "graduationcap.fill")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 46, height: 46)
+                    .frame(width: AllQuizzesLayout.topActionIconSize, height: AllQuizzesLayout.topActionIconSize)
                     .background(Circle().fill(Color.jbAccent))
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -216,6 +260,8 @@ private struct MockExamCard: View {
                     Text("最後に正答率と合格ゾーンを判定")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.jbSubtext)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
                 }
 
                 Spacer()
@@ -229,7 +275,10 @@ private struct MockExamCard: View {
                         .foregroundStyle(Color.jbSubtext)
                 }
             }
-            .padding(Spacing.md)
+            .frame(height: AllQuizzesLayout.topActionIconSize)
+            .padding(.horizontal, Spacing.md)
+            .frame(maxWidth: .infinity)
+            .frame(height: AllQuizzesLayout.topActionCardHeight)
             .background(
                 RoundedRectangle(cornerRadius: Radius.md)
                     .fill(Color.jbCard)
@@ -345,9 +394,10 @@ private struct CategoryQuizGroupCard: View {
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.bottom, Spacing.md)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .transition(AllQuizzesLayout.expandTransition)
             }
         }
+        .animation(AllQuizzesLayout.expandAnimation, value: isExpanded)
         .background(
             RoundedRectangle(cornerRadius: Radius.md)
                 .fill(Color.jbCard)

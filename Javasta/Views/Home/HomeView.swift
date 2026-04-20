@@ -355,32 +355,24 @@ private struct HomeTimestampToggle: View {
                     isTimestampVisible.toggle()
                 }
             }) {
-                HStack(spacing: isTimestampVisible ? 5 : 0) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 10, weight: .bold))
+                Group {
                     if isTimestampVisible {
                         Text(Self.timestamp(timeline.date))
                             .font(.system(size: 10, weight: .semibold, design: .monospaced))
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
                             .transition(.opacity.combined(with: .move(edge: .trailing)))
+                    } else {
+                        Image(systemName: "clock")
+                            .font(.system(size: 12, weight: .semibold))
                     }
                 }
                 .foregroundStyle(Color.jbSubtext)
-                .padding(.horizontal, isTimestampVisible ? 8 : 0)
-                .frame(height: 28)
+                .frame(height: 22)
                 .frame(
-                    minWidth: isTimestampVisible ? 126 : 24,
-                    maxWidth: isTimestampVisible ? 178 : 24,
+                    minWidth: isTimestampVisible ? 126 : 22,
+                    maxWidth: isTimestampVisible ? 170 : 22,
                     alignment: .trailing
-                )
-                .background(
-                    Capsule()
-                        .fill(isTimestampVisible ? Color.jbCard.opacity(0.72) : Color.clear)
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(isTimestampVisible ? Color.jbBorder : Color.clear, lineWidth: 1)
                 )
                 .contentShape(Rectangle())
             }

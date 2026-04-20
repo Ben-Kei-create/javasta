@@ -38,6 +38,18 @@ extension Quiz {
         silverArray007,
         silverStringBuilder004,
         silverControlFlow009,
+        silverString006,
+        silverArray008,
+        silverOverload006,
+        silverException007,
+        silverClasses007,
+        silverDataTypes012,
+        goldStream010,
+        goldGenerics007,
+        goldOptional007,
+        goldDateTime004,
+        goldConcurrency008,
+        goldIo005,
     ]
 
     // MARK: - Gold: Generics (extends wildcard)
@@ -1367,5 +1379,457 @@ public class Test {
         ],
         explanationRef: "explain-silver-control-flow-009",
         designIntent: "for文の初期化部で宣言した変数のスコープを確認する。"
+    )
+
+    // MARK: - Silver: String concatenation order
+
+    static let silverString006 = Quiz(
+        id: "silver-string-006",
+        level: .silver,
+        category: "string",
+        tags: ["String", "文字列結合", "評価順"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(1 + 2 + "A" + 3 + 4);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "3A34",
+                   correct: true, misconception: nil,
+                   explanation: "左から評価されます。1 + 2は数値加算で3、その後はStringが関わるため文字列結合になります。"),
+            Choice(id: "b", text: "12A34",
+                   correct: false, misconception: "最初からすべて文字列結合されると誤解",
+                   explanation: "Stringが現れる前の1 + 2はint同士の加算です。"),
+            Choice(id: "c", text: "3A7",
+                   correct: false, misconception: "String後も数値同士なら加算されると誤解",
+                   explanation: "\"A\"以降は文字列結合の文脈になり、3と4は文字として連結されます。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: nil,
+                   explanation: "数値とStringの+演算は文字列結合として有効です。"),
+        ],
+        explanationRef: "explain-silver-string-006",
+        designIntent: "+演算子が数値加算から文字列結合へ切り替わるタイミングを左結合の評価順で追えるか確認する。"
+    )
+
+    // MARK: - Silver: Arrays.compare
+
+    static let silverArray008 = Quiz(
+        id: "silver-array-008",
+        level: .silver,
+        category: "data-types",
+        tags: ["配列", "Arrays.compare", "辞書順"],
+        code: """
+import java.util.Arrays;
+
+public class Test {
+    public static void main(String[] args) {
+        int[] a = {1, 2};
+        int[] b = {1, 3};
+        System.out.println(Arrays.compare(a, b));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力される値として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "負の値",
+                   correct: true, misconception: nil,
+                   explanation: "最初に異なる要素は2と3です。2 < 3なので、Arrays.compare(a, b)は負の値を返します。"),
+            Choice(id: "b", text: "0",
+                   correct: false, misconception: "配列の長さが同じなら0と誤解",
+                   explanation: "長さだけでなく、要素を先頭から比較します。"),
+            Choice(id: "c", text: "正の値",
+                   correct: false, misconception: "配列bの方が大きいことを戻り値の正負と逆に理解",
+                   explanation: "aがbより辞書順で小さいため、戻り値は負です。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "プリミティブ配列をcompareできないと誤解",
+                   explanation: "Arraysにはint[]用のcompareメソッドが用意されています。"),
+        ],
+        explanationRef: "explain-silver-array-008",
+        designIntent: "Arrays.compareが先頭から要素を比較し、大小関係を戻り値の正負で表すことを確認する。"
+    )
+
+    // MARK: - Silver: overload null specificity
+
+    static let silverOverload006 = Quiz(
+        id: "silver-overload-006",
+        level: .silver,
+        category: "overload-resolution",
+        tags: ["オーバーロード", "null", "最も具体的"],
+        code: """
+public class Test {
+    static void print(Object value) {
+        System.out.println("Object");
+    }
+
+    static void print(String value) {
+        System.out.println("String");
+    }
+
+    public static void main(String[] args) {
+        print(null);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "String",
+                   correct: true, misconception: nil,
+                   explanation: "nullはObjectにもStringにも渡せますが、Stringの方がObjectより具体的な型なのでprint(String)が選ばれます。"),
+            Choice(id: "b", text: "Object",
+                   correct: false, misconception: "nullはObjectとして扱われると固定的に考えている",
+                   explanation: "オーバーロード解決では、適用可能な候補のうち最も具体的なメソッドが選ばれます。"),
+            Choice(id: "c", text: "NullPointerException",
+                   correct: false, misconception: "null引数だけで例外が発生すると誤解",
+                   explanation: "メソッド内でvalueを参照していないため、NullPointerExceptionは発生しません。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "null呼び出しは常に曖昧になると誤解",
+                   explanation: "ObjectとStringには親子関係があるため、Stringがより具体的な候補として決まります。"),
+        ],
+        explanationRef: "explain-silver-overload-006",
+        designIntent: "nullを渡したオーバーロードで、最も具体的な参照型メソッドが選ばれることを確認する。"
+    )
+
+    // MARK: - Silver: multi-catch parameter
+
+    static let silverException007 = Quiz(
+        id: "silver-exception-007",
+        level: .silver,
+        category: "exception-handling",
+        tags: ["multi-catch", "例外", "final"],
+        code: """
+import java.io.IOException;
+
+public class Test {
+    public static void main(String[] args) {
+        try {
+            throw new IOException();
+        } catch (IOException | RuntimeException e) {
+            e = new RuntimeException();
+            System.out.println("handled");
+        }
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "handledと出力される",
+                   correct: false, misconception: "catch変数を通常のローカル変数と同じように再代入できると誤解",
+                   explanation: "multi-catchの例外パラメータには再代入できません。"),
+            Choice(id: "b", text: "e = new RuntimeException(); でコンパイルエラー",
+                   correct: true, misconception: nil,
+                   explanation: "multi-catchのパラメータは暗黙的にfinalのように扱われるため、catchブロック内で再代入できません。"),
+            Choice(id: "c", text: "throw new IOException(); でコンパイルエラー",
+                   correct: false, misconception: "IOExceptionをcatchしていてもthrowできないと誤解",
+                   explanation: "IOExceptionは直後のcatchで捕捉されるため、throw自体は問題ありません。"),
+            Choice(id: "d", text: "実行時にClassCastException",
+                   correct: false, misconception: nil,
+                   explanation: "問題は実行時ではなく、multi-catchパラメータへの再代入によるコンパイルエラーです。"),
+        ],
+        explanationRef: "explain-silver-exception-007",
+        designIntent: "multi-catchの例外パラメータに再代入できないという制約を確認する。"
+    )
+
+    // MARK: - Silver: static initialization
+
+    static let silverClasses007 = Quiz(
+        id: "silver-classes-007",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "初期化順序", "フィールド"],
+        code: """
+public class Test {
+    static int x = 1;
+
+    static {
+        x += 2;
+    }
+
+    static int y = x + 1;
+
+    public static void main(String[] args) {
+        System.out.println(x + "," + y);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1,2",
+                   correct: false, misconception: "staticブロックが後から実行されると誤解",
+                   explanation: "staticフィールド初期化とstaticブロックは、ソースに現れた順に実行されます。"),
+            Choice(id: "b", text: "3,4",
+                   correct: true, misconception: nil,
+                   explanation: "xは1で初期化され、staticブロックで3になります。その後yがx + 1で4になります。"),
+            Choice(id: "c", text: "3,2",
+                   correct: false, misconception: "yがstaticブロックより先に初期化されると誤解",
+                   explanation: "yの宣言はstaticブロックの後にあるため、xが3になった後で初期化されます。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: nil,
+                   explanation: "staticフィールドとstatic初期化ブロックの組み合わせとして有効です。"),
+        ],
+        explanationRef: "explain-silver-classes-007",
+        designIntent: "staticフィールド初期化とstatic初期化ブロックが宣言順に実行されることを確認する。"
+    )
+
+    // MARK: - Silver: char increment
+
+    static let silverDataTypes012 = Quiz(
+        id: "silver-data-types-012",
+        level: .silver,
+        category: "data-types",
+        tags: ["char", "インクリメント", "文字コード"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        char c = 'A';
+        c++;
+        System.out.println(c);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A",
+                   correct: false, misconception: "c++の結果が反映されないと誤解",
+                   explanation: "後置インクリメントでも、式の評価後に変数c自体は更新されます。"),
+            Choice(id: "b", text: "B",
+                   correct: true, misconception: nil,
+                   explanation: "charは数値的なコード値を持つため、'A'をインクリメントすると次の文字'B'になります。"),
+            Choice(id: "c", text: "66",
+                   correct: false, misconception: "charが常に数値として表示されると誤解",
+                   explanation: "println(char)は文字として出力します。数値として出したい場合はintへキャストします。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "charに++を使えないと誤解",
+                   explanation: "charにもインクリメント演算子を使用できます。"),
+        ],
+        explanationRef: "explain-silver-data-types-012",
+        designIntent: "charが整数的に扱える一方、printlnでは文字として表示されることを確認する。"
+    )
+
+    // MARK: - Gold: Stream partitioningBy
+
+    static let goldStream010 = Quiz(
+        id: "gold-stream-010",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "Collectors", "partitioningBy"],
+        code: """
+import java.util.*;
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<Boolean, List<String>> map = Stream.of("a", "bb", "c")
+            .collect(Collectors.partitioningBy(s -> s.length() == 1));
+
+        System.out.println(map.get(true).size() + ":" + map.get(false).get(0));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2:bb",
+                   correct: true, misconception: nil,
+                   explanation: "長さ1の要素はaとcなのでtrue側は2件です。false側にはbbが入ります。"),
+            Choice(id: "b", text: "1:a",
+                   correct: false, misconception: "true/falseの分類条件を逆に見ている",
+                   explanation: "aはtrue側です。false側の先頭はbbです。"),
+            Choice(id: "c", text: "2:a",
+                   correct: false, misconception: "false側ではなくtrue側をgetしていると誤解",
+                   explanation: "出力の後半はmap.get(false).get(0)なのでbbです。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "partitioningByの戻り値をMap<Boolean, List<T>>として扱えないと誤解",
+                   explanation: "partitioningByはBooleanキーのMapへ分類します。"),
+        ],
+        explanationRef: "explain-gold-stream-010",
+        designIntent: "partitioningByがPredicateの結果でtrue/falseの2グループに分けることを確認する。"
+    )
+
+    // MARK: - Gold: wildcard add null
+
+    static let goldGenerics007 = Quiz(
+        id: "gold-generics-007",
+        level: .gold,
+        category: "generics",
+        tags: ["Generics", "wildcard", "null"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<?> list = new ArrayList<String>();
+        list.add(null);
+        System.out.println(list.size());
+    }
+}
+""",
+        question: "このコードをコンパイルおよび実行したときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "1",
+                   correct: true, misconception: nil,
+                   explanation: "List<?>には具体的な値は追加できませんが、nullだけは追加できます。そのためサイズは1になります。"),
+            Choice(id: "b", text: "0",
+                   correct: false, misconception: "null追加が無視されると誤解",
+                   explanation: "ArrayListへのnull追加は有効で、要素数にも数えられます。"),
+            Choice(id: "c", text: "list.add(null)でコンパイルエラー",
+                   correct: false, misconception: "List<?>にはnullも追加できないと誤解",
+                   explanation: "任意の参照型に代入可能なnullは、List<?>にも追加できます。"),
+            Choice(id: "d", text: "NullPointerException",
+                   correct: false, misconception: "nullをArrayListに追加できないと誤解",
+                   explanation: "ArrayListはnull要素を許容します。"),
+        ],
+        explanationRef: "explain-gold-generics-007",
+        designIntent: "非境界ワイルドカードでは具体値は追加できないが、nullだけは例外的に追加できることを確認する。"
+    )
+
+    // MARK: - Gold: Optional map null
+
+    static let goldOptional007 = Quiz(
+        id: "gold-optional-007",
+        level: .gold,
+        category: "optional-api",
+        tags: ["Optional", "map", "null"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Object result = Optional.of("java")
+            .map(s -> null)
+            .orElse("empty");
+        System.out.println(result);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "java",
+                   correct: false, misconception: "mapの結果が無視されると誤解",
+                   explanation: "mapはOptional内の値を関数の戻り値へ変換します。"),
+            Choice(id: "b", text: "null",
+                   correct: false, misconception: "mapがnullを含むOptionalを作ると誤解",
+                   explanation: "Optional.mapのマッパーがnullを返すと、結果は空のOptionalになります。"),
+            Choice(id: "c", text: "empty",
+                   correct: true, misconception: nil,
+                   explanation: "mapの結果がnullなのでOptionalは空になり、orElseの値emptyが返されます。"),
+            Choice(id: "d", text: "NullPointerException",
+                   correct: false, misconception: "マッパーの戻り値nullで例外になると誤解",
+                   explanation: "mapは内部的にofNullable相当で扱うため、null結果は空になります。"),
+        ],
+        explanationRef: "explain-gold-optional-007",
+        designIntent: "Optional.mapの変換結果がnullの場合、Optional.emptyとして扱われることを確認する。"
+    )
+
+    // MARK: - Gold: LocalDate plusMonths
+
+    static let goldDateTime004 = Quiz(
+        id: "gold-date-time-004",
+        level: .gold,
+        category: "data-types",
+        tags: ["LocalDate", "plusMonths", "月末"],
+        code: """
+import java.time.*;
+
+public class Test {
+    public static void main(String[] args) {
+        LocalDate date = LocalDate.of(2026, 1, 31);
+        System.out.println(date.plusMonths(1));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2026-02-28",
+                   correct: true, misconception: nil,
+                   explanation: "2026年2月には31日がないため、plusMonths(1)は有効な月末日である2月28日に調整します。"),
+            Choice(id: "b", text: "2026-03-03",
+                   correct: false, misconception: "存在しない日付分が翌月へ繰り越されると誤解",
+                   explanation: "LocalDate.plusMonthsは月末へ調整し、日数差を翌月へ繰り越しません。"),
+            Choice(id: "c", text: "2026-02-31",
+                   correct: false, misconception: "存在しない日付が保持されると誤解",
+                   explanation: "LocalDateは存在しない日付を表現しません。"),
+            Choice(id: "d", text: "DateTimeException",
+                   correct: false, misconception: "月末調整ではなく例外になると誤解",
+                   explanation: "plusMonthsは結果月に同じ日がない場合、月末へ調整します。"),
+        ],
+        explanationRef: "explain-gold-date-time-004",
+        designIntent: "LocalDate.plusMonthsが存在しない日付を月末へ調整する仕様を確認する。"
+    )
+
+    // MARK: - Gold: CompletableFuture thenCompose
+
+    static let goldConcurrency008 = Quiz(
+        id: "gold-concurrency-008",
+        level: .gold,
+        category: "concurrency",
+        tags: ["CompletableFuture", "thenCompose", "join"],
+        code: """
+import java.util.concurrent.*;
+
+public class Test {
+    public static void main(String[] args) {
+        CompletableFuture<Integer> future = CompletableFuture.completedFuture(2)
+            .thenCompose(n -> CompletableFuture.completedFuture(n * 3));
+
+        System.out.println(future.join());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2",
+                   correct: false, misconception: "thenComposeの変換が実行されないと誤解",
+                   explanation: "thenComposeは前段の結果2を受け取り、新しいCompletableFutureへつなげます。"),
+            Choice(id: "b", text: "6",
+                   correct: true, misconception: nil,
+                   explanation: "2を受け取り、n * 3のCompletableFutureへ平坦につなぐため、join()で6を取得します。"),
+            Choice(id: "c", text: "CompletableFuture[6]",
+                   correct: false, misconception: "joinせずFuture自体が出力されると誤解",
+                   explanation: "出力しているのはfuture.join()の戻り値です。"),
+            Choice(id: "d", text: "コンパイルエラー",
+                   correct: false, misconception: "thenComposeのラムダがCompletableFutureを返せないと誤解",
+                   explanation: "thenComposeはCompletableFutureを返す関数を受け取り、ネストを平坦化します。"),
+        ],
+        explanationRef: "explain-gold-concurrency-008",
+        designIntent: "thenComposeがCompletableFutureを返す処理を平坦につなぎ、joinで最終値を取得する流れを確認する。"
+    )
+
+    // MARK: - Gold: Path relativize
+
+    static let goldIo005 = Quiz(
+        id: "gold-io-005",
+        level: .gold,
+        category: "io",
+        tags: ["Path", "relativize", "NIO.2"],
+        code: """
+import java.nio.file.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Path base = Path.of("/app/logs");
+        Path target = Path.of("/app/logs/2026/app.log");
+        System.out.println(base.relativize(target));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2026/app.log",
+                   correct: true, misconception: nil,
+                   explanation: "targetはbase配下のパスなので、baseからtargetへの相対パスは2026/app.logです。"),
+            Choice(id: "b", text: "/app/logs/2026/app.log",
+                   correct: false, misconception: "relativizeが絶対パスをそのまま返すと誤解",
+                   explanation: "relativizeは基準パスから見た相対パスを返します。"),
+            Choice(id: "c", text: "../2026/app.log",
+                   correct: false, misconception: "baseの親からたどると誤解",
+                   explanation: "targetはbaseの子孫なので、親へ戻る..は不要です。"),
+            Choice(id: "d", text: "IllegalArgumentException",
+                   correct: false, misconception: "絶対パス同士はrelativizeできないと誤解",
+                   explanation: "同じ種類の絶対パス同士であればrelativizeできます。"),
+        ],
+        explanationRef: "explain-gold-io-005",
+        designIntent: "Path.relativizeが基準パスから対象パスへの相対表現を返すことを確認する。"
     )
 }
