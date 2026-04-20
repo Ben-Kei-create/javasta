@@ -235,8 +235,14 @@ struct QuizSheetView: View {
     @State private var currentQuiz: Quiz
     @State private var quizVM: QuizViewModel
     @State private var activeExplanation: Explanation?
+    @State private var glossaryRoot: GlossaryRoot? = nil
+    @State private var glossaryPath: [String] = []
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
+
+    private struct GlossaryRoot: Identifiable, Hashable {
+        let id: String
+    }
 
     init(quiz: Quiz) {
         self._currentQuiz = State(initialValue: quiz)
@@ -271,8 +277,51 @@ struct QuizSheetView: View {
             }
             .sensoryFeedback(.selection, trigger: codeZoom)
         }
+        .environment(\.openURL, OpenURLAction { url in
+            if let id = GlossaryTerm.parse(url: url) {
+                glossaryRoot = GlossaryRoot(id: id)
+                return .handled
+            }
+            return .systemAction
+        })
+        .sheet(item: $glossaryRoot, onDismiss: { glossaryPath.removeAll() }) { root in
+            glossarySheet(rootId: root.id)
+        }
         .fullScreenCover(item: $activeExplanation) { explanation in
             ExplanationView(explanation: explanation, level: currentQuiz.level, onDismiss: { activeExplanation = nil })
+        }
+    }
+
+    @ViewBuilder
+    private func glossarySheet(rootId: String) -> some View {
+        if let term = GlossaryTerm.lookup(rootId) {
+            let origin = GlossaryDetailView.Origin(
+                icon: "pencil.and.list.clipboard",
+                label: currentQuiz.categoryDisplayName,
+                action: { glossaryRoot = nil }
+            )
+            NavigationStack(path: $glossaryPath) {
+                GlossaryDetailView(term: term, origin: origin)
+                    .navigationDestination(for: String.self) { id in
+                        if let next = GlossaryTerm.lookup(id) {
+                            GlossaryDetailView(term: next, origin: origin)
+                        }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("閉じる") { glossaryRoot = nil }
+                                .foregroundStyle(Color.jbSubtext)
+                        }
+                    }
+            }
+            .preferredColorScheme(.dark)
+            .environment(\.openURL, OpenURLAction { url in
+                if let id = GlossaryTerm.parse(url: url) {
+                    glossaryPath.append(id)
+                    return .handled
+                }
+                return .systemAction
+            })
         }
     }
 

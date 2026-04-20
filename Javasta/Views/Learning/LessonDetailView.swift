@@ -6,6 +6,7 @@ struct LessonDetailView: View {
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
 
+    @State private var progress = ProgressStore.shared
     @State private var glossaryRoot: GlossaryRoot? = nil
     @State private var glossaryPath: [String] = []
 
@@ -30,6 +31,8 @@ struct LessonDetailView: View {
                     if let onSelectQuiz, !lesson.relatedQuizIds.isEmpty {
                         relatedQuizSection(onSelectQuiz: onSelectQuiz)
                     }
+
+                    completionButton
 
                     Spacer(minLength: Spacing.xxl)
                 }
@@ -276,6 +279,31 @@ struct LessonDetailView: View {
                         .stroke(Color.jbWarning.opacity(0.3), lineWidth: 1)
                 )
         )
+    }
+
+    // MARK: Completion
+
+    private var completionButton: some View {
+        let isCompleted = progress.completedLessons.contains(lesson.id)
+        return Button(action: {
+            progress.markLessonCompleted(lesson.id)
+            dismiss()
+        }) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: isCompleted ? "checkmark.seal.fill" : "checkmark.circle")
+                    .font(.system(size: 17))
+                Text(isCompleted ? "学習済み (もう一度完了)" : "学習を完了する")
+                    .font(.system(size: 15, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 52)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .fill(isCompleted ? Color.jbSuccess : Color.jbAccent)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: Related quiz

@@ -4,6 +4,7 @@ struct LearningHomeView: View {
     @State private var selectedLesson: Lesson?
     @State private var pendingQuizId: String?
     @State private var activeQuiz: Quiz?
+    @State private var progress = ProgressStore.shared
 
     var body: some View {
         NavigationStack {
@@ -13,6 +14,7 @@ struct LearningHomeView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         headerSection
+                        glossaryCard
 
                         ForEach(JavaLevel.allCases, id: \.self) { level in
                             levelSection(level: level)
@@ -22,6 +24,14 @@ struct LearningHomeView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationDestination(for: String.self) { termId in
+                if let term = GlossaryTerm.lookup(termId) {
+                    GlossaryDetailView(term: term)
+                }
+            }
+            .navigationDestination(for: GlossaryListRoute.self) { _ in
+                GlossaryListView()
+            }
         }
         .sheet(item: $selectedLesson, onDismiss: handleSheetDismiss) { lesson in
             NavigationStack {
@@ -67,6 +77,46 @@ struct LearningHomeView: View {
         .padding(.top, Spacing.lg)
     }
 
+    // MARK: Glossary card
+
+    private var glossaryCard: some View {
+        NavigationLink(value: GlossaryListRoute()) {
+            HStack(spacing: Spacing.md) {
+                Image(systemName: "character.book.closed.fill")
+                    .font(.system(size: 17))
+                    .foregroundStyle(Color.jbAccent)
+                    .frame(width: 40, height: 40)
+                    .background(RoundedRectangle(cornerRadius: Radius.sm).fill(Color.jbAccent.opacity(0.12)))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("用語集")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.jbText)
+                    Text("\(GlossaryTerm.samples.count)件の用語を収録")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.jbSubtext)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.jbSubtext)
+            }
+            .padding(Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .fill(Color.jbCard)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .stroke(Color.jbBorder, lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, Spacing.md)
+    }
+
     // MARK: Level section
 
     private func levelSection(level: JavaLevel) -> some View {
@@ -83,7 +133,11 @@ struct LearningHomeView: View {
 
             VStack(spacing: Spacing.sm) {
                 ForEach(lessons) { lesson in
-                    LessonRowView(lesson: lesson, onTap: { selectedLesson = lesson })
+                    LessonRowView(
+                        lesson: lesson,
+                        isCompleted: progress.completedLessons.contains(lesson.id),
+                        onTap: { selectedLesson = lesson }
+                    )
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -91,10 +145,14 @@ struct LearningHomeView: View {
     }
 }
 
+/// NavigationStack の navigationDestination キー用。
+struct GlossaryListRoute: Hashable {}
+
 // MARK: - LessonRowView
 
 struct LessonRowView: View {
     let lesson: Lesson
+    var isCompleted: Bool = false
     let onTap: () -> Void
 
     var body: some View {
@@ -102,18 +160,28 @@ struct LessonRowView: View {
             HStack(spacing: Spacing.md) {
                 ZStack {
                     RoundedRectangle(cornerRadius: Radius.sm)
-                        .fill(Color.jbAccent.opacity(0.12))
+                        .fill((isCompleted ? Color.jbSuccess : Color.jbAccent).opacity(0.12))
                         .frame(width: 44, height: 44)
-                    Image(systemName: "book.fill")
+                    Image(systemName: isCompleted ? "checkmark.seal.fill" : "book.fill")
                         .font(.system(size: 17))
-                        .foregroundStyle(Color.jbAccent)
+                        .foregroundStyle(isCompleted ? Color.jbSuccess : Color.jbAccent)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(lesson.title)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Color.jbText)
-                        .multilineTextAlignment(.leading)
+                    HStack(spacing: 6) {
+                        Text(lesson.title)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.jbText)
+                            .multilineTextAlignment(.leading)
+                        if isCompleted {
+                            Text("完了")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(Color.jbSuccess))
+                        }
+                    }
 
                     Text(lesson.summary)
                         .font(.system(size: 12))
@@ -142,7 +210,7 @@ struct LessonRowView: View {
                     .fill(Color.jbCard)
                     .overlay(
                         RoundedRectangle(cornerRadius: Radius.md)
-                            .stroke(Color.jbBorder, lineWidth: 1)
+                            .stroke(isCompleted ? Color.jbSuccess.opacity(0.35) : Color.jbBorder, lineWidth: 1)
                     )
             )
         }
