@@ -32,6 +32,7 @@ struct QuizView: View {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
                     questionSection
                     choicesSection
+                    choicesHintSection
                     answeredResultSection
                     Spacer(minLength: Spacing.xl)
                 }
@@ -42,6 +43,7 @@ struct QuizView: View {
                 codeBlock()
                 questionSection
                 choicesSection
+                choicesHintSection
                 answeredResultSection
                 Spacer(minLength: Spacing.xxl)
             }
@@ -94,6 +96,25 @@ struct QuizView: View {
                     onTap: { vm.select(choice) }
                 )
             }
+        }
+    }
+
+    @ViewBuilder
+    private var choicesHintSection: some View {
+        if !vm.isAnswered {
+            HStack(alignment: .top, spacing: Spacing.xs) {
+                Image(systemName: "lightbulb")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.jbSubtext)
+                    .padding(.top, 1)
+
+                Text("選択後に、答えの簡単な解説が表示されます。")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.jbSubtext)
+                    .lineSpacing(2)
+            }
+            .padding(.horizontal, Spacing.xs)
+            .transition(.opacity)
         }
     }
 
