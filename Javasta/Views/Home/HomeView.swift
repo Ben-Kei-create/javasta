@@ -9,6 +9,7 @@ struct HomeView: View {
     @State private var expandedMetric: HomeMetric?
     @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
+    @AppStorage("homeSectionOrderV1") private var homeSectionOrderRaw: String = HomeSectionID.defaultOrderRaw
 
     private var selectedVersion: JavaExamVersion {
         JavaExamVersion(rawValue: selectedExamVersionRaw) ?? .se17
@@ -35,23 +36,9 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         headerSection
 
-                        commandCenter
-                        ActivityHeatmapView(
-                            counts: progress.recentDailyCounts(days: ProgressStore.historyWindowDays)
-                        )
-                        if !reviewQueueQuizzes.isEmpty {
-                            reviewQueueSection
+                        ForEach(sectionOrder, id: \.self) { sectionId in
+                            reorderableSection(for: sectionId)
                         }
-                        practiceModesSection
-                        LevelSectionView(
-                            level: selectedLevel,
-                            version: selectedVersion,
-                            quizzes: QuestionBank.quizzes(version: selectedVersion, level: selectedLevel),
-                            onSelect: { activeSession = QuizSession.single($0) },
-                            onStartSession: { activeSession = $0 }
-                        )
-                        .id(selectedLevel)
-                        .transition(.opacity.combined(with: .move(edge: .trailing)))
                     }
                     .padding(.bottom, Spacing.lg)
                 }
@@ -309,12 +296,131 @@ struct HomeView: View {
         }
     }
 
+    // MARK: Reorderable sections
+
+    private var sectionOrder: [HomeSectionID] {
+        var decoded = HomeSectionID.decode(homeSectionOrderRaw)
+        for id in HomeSectionID.allCases where !decoded.contains(id) {
+            decoded.append(id)
+        }
+        return decoded.filter { HomeSectionID.allCases.contains($0) }
+    }
+
+    @ViewBuilder
+    private func reorderableSection(for id: HomeSectionID) -> some View {
+        let content = sectionContent(for: id)
+        if case .reviewQueue = id, reviewQueueQuizzes.isEmpty {
+            EmptyView()
+        } else {
+            content
+                .draggable(id.rawValue) {
+                    dragPreview(for: id)
+                }
+                .dropDestination(for: String.self) { items, _ in
+                    guard let first = items.first,
+                          let src = HomeSectionID(rawValue: first),
+                          src != id else { return false }
+                    moveSection(src, before: id)
+                    return true
+                }
+        }
+    }
+
+    @ViewBuilder
+    private func sectionContent(for id: HomeSectionID) -> some View {
+        switch id {
+        case .commandCenter:
+            commandCenter
+        case .heatmap:
+            ActivityHeatmapView(
+                counts: progress.recentDailyCounts(days: ProgressStore.historyWindowDays)
+            )
+        case .reviewQueue:
+            reviewQueueSection
+        case .practiceModes:
+            practiceModesSection
+        case .levelSection:
+            LevelSectionView(
+                level: selectedLevel,
+                version: selectedVersion,
+                quizzes: QuestionBank.quizzes(version: selectedVersion, level: selectedLevel),
+                onSelect: { activeSession = QuizSession.single($0) },
+                onStartSession: { activeSession = $0 }
+            )
+            .id(selectedLevel)
+            .transition(.opacity.combined(with: .move(edge: .trailing)))
+        }
+    }
+
+    private func dragPreview(for id: HomeSectionID) -> some View {
+        HStack(spacing: Spacing.xs) {
+            Image(systemName: "line.3.horizontal")
+                .foregroundStyle(Color.jbAccent)
+            Text(id.displayTitle)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Color.jbText)
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.md)
+                .fill(Color.jbCard)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.md)
+                        .stroke(Color.jbAccent.opacity(0.6), lineWidth: 1)
+                )
+        )
+    }
+
+    private func moveSection(_ source: HomeSectionID, before target: HomeSectionID) {
+        var order = sectionOrder
+        order.removeAll { $0 == source }
+        if let idx = order.firstIndex(of: target) {
+            order.insert(source, at: idx)
+        } else {
+            order.append(source)
+        }
+        homeSectionOrderRaw = HomeSectionID.encode(order)
+    }
+
     private var accuracyColor: Color {
         guard progress.answerAttemptCount(level: selectedLevel) > 0 else { return Color.jbSubtext }
         let p = progress.levelAccuracyPercent(selectedLevel)
         if p >= 70 { return Color.jbSuccess }
         if p >= 40 { return Color.jbWarning }
         return Color.jbError
+    }
+}
+
+// MARK: - HomeSectionID
+
+enum HomeSectionID: String, CaseIterable, Codable, Hashable {
+    case commandCenter
+    case heatmap
+    case reviewQueue
+    case practiceModes
+    case levelSection
+
+    var displayTitle: String {
+        switch self {
+        case .commandCenter: return "ステータス"
+        case .heatmap: return "学習マップ"
+        case .reviewQueue: return "復習キュー"
+        case .practiceModes: return "練習を開始"
+        case .levelSection: return "問題リスト"
+        }
+    }
+
+    static var defaultOrderRaw: String {
+        encode(Self.allCases)
+    }
+
+    static func encode(_ ids: [HomeSectionID]) -> String {
+        ids.map { $0.rawValue }.joined(separator: ",")
+    }
+
+    static func decode(_ raw: String) -> [HomeSectionID] {
+        raw.split(separator: ",").compactMap { HomeSectionID(rawValue: String($0)) }
     }
 }
 
@@ -355,7 +461,13 @@ private struct HomeTimestampToggle: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
-            let hasExam = examDate != nil && (examDate! > timeline.date)
+            let isExamToday = Self.isSameDay(examDate, timeline.date)
+            let hasExam = examDate != nil && (examDate! > timeline.date) && !isExamToday
+            let displayText: String = {
+                if isExamToday { return "受験頑張ってください！" }
+                if hasExam { return Self.countdown(from: timeline.date, to: examDate!) }
+                return Self.timestamp(timeline.date)
+            }()
             Button(action: {
                 withAnimation(.jbFast) {
                     isTimestampVisible.toggle()
@@ -363,11 +475,11 @@ private struct HomeTimestampToggle: View {
             }) {
                 Group {
                     if isTimestampVisible {
-                        Text(hasExam ? Self.countdown(from: timeline.date, to: examDate!) : Self.timestamp(timeline.date))
+                        Text(displayText)
                             .font(.system(size: 10, weight: .semibold, design: .monospaced))
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
-                            .foregroundStyle(hasExam ? Color.jbError : Color.jbSubtext)
+                            .foregroundStyle(isExamToday ? Color.jbError : (hasExam ? Color.jbError : Color.jbSubtext))
                             .transition(.opacity.combined(with: .move(edge: .trailing)))
                     } else {
                         Image(systemName: "clock")
@@ -402,6 +514,11 @@ private struct HomeTimestampToggle: View {
             parts.minute ?? 0,
             parts.second ?? 0
         )
+    }
+
+    private static func isSameDay(_ a: Date?, _ b: Date) -> Bool {
+        guard let a else { return false }
+        return Calendar.current.isDate(a, inSameDayAs: b)
     }
 
     private static func countdown(_ now: Date = Date(), to exam: Date) -> String {

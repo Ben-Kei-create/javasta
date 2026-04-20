@@ -6,6 +6,7 @@ struct SettingsView: View {
     @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
     @State private var showResetConfirm = false
     @State private var showExamDatePicker = false
+    @State private var showExamClearConfirm = false
     @State private var pickerDate: Date = Date().addingTimeInterval(60 * 60 * 24 * 30)
     @Environment(\.dismiss) private var dismiss
 
@@ -60,7 +61,7 @@ struct SettingsView: View {
                                     icon: "xmark.circle",
                                     title: "受験日をクリア",
                                     isDestructive: true,
-                                    onTap: { examDateTimestamp = 0 }
+                                    onTap: { showExamClearConfirm = true }
                                 )
                             }
                         }
@@ -160,6 +161,12 @@ struct SettingsView: View {
                 }
             }
             .preferredColorScheme(.dark)
+        }
+        .alert("受験日をクリア", isPresented: $showExamClearConfirm) {
+            Button("キャンセル", role: .cancel) {}
+            Button("クリア", role: .destructive) { examDateTimestamp = 0 }
+        } message: {
+            Text("設定した受験日時を削除します。")
         }
         .alert("学習進捗をリセット", isPresented: $showResetConfirm) {
             Button("キャンセル", role: .cancel) {}

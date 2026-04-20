@@ -5,6 +5,7 @@ import SwiftUI
 struct ActivityHeatmapView: View {
     let counts: [(dateKey: String, count: Int)]
     var weeks: Int = 12
+    var futureWeeks: Int = 4
 
     @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
     @State private var pulse: Bool = false
@@ -12,6 +13,14 @@ struct ActivityHeatmapView: View {
 
     private var examDate: Date? {
         examDateTimestamp > 0 ? Date(timeIntervalSince1970: examDateTimestamp) : nil
+    }
+
+    private static func todayKey() -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        fmt.calendar = Calendar(identifier: .gregorian)
+        fmt.timeZone = TimeZone.current
+        return fmt.string(from: Date())
     }
 
     private var examDateKey: String? {
@@ -93,7 +102,7 @@ struct ActivityHeatmapView: View {
                 .foregroundStyle(Color.jbText)
                 .tracking(0.3)
             Spacer()
-            Text("直近\(weeks)週")
+            Text("\(weeks)週")
                 .font(.system(size: 11))
                 .foregroundStyle(Color.jbSubtext)
         }
@@ -125,7 +134,8 @@ struct ActivityHeatmapView: View {
     @ViewBuilder
     private func cell(for day: Day) -> some View {
         let isExam = (day.dateKey == examDateKey) && !day.dateKey.isEmpty
-        if isExam {
+        let isToday = day.dateKey == Self.todayKey()
+        if isExam && !isToday {
             RoundedRectangle(cornerRadius: 2)
                 .fill(Color.jbError)
                 .frame(width: cellSize, height: cellSize)
@@ -142,9 +152,10 @@ struct ActivityHeatmapView: View {
                 .frame(width: cellSize, height: cellSize)
                 .overlay(
                     RoundedRectangle(cornerRadius: 2)
-                        .stroke(Color.jbBorder.opacity(day.isValid ? 0 : 0.4), lineWidth: 0.5)
+                        .stroke(isExam && isToday ? Color.jbError.opacity(0.9) : Color.jbBorder.opacity(day.isValid ? 0 : 0.4), lineWidth: isExam && isToday ? 1 : 0.5)
                 )
                 .opacity(day.isValid ? 1 : 0)
+                .onTapGesture { if isExam { showExamAlert = true } }
                 .accessibilityLabel(Text("\(day.dateKey) \(day.count)問"))
                 .accessibilityHidden(!day.isValid)
         }
@@ -182,50 +193,43 @@ struct ActivityHeatmapView: View {
         let isValid: Bool
     }
 
-    /// 列 = 週。各列は [月, 火, ..., 日] の7要素。先頭の空白分をパディング。
+    /// 列 = 週。各列は [月, 火, ..., 日] の7要素。過去 + 未来を日付ベースで生成。
     private func makeColumns() -> [[Day]] {
         let cal = Calendar(identifier: .gregorian)
-        // 月曜起点（日本の慣習）
         var weekStartCal = cal
         weekStartCal.firstWeekday = 2
-
-        let total = weeks * 7
-        let trimmed = Array(counts.suffix(total))
-        guard !trimmed.isEmpty else {
-            return Array(repeating: Array(repeating: Day(dateKey: "", count: 0, isValid: false), count: 7), count: weeks)
-        }
-
-        // 1列=1週で、日付の weekday (月=0 ... 日=6) の位置に入れる
-        var cols: [[Day]] = []
-        var currentWeek: [Day] = Array(repeating: Day(dateKey: "", count: 0, isValid: false), count: 7)
-        var lastWeekOfYear: Int? = nil
 
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
         fmt.calendar = cal
         fmt.timeZone = TimeZone.current
 
-        for item in trimmed {
-            guard let date = fmt.date(from: item.dateKey) else { continue }
-            let weekday = cal.component(.weekday, from: date) // 1=日 ... 7=土
-            // 月曜=0 のインデックスに変換
-            let idx = (weekday + 5) % 7
-            let weekOfYear = weekStartCal.component(.weekOfYear, from: date)
+        let countsDict: [String: Int] = Dictionary(uniqueKeysWithValues: counts.map { ($0.dateKey, $0.count) })
 
-            if let last = lastWeekOfYear, last != weekOfYear {
-                cols.append(currentWeek)
-                currentWeek = Array(repeating: Day(dateKey: "", count: 0, isValid: false), count: 7)
+        let today = cal.startOfDay(for: Date())
+        let pastWeeks = max(weeks - futureWeeks, 1)
+        // 開始日: 今日が属する週の月曜から pastWeeks-1 週前
+        let weekday = cal.component(.weekday, from: today)
+        let mondayOffset = (weekday + 5) % 7
+        guard let thisMonday = cal.date(byAdding: .day, value: -mondayOffset, to: today),
+              let startDate = cal.date(byAdding: .day, value: -7 * (pastWeeks - 1), to: thisMonday)
+        else {
+            return Array(repeating: Array(repeating: Day(dateKey: "", count: 0, isValid: false), count: 7), count: weeks)
+        }
+
+        var cols: [[Day]] = []
+        for w in 0..<weeks {
+            var week: [Day] = Array(repeating: Day(dateKey: "", count: 0, isValid: false), count: 7)
+            for d in 0..<7 {
+                if let date = cal.date(byAdding: .day, value: w * 7 + d, to: startDate) {
+                    let key = fmt.string(from: date)
+                    let count = countsDict[key] ?? 0
+                    week[d] = Day(dateKey: key, count: count, isValid: true)
+                }
             }
-            currentWeek[idx] = Day(dateKey: item.dateKey, count: item.count, isValid: true)
-            lastWeekOfYear = weekOfYear
+            cols.append(week)
         }
-        cols.append(currentWeek)
-
-        // 末尾が最新週。先頭側に足りない分の空週を付加
-        while cols.count < weeks {
-            cols.insert(Array(repeating: Day(dateKey: "", count: 0, isValid: false), count: 7), at: 0)
-        }
-        return Array(cols.suffix(weeks))
+        return cols
     }
 
     private func cellColor(_ day: Day) -> Color {
