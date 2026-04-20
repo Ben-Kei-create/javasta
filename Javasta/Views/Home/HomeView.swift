@@ -6,7 +6,7 @@ struct HomeView: View {
     @State private var showSettings = false
     @State private var showEmptySessionAlert = false
     @State private var emptySessionMessage = ""
-    @State private var expandedMetric: HomeMetric?
+    @State private var expandedMetric: HomeMetric = .accuracy
     @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
     @AppStorage("homeSectionOrderV1") private var homeSectionOrderRaw: String = HomeSectionID.defaultOrderRaw
@@ -33,7 +33,7 @@ struct HomeView: View {
             ZStack {
                 Color.jbBackground.ignoresSafeArea()
 
-                ScrollView(.vertical) {
+                ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         headerSection
 
@@ -172,17 +172,13 @@ struct HomeView: View {
                 )
             }
 
-            // 常にスペースを確保し、opacity で表示/非表示を切り替える（レイアウトシフト防止）
             MetricDetailTray(
-                title: expandedMetric?.detailTitle ?? " ",
-                items: expandedMetric.map { metricDetails(for: $0) } ?? [
-                    MetricDetailItem(label: " ", value: " "),
-                    MetricDetailItem(label: " ", value: " "),
-                    MetricDetailItem(label: " ", value: " ")
-                ]
+                title: expandedMetric.detailTitle,
+                items: metricDetails(for: expandedMetric)
             )
-            .opacity(expandedMetric != nil ? 1 : 0)
-            .animation(.jbFast, value: expandedMetric)
+            .id(expandedMetric)
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.18), value: expandedMetric)
         }
         .padding(Spacing.sm)
         .background(
@@ -242,7 +238,8 @@ struct HomeView: View {
                                 .fill(selectedLevel == level ? Color.jbAccent : Color.jbBackground)
                         )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.jbScaled)
+                .sensoryFeedback(.selection, trigger: selectedLevelRaw)
             }
         }
     }
@@ -272,8 +269,10 @@ struct HomeView: View {
             level: selectedLevel,
             progress: progress
         ) {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             activeSession = session
         } else {
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
             emptySessionMessage = "\(selectedLevel.displayName) の問題がまだありません。"
             showEmptySessionAlert = true
         }
@@ -281,7 +280,7 @@ struct HomeView: View {
 
     private func toggleMetric(_ metric: HomeMetric) {
         withAnimation(.jbFast) {
-            expandedMetric = expandedMetric == metric ? nil : metric
+            expandedMetric = metric
         }
     }
 
@@ -653,7 +652,7 @@ private struct CommandMetric: View {
             VStack(alignment: .leading, spacing: 5) {
                 Image(systemName: icon)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(color)
+                    .foregroundStyle(isSelected ? color : color.opacity(0.7))
                 Text(value)
                     .font(.system(size: 16, weight: .bold).monospacedDigit())
                     .foregroundStyle(Color.jbText)
@@ -668,14 +667,16 @@ private struct CommandMetric: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: Radius.sm)
-                    .fill(Color.jbBackground)
+                    .fill(isSelected ? color.opacity(0.1) : Color.jbBackground)
                     .overlay(
                         RoundedRectangle(cornerRadius: Radius.sm)
-                            .stroke(isSelected ? color.opacity(0.8) : Color.jbBorder, lineWidth: 1)
+                            .stroke(isSelected ? color.opacity(0.8) : Color.jbBorder, lineWidth: isSelected ? 1.5 : 1)
                     )
             )
+            .animation(.jbFast, value: isSelected)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.jbScaled)
+        .sensoryFeedback(.selection, trigger: isSelected)
     }
 }
 
@@ -727,7 +728,7 @@ private struct PracticeModeCard: View {
                     )
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.jbScaled)
     }
 }
 
@@ -831,7 +832,7 @@ struct QuizCardView: View {
                     )
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.jbScaled)
     }
 }
 
@@ -878,7 +879,7 @@ private struct ReviewQueueCard: View {
                     )
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.jbScaled)
     }
 }
 

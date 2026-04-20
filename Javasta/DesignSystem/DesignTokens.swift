@@ -25,3 +25,18 @@ extension Animation {
     static let jbSpring = Animation.spring(response: 0.4, dampingFraction: 0.8)
     static let jbFast   = Animation.spring(response: 0.3, dampingFraction: 0.8)
 }
+
+// MARK: - Scaled press button style
+
+struct JBScaledButtonStyle: ButtonStyle {
+    var scaleAmount: CGFloat = 0.95
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scaleAmount : 1)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == JBScaledButtonStyle {
+    static var jbScaled: JBScaledButtonStyle { JBScaledButtonStyle() }
+}
