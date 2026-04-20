@@ -16,7 +16,11 @@ final class ProgressStore {
         static let todayDateKey      = "progress.todayDateKey"     // yyyy-MM-dd
         static let dailyGoal         = "progress.dailyGoal"
         static let completedLessons  = "progress.completedLessons" // [String]
+        static let dailyHistory      = "progress.dailyHistory"     // [yyyy-MM-dd: Int]
     }
+
+    /// 保持する履歴日数（ヒートマップ用）
+    static let historyWindowDays = 84   // 12週 × 7日
 
     private let defaults: UserDefaults
 
@@ -26,6 +30,8 @@ final class ProgressStore {
     var todayAnswered: Int
     var dailyGoal: Int
     var completedLessons: Set<String>
+    /// "yyyy-MM-dd" -> その日の回答数
+    var dailyHistory: [String: Int]
 
     var accuracyPercent: Int {
         guard totalAnswered > 0 else { return 0 }
@@ -46,6 +52,8 @@ final class ProgressStore {
         } else {
             self.todayAnswered = 0
         }
+        let rawHistory = defaults.dictionary(forKey: Key.dailyHistory) as? [String: Int] ?? [:]
+        self.dailyHistory = Self.prune(rawHistory, windowDays: Self.historyWindowDays)
     }
 
     // MARK: API
@@ -58,10 +66,20 @@ final class ProgressStore {
         if correct { totalCorrect += 1 }
         todayAnswered += 1
 
+        let key = Self.todayKey()
+        dailyHistory[key, default: 0] += 1
+        dailyHistory = Self.prune(dailyHistory, windowDays: Self.historyWindowDays)
+
         defaults.set(totalAnswered, forKey: Key.totalAnswered)
         defaults.set(totalCorrect,  forKey: Key.totalCorrect)
         defaults.set(todayAnswered, forKey: Key.todayAnswered)
-        defaults.set(Self.todayKey(), forKey: Key.todayDateKey)
+        defaults.set(key,            forKey: Key.todayDateKey)
+        defaults.set(dailyHistory,   forKey: Key.dailyHistory)
+    }
+
+    /// 直近 `days` 日の回答数を新しい順に返す (末尾が今日)
+    func recentDailyCounts(days: Int) -> [(dateKey: String, count: Int)] {
+        Self.lastDateKeys(days: days).map { ($0, dailyHistory[$0] ?? 0) }
     }
 
     func markLessonCompleted(_ lessonId: String) {
@@ -80,6 +98,7 @@ final class ProgressStore {
         streakDays = 0
         todayAnswered = 0
         completedLessons = []
+        dailyHistory = [:]
         defaults.removeObject(forKey: Key.totalAnswered)
         defaults.removeObject(forKey: Key.totalCorrect)
         defaults.removeObject(forKey: Key.streakDays)
@@ -87,6 +106,7 @@ final class ProgressStore {
         defaults.removeObject(forKey: Key.todayDateKey)
         defaults.removeObject(forKey: Key.lastStudyDateKey)
         defaults.removeObject(forKey: Key.completedLessons)
+        defaults.removeObject(forKey: Key.dailyHistory)
     }
 
     // MARK: 内部
@@ -134,5 +154,20 @@ final class ProgressStore {
         let cal = Calendar.current
         let y = cal.date(byAdding: .day, value: -1, to: Date()) ?? Date()
         return dateFormatter.string(from: y)
+    }
+
+    /// 今日を末尾とする過去 `days` 日分のキー（古い順）
+    static func lastDateKeys(days: Int) -> [String] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        return (0..<days).reversed().compactMap { offset in
+            cal.date(byAdding: .day, value: -offset, to: today).map { dateFormatter.string(from: $0) }
+        }
+    }
+
+    /// 古いエントリを削り、履歴を windowDays 分までに切り詰める
+    private static func prune(_ history: [String: Int], windowDays: Int) -> [String: Int] {
+        let keep = Set(lastDateKeys(days: windowDays))
+        return history.filter { keep.contains($0.key) }
     }
 }

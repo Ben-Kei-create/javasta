@@ -14,6 +14,9 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         headerSection
                         dailyProgressCard
+                        ActivityHeatmapView(
+                            counts: progress.recentDailyCounts(days: ProgressStore.historyWindowDays)
+                        )
                         ForEach(JavaLevel.allCases, id: \.self) { level in
                             LevelSectionView(
                                 level: level,
