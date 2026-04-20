@@ -5,6 +5,12 @@ struct HomeView: View {
     @State private var progress = ProgressStore.shared
     @State private var showSettings = false
 
+    private var reviewQueueQuizzes: [Quiz] {
+        progress.reviewQueueQuizIds.compactMap { id in
+            Quiz.samples.first(where: { $0.id == id })
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -14,6 +20,11 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: Spacing.xl) {
                         headerSection
                         dailyProgressCard
+
+                        if !reviewQueueQuizzes.isEmpty {
+                            reviewQueueSection
+                        }
+
                         ActivityHeatmapView(
                             counts: progress.recentDailyCounts(days: ProgressStore.historyWindowDays)
                         )
@@ -128,6 +139,39 @@ struct HomeView: View {
         .padding(.horizontal, Spacing.md)
     }
 
+    private var reviewQueueSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: "arrow.counterclockwise.circle.fill")
+                    .foregroundStyle(Color.jbWarning)
+                    .font(.system(size: 14))
+                Text("復習キュー")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(Color.jbText)
+                Text("\(reviewQueueQuizzes.count)問")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.jbSubtext)
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.md)
+
+            Text("誤答した問題を自動で保存。正解するとキューから外れます。")
+                .font(.system(size: 12))
+                .foregroundStyle(Color.jbSubtext)
+                .padding(.horizontal, Spacing.md)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.sm) {
+                    ForEach(reviewQueueQuizzes) { quiz in
+                        ReviewQueueCard(quiz: quiz, onTap: { selectedQuiz = quiz })
+                    }
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
     private var accuracyColor: Color {
         guard progress.totalAnswered > 0 else { return Color.jbSubtext }
         let p = progress.accuracyPercent
@@ -225,6 +269,55 @@ struct QuizCardView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: Radius.md)
                             .stroke(Color.jbBorder, lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - ReviewQueueCard
+
+private struct ReviewQueueCard: View {
+    let quiz: Quiz
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack {
+                    Label("復習", systemImage: "arrow.counterclockwise")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.jbWarning)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.jbSubtext)
+                }
+
+                Text(quiz.question)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.jbText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                Spacer(minLength: 0)
+
+                Text(quiz.categoryDisplayName)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.jbSubtext)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Color.jbBackground))
+            }
+            .padding(Spacing.md)
+            .frame(width: 210, height: 118)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .fill(Color.jbCard)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.md)
+                            .stroke(Color.jbWarning.opacity(0.5), lineWidth: 1)
                     )
             )
         }

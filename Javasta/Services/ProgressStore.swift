@@ -17,6 +17,7 @@ final class ProgressStore {
         static let dailyGoal         = "progress.dailyGoal"
         static let completedLessons  = "progress.completedLessons" // [String]
         static let dailyHistory      = "progress.dailyHistory"     // [yyyy-MM-dd: Int]
+        static let reviewQueueQuizIds = "progress.reviewQueueQuizIds" // [String]
     }
 
     /// 保持する履歴日数（ヒートマップ用）
@@ -32,6 +33,8 @@ final class ProgressStore {
     var completedLessons: Set<String>
     /// "yyyy-MM-dd" -> その日の回答数
     var dailyHistory: [String: Int]
+    /// 復習対象の問題ID（誤答で追加、正答で取り除く）
+    var reviewQueueQuizIds: [String]
 
     var accuracyPercent: Int {
         guard totalAnswered > 0 else { return 0 }
@@ -54,11 +57,12 @@ final class ProgressStore {
         }
         let rawHistory = defaults.dictionary(forKey: Key.dailyHistory) as? [String: Int] ?? [:]
         self.dailyHistory = Self.prune(rawHistory, windowDays: Self.historyWindowDays)
+        self.reviewQueueQuizIds = defaults.stringArray(forKey: Key.reviewQueueQuizIds) ?? []
     }
 
     // MARK: API
 
-    func recordAnswer(correct: Bool) {
+    func recordAnswer(quizId: String, correct: Bool) {
         rolloverDayIfNeeded()
         bumpStreakIfFirstOfDay()
 
@@ -75,6 +79,20 @@ final class ProgressStore {
         defaults.set(todayAnswered, forKey: Key.todayAnswered)
         defaults.set(key,            forKey: Key.todayDateKey)
         defaults.set(dailyHistory,   forKey: Key.dailyHistory)
+
+        if !quizId.isEmpty {
+            if correct {
+                reviewQueueQuizIds.removeAll { $0 == quizId }
+            } else if !reviewQueueQuizIds.contains(quizId) {
+                reviewQueueQuizIds.append(quizId)
+            }
+            defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
+        }
+    }
+
+    /// 既存呼び出し向け互換API。問題IDのない場面では復習キューは更新しない。
+    func recordAnswer(correct: Bool) {
+        recordAnswer(quizId: "", correct: correct)
     }
 
     /// 直近 `days` 日の回答数を新しい順に返す (末尾が今日)
@@ -99,6 +117,7 @@ final class ProgressStore {
         todayAnswered = 0
         completedLessons = []
         dailyHistory = [:]
+        reviewQueueQuizIds = []
         defaults.removeObject(forKey: Key.totalAnswered)
         defaults.removeObject(forKey: Key.totalCorrect)
         defaults.removeObject(forKey: Key.streakDays)
@@ -107,6 +126,7 @@ final class ProgressStore {
         defaults.removeObject(forKey: Key.lastStudyDateKey)
         defaults.removeObject(forKey: Key.completedLessons)
         defaults.removeObject(forKey: Key.dailyHistory)
+        defaults.removeObject(forKey: Key.reviewQueueQuizIds)
     }
 
     // MARK: 内部
