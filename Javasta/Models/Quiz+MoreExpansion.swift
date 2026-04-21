@@ -50,6 +50,23 @@ extension QuizExpansion {
         goldDateTime004,
         goldConcurrency008,
         goldIo005,
+        silverControlFlow010,
+        silverStringBuilder005,
+        silverCollections007,
+        silverOverload007,
+        silverClasses008,
+        silverException008,
+        silverArray009,
+        silverLambda005,
+        goldStream012,
+        goldStream013,
+        goldGenerics008,
+        goldOptional008,
+        goldCollections005,
+        goldConcurrency009,
+        goldDateTime005,
+        goldIo006,
+        goldClasses007,
     ]
 
     // MARK: - Gold: Generics (extends wildcard)
@@ -1831,5 +1848,497 @@ public class Test {
         ],
         explanationRef: "explain-gold-io-005",
         designIntent: "Path.relativizeが基準パスから対象パスへの相対表現を返すことを確認する。"
+    )
+
+    // MARK: - Mixed Batch Queue-002
+
+    static let silverControlFlow010 = Quiz(
+        id: "silver-control-flow-010",
+        level: .silver,
+        category: "control-flow",
+        tags: ["ラベル", "continue", "ネストループ"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        outer:
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (i == 1 && j == 1) continue outer;
+                System.out.print(i + "" + j + " ");
+            }
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "00 01 02 10 20 21 22", correct: true, misconception: nil, explanation: "i=1,j=1で外側ループの次周へ進むため、11と12は出力されません。"),
+            Choice(id: "b", text: "00 01 02 10 11 12 20 21 22", correct: false, misconception: "continue outerを通常continueと混同", explanation: "ラベル付きcontinueは指定した外側ループの次周へ移ります。"),
+            Choice(id: "c", text: "00 01 02 10 20", correct: false, misconception: "i=2の内側ループが止まると誤解", explanation: "i=2では条件に一致しないため、j=0,1,2をすべて出力します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "ラベル付きcontinueを使えないと誤解", explanation: "ラベル付きcontinueは有効な構文です。"),
+        ],
+        explanationRef: "explain-silver-control-flow-010",
+        designIntent: "ラベル付きcontinueが内側ループではなく指定した外側ループへ制御を移すことを、出力順で追わせる。"
+    )
+
+    static let silverStringBuilder005 = Quiz(
+        id: "silver-string-builder-005",
+        level: .silver,
+        category: "string",
+        tags: ["StringBuilder", "append", "insert", "delete"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder("abc");
+        sb.append("d").insert(1, "X").delete(3, 5);
+        System.out.println(sb);
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "aXb", correct: true, misconception: nil, explanation: "abcd -> aXbcd -> delete(3,5)でcdを削除し、aXbになります。"),
+            Choice(id: "b", text: "aXbc", correct: false, misconception: "deleteの終了indexを含む/含まないで混乱", explanation: "delete(3,5)はindex 3以上5未満を削除するため、cとdが消えます。"),
+            Choice(id: "c", text: "abXd", correct: false, misconception: "insert位置を末尾寄りに誤解", explanation: "insert(1, \"X\")はindex 1の直前へ挿入します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "メソッドチェーン不可と誤解", explanation: "StringBuilderの多くの変更メソッドは自分自身を返すためチェーンできます。"),
+        ],
+        explanationRef: "explain-silver-string-builder-005",
+        designIntent: "StringBuilderの破壊的更新と、insert/deleteのインデックス範囲を順に追わせる。"
+    )
+
+    static let silverCollections007 = Quiz(
+        id: "silver-collections-007",
+        level: .silver,
+        category: "collections",
+        tags: ["Iterator", "remove", "ArrayList"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>(Arrays.asList("A", "B", "C"));
+        Iterator<String> it = list.iterator();
+        while (it.hasNext()) {
+            String s = it.next();
+            if (s.equals("B")) it.remove();
+        }
+        System.out.println(list);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "[A, C]", correct: true, misconception: nil, explanation: "Iterator.next()でBを取得した直後にIterator.remove()するため、Bだけが削除されます。"),
+            Choice(id: "b", text: "[A, B, C]", correct: false, misconception: "removeが効かないと誤解", explanation: "Iterator.remove()は直前にnextした要素を削除します。"),
+            Choice(id: "c", text: "[B]", correct: false, misconception: "条件一致した要素だけ残ると誤解", explanation: "条件一致したBを削除するコードです。"),
+            Choice(id: "d", text: "ConcurrentModificationException", correct: false, misconception: "Iterator経由のremoveも禁止と誤解", explanation: "走査中の削除はIterator.remove()なら安全です。"),
+        ],
+        explanationRef: "explain-silver-collections-007",
+        designIntent: "拡張forやlist.removeではなくIterator.removeを使った安全な走査中削除を確認する。"
+    )
+
+    static let silverOverload007 = Quiz(
+        id: "silver-overload-007",
+        level: .silver,
+        category: "overload-resolution",
+        tags: ["オーバーロード", "型昇格", "ボクシング"],
+        code: """
+public class Test {
+    static void m(int x) { System.out.println("int"); }
+    static void m(Integer x) { System.out.println("Integer"); }
+
+    public static void main(String[] args) {
+        short s = 1;
+        m(s);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "int", correct: true, misconception: nil, explanation: "shortはintへ型昇格できるため、m(int)が選ばれます。"),
+            Choice(id: "b", text: "Integer", correct: false, misconception: "ボクシングが型昇格より優先されると誤解", explanation: "shortからIntegerへの直接ボクシングはできず、型昇格のm(int)が有効です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "shortを渡せる候補がないと誤解", explanation: "shortからintへの型昇格が可能です。"),
+            Choice(id: "d", text: "曖昧エラー", correct: false, misconception: "候補が同順位だと誤解", explanation: "m(int)が明確に適用可能です。"),
+        ],
+        explanationRef: "explain-silver-overload-007",
+        designIntent: "プリミティブの型昇格とボクシングの候補選択を、short引数で見抜かせる。"
+    )
+
+    static let silverClasses008 = Quiz(
+        id: "silver-classes-008",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "インスタンス初期化", "コンストラクタ"],
+        code: """
+class Box {
+    static int shared = 1;
+    int value = shared++;
+    Box() { value += shared; }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Box a = new Box();
+        Box b = new Box();
+        System.out.println(a.value + " " + b.value + " " + Box.shared);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "3 5 3", correct: true, misconception: nil, explanation: "a生成でvalue=1,shared=2,value=3。b生成でvalue=2,shared=3,value=5です。"),
+            Choice(id: "b", text: "2 3 3", correct: false, misconception: "コンストラクタでの加算を見落とし", explanation: "各インスタンス生成時にコンストラクタで現在のsharedがvalueへ加算されます。"),
+            Choice(id: "c", text: "3 4 3", correct: false, misconception: "b生成時のshared更新順を誤解", explanation: "bのフィールド初期化ではshared++の旧値2が入り、その後sharedは3になります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "staticをインスタンス初期化で使えないと誤解", explanation: "staticフィールドはインスタンス初期化式から参照・更新できます。"),
+        ],
+        explanationRef: "explain-silver-classes-008",
+        designIntent: "staticフィールドを共有しながら、インスタンスフィールド初期化とコンストラクタが生成ごとに走る順序を追わせる。"
+    )
+
+    static let silverException008 = Quiz(
+        id: "silver-exception-008",
+        level: .silver,
+        category: "exception-handling",
+        tags: ["try-finally", "return", "実行順序"],
+        code: """
+public class Test {
+    static int run() {
+        try {
+            System.out.print("T ");
+            return 1;
+        } finally {
+            System.out.print("F ");
+        }
+    }
+    public static void main(String[] args) {
+        System.out.println(run());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "T F 1", correct: true, misconception: nil, explanation: "return値1が準備された後でもfinallyが実行され、その後main側のprintlnが1を出力します。"),
+            Choice(id: "b", text: "T 1 F", correct: false, misconception: "finallyが呼び出し元のprintln後に動くと誤解", explanation: "finallyはrun()から戻る前に実行されます。"),
+            Choice(id: "c", text: "T 1", correct: false, misconception: "returnでfinallyが飛ばされると誤解", explanation: "returnがあってもfinallyは実行されます。"),
+            Choice(id: "d", text: "F 1", correct: false, misconception: "try本体が実行されないと誤解", explanation: "try本体のprintが先に実行されます。"),
+        ],
+        explanationRef: "explain-silver-exception-008",
+        designIntent: "returnを含むtry-finallyで、finallyが呼び出し元へ戻る前に実行されることを確認する。"
+    )
+
+    static let silverArray009 = Quiz(
+        id: "silver-array-009",
+        level: .silver,
+        category: "data-types",
+        tags: ["配列", "多次元配列", "length"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int[][] array = new int[2][];
+        array[0] = new int[] {1, 2, 3};
+        array[1] = new int[] {4};
+        System.out.println(array.length + " " + array[0].length + " " + array[1][0]);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2 3 4", correct: true, misconception: nil, explanation: "外側配列長は2、array[0]の内側長は3、array[1][0]は4です。"),
+            Choice(id: "b", text: "2 1 4", correct: false, misconception: "array[0]の長さをarray[1]と混同", explanation: "array[0]には3要素の配列を代入しています。"),
+            Choice(id: "c", text: "3 2 4", correct: false, misconception: "外側配列と内側配列の長さを混同", explanation: "new int[2][]なので外側配列の長さは2です。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "内側配列が未設定のままだと誤解", explanation: "array[0]とarray[1]の両方に配列を代入済みです。"),
+        ],
+        explanationRef: "explain-silver-array-009",
+        designIntent: "ジャグ配列で外側length、内側length、要素アクセスを分けて追わせる。"
+    )
+
+    static let silverLambda005 = Quiz(
+        id: "silver-lambda-005",
+        level: .silver,
+        category: "lambda-streams",
+        tags: ["Predicate", "and", "短絡評価"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Predicate<String> p = s -> { System.out.print("A"); return s.length() > 2; };
+        Predicate<String> q = s -> { System.out.print("B"); return s.startsWith("J"); };
+        System.out.println(p.and(q).test("Hi"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Afalse", correct: true, misconception: nil, explanation: "pがfalseを返すため、andの右側qは実行されません。"),
+            Choice(id: "b", text: "ABfalse", correct: false, misconception: "andで常に両方評価されると誤解", explanation: "Predicate.andは短絡評価します。左がfalseなら右は評価しません。"),
+            Choice(id: "c", text: "ABtrue", correct: false, misconception: "Hiが条件を満たすと誤解", explanation: "\"Hi\"の長さは2なので、pはfalseです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "ブロックラムダでprintできないと誤解", explanation: "戻り値を明示returnしているためPredicateとして有効です。"),
+        ],
+        explanationRef: "explain-silver-lambda-005",
+        designIntent: "Predicate.andの短絡評価と、ラムダ内副作用の実行有無を出力順で確認する。"
+    )
+
+    static let goldStream012 = Quiz(
+        id: "gold-stream-012",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "flatMap", "distinct", "sorted"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<List<Integer>> nested = Arrays.asList(
+            Arrays.asList(2, 1),
+            Arrays.asList(2, 3)
+        );
+        nested.stream()
+            .flatMap(List::stream)
+            .distinct()
+            .sorted()
+            .forEach(System.out::print);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "123", correct: true, misconception: nil, explanation: "flatMapで2,1,2,3にし、distinctで重複2を除き、sortedで1,2,3になります。"),
+            Choice(id: "b", text: "2123", correct: false, misconception: "distinct/sortedを見落とし", explanation: "distinctで2の重複が消え、sortedで昇順になります。"),
+            Choice(id: "c", text: "213", correct: false, misconception: "distinct後の順序のまま出力されると誤解", explanation: "distinct後にsortedがあるため、最終順序は1,2,3です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "List::streamが使えないと誤解", explanation: "flatMap(List::stream)はList内要素を1本のStreamへ平坦化できます。"),
+        ],
+        explanationRef: "explain-gold-stream-012",
+        designIntent: "flatMap、distinct、sortedの順にStream要素がどう変化するかを追わせる。"
+    )
+
+    static let goldStream013 = Quiz(
+        id: "gold-stream-013",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "partitioningBy", "Collectors"],
+        code: """
+import java.util.*;
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<Boolean, Long> map = Stream.of("a", "bb", "c")
+            .collect(Collectors.partitioningBy(
+                s -> s.length() == 1,
+                Collectors.counting()
+            ));
+        System.out.println(map.get(true) + ":" + map.get(false));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2:1", correct: true, misconception: nil, explanation: "長さ1はaとcの2件、false側はbbの1件です。"),
+            Choice(id: "b", text: "1:2", correct: false, misconception: "true/false側を逆に理解", explanation: "条件はlength == 1なので、aとcがtrue側です。"),
+            Choice(id: "c", text: "2:null", correct: false, misconception: "false側が作られないと誤解", explanation: "partitioningByはtrue/false両方のキーを持つMapを返します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "下流Collectorを渡せないと誤解", explanation: "partitioningByには下流Collectorを指定できます。"),
+        ],
+        explanationRef: "explain-gold-stream-013",
+        designIntent: "partitioningByのtrue/false分割と下流countingの結果を追わせる。"
+    )
+
+    static let goldGenerics008 = Quiz(
+        id: "gold-generics-008",
+        level: .gold,
+        category: "generics",
+        tags: ["Generics", "super", "PECS"],
+        code: """
+import java.util.*;
+
+public class Test {
+    static void addAll(List<? super Number> list) {
+        list.add(1);
+        list.add(2.5);
+    }
+    public static void main(String[] args) {
+        List<Object> values = new ArrayList<>();
+        addAll(values);
+        System.out.println(values);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "[1, 2.5]", correct: true, misconception: nil, explanation: "List<Object>はList<? super Number>として渡せ、IntegerとDoubleを追加できます。"),
+            Choice(id: "b", text: "[]", correct: false, misconception: "addAll内の追加が元リストに反映されないと誤解", explanation: "同じListインスタンスへ追加しています。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "super境界にNumberサブタイプを追加できないと誤解", explanation: "? super NumberにはNumberおよびそのサブタイプを安全に追加できます。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "Objectリストに数値を入れると実行時エラーと誤解", explanation: "ObjectはInteger/Doubleの上位型なので格納可能です。"),
+        ],
+        explanationRef: "explain-gold-generics-008",
+        designIntent: "PECSのConsumer superを、List<Object>へNumber系を追加するコードで確認する。"
+    )
+
+    static let goldOptional008 = Quiz(
+        id: "gold-optional-008",
+        level: .gold,
+        category: "optional-api",
+        tags: ["Optional", "filter", "orElseGet"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        String result = Optional.of("Java")
+            .filter(s -> s.length() > 5)
+            .orElseGet(() -> "fallback");
+        System.out.println(result);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Java", correct: false, misconception: "filter条件を満たすと誤解", explanation: "\"Java\"の長さは4なので、length > 5はfalseです。"),
+            Choice(id: "b", text: "fallback", correct: true, misconception: nil, explanation: "filterでOptionalが空になり、orElseGetのSupplierが実行されます。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "空Optionalがnullになると誤解", explanation: "orElseGetが代替値を返します。"),
+            Choice(id: "d", text: "NoSuchElementException", correct: false, misconception: "空Optionalを直接getすると誤解", explanation: "get()ではなくorElseGet()を使っています。"),
+        ],
+        explanationRef: "explain-gold-optional-008",
+        designIntent: "Optional.filterで空になった後、orElseGetが必要時だけ実行される流れを追わせる。"
+    )
+
+    static let goldCollections005 = Quiz(
+        id: "gold-collections-005",
+        level: .gold,
+        category: "collections",
+        tags: ["Map", "computeIfAbsent", "List"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, List<Integer>> map = new HashMap<>();
+        map.computeIfAbsent("A", k -> new ArrayList<>()).add(1);
+        map.computeIfAbsent("A", k -> new ArrayList<>()).add(2);
+        System.out.println(map.get("A").size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: false, misconception: "2回目でリストが作り直されると誤解", explanation: "キーAは既に存在するため、2回目は既存のListが返されます。"),
+            Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "1回目でListを作成し1を追加、2回目は同じListに2を追加するためサイズ2です。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "addがMapに反映されないと誤解", explanation: "computeIfAbsentが返したListはMap内に保持されているListです。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "get(\"A\")がnullになると誤解", explanation: "computeIfAbsentによりAの値は作成済みです。"),
+        ],
+        explanationRef: "explain-gold-collections-005",
+        designIntent: "computeIfAbsentが既存値を再利用するため、同じListへ要素が蓄積されることを確認する。"
+    )
+
+    static let goldConcurrency009 = Quiz(
+        id: "gold-concurrency-009",
+        level: .gold,
+        category: "concurrency",
+        tags: ["CompletableFuture", "exceptionally", "thenApply"],
+        code: """
+import java.util.concurrent.*;
+
+public class Test {
+    public static void main(String[] args) {
+        CompletableFuture<Integer> future = CompletableFuture.<Integer>supplyAsync(() -> {
+            throw new RuntimeException();
+        }).exceptionally(ex -> 10)
+          .thenApply(n -> n + 5);
+
+        System.out.println(future.join());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "10", correct: false, misconception: "exceptionally後のthenApplyを見落とし", explanation: "exceptionallyで10に回復した後、thenApplyで5を加えます。"),
+            Choice(id: "b", text: "15", correct: true, misconception: nil, explanation: "例外はexceptionallyで10に変換され、その値にthenApplyで5を加えるため15です。"),
+            Choice(id: "c", text: "RuntimeExceptionで異常終了", correct: false, misconception: "exceptionallyで回復しないと誤解", explanation: "exceptionallyが例外を受け取り、代替値10を返しています。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "supplyAsyncの例外ラムダが型推論できないと誤解", explanation: "明示的に<Integer>を指定しているため型は確定しています。"),
+        ],
+        explanationRef: "explain-gold-concurrency-009",
+        designIntent: "CompletableFutureの例外回復後に通常のthenApplyチェーンへ戻る流れを追わせる。"
+    )
+
+    static let goldDateTime005 = Quiz(
+        id: "gold-date-time-005",
+        level: .gold,
+        category: "data-types",
+        tags: ["LocalTime", "plusMinutes", "日付時刻API"],
+        code: """
+import java.time.*;
+
+public class Test {
+    public static void main(String[] args) {
+        LocalTime time = LocalTime.of(23, 30).plusMinutes(90);
+        System.out.println(time);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "00:60", correct: false, misconception: "分が60で止まると誤解", explanation: "LocalTimeは正規化された時刻を表します。"),
+            Choice(id: "b", text: "01:00", correct: true, misconception: nil, explanation: "23:30に90分を足すと翌日の01:00になります。LocalTimeは日付を持たないため時刻だけ表示します。"),
+            Choice(id: "c", text: "25:00", correct: false, misconception: "24時を超えて表示されると誤解", explanation: "LocalTimeは0:00から23:59:59...の範囲へ循環します。"),
+            Choice(id: "d", text: "DateTimeException", correct: false, misconception: "日付をまたぐ加算が例外になると誤解", explanation: "plusMinutesは有効に時刻を循環させます。"),
+        ],
+        explanationRef: "explain-gold-date-time-005",
+        designIntent: "LocalTimeが日付を持たず、24時をまたぐ加算で時刻だけが循環することを確認する。"
+    )
+
+    static let goldIo006 = Quiz(
+        id: "gold-io-006",
+        level: .gold,
+        category: "io",
+        tags: ["Path", "resolveSibling", "NIO.2"],
+        code: """
+import java.nio.file.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Path path = Path.of("/app/logs/app.log");
+        System.out.println(path.resolveSibling("old.log"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "/app/logs/old.log", correct: true, misconception: nil, explanation: "resolveSiblingは元パスのファイル名部分を兄弟パスold.logへ置き換えます。"),
+            Choice(id: "b", text: "/app/logs/app.log/old.log", correct: false, misconception: "resolveとresolveSiblingを混同", explanation: "resolveなら子として連結しますが、resolveSiblingは同じ親配下の兄弟を解決します。"),
+            Choice(id: "c", text: "old.log", correct: false, misconception: "親情報が消えると誤解", explanation: "元パスの親/app/logsは保持されます。"),
+            Choice(id: "d", text: "InvalidPathException", correct: false, misconception: "絶対パスの兄弟解決が無効と誤解", explanation: "このresolveSibling呼び出しは有効です。"),
+        ],
+        explanationRef: "explain-gold-io-006",
+        designIntent: "Path.resolveSiblingが親ディレクトリを保ったままファイル名部分を置き換えることを追わせる。"
+    )
+
+    static let goldClasses007 = Quiz(
+        id: "gold-classes-007",
+        level: .gold,
+        category: "classes",
+        tags: ["record", "コンパクトコンストラクタ", "不変データ"],
+        code: """
+record Point(int x, int y) {
+    Point {
+        if (x < 0) x = 0;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Point p = new Point(-1, 2);
+        System.out.println(p.x() + "," + p.y());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "-1,2", correct: false, misconception: "コンパクトコンストラクタ内の代入が無視されると誤解", explanation: "コンパクトコンストラクタではパラメータxを書き換えられ、その値がフィールド初期化に使われます。"),
+            Choice(id: "b", text: "0,2", correct: true, misconception: nil, explanation: "引数xは-1ですが、コンパクトコンストラクタ内で0に補正されるためx()は0です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "recordのコンパクトコンストラクタでパラメータを代入できないと誤解", explanation: "recordコンポーネントのフィールドはfinalですが、コンストラクタパラメータxの再代入は可能です。"),
+            Choice(id: "d", text: "0,0", correct: false, misconception: "yもデフォルト値になると誤解", explanation: "yは引数2がそのまま使われます。"),
+        ],
+        explanationRef: "explain-gold-classes-007",
+        designIntent: "recordのコンパクトコンストラクタでパラメータを検証・補正し、その後コンポーネントへ代入される流れを追わせる。"
     )
 }

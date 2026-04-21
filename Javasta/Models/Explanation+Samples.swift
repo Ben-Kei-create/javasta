@@ -2675,6 +2675,23 @@ public class Test {
         silverException007Explanation.id: silverException007Explanation,
         goldStream010Explanation.id: goldStream010Explanation,
         goldConcurrency006Explanation.id: goldConcurrency006Explanation,
+        silverControlFlow010Explanation.id: silverControlFlow010Explanation,
+        silverStringBuilder005Explanation.id: silverStringBuilder005Explanation,
+        silverCollections007Explanation.id: silverCollections007Explanation,
+        silverOverload007Explanation.id: silverOverload007Explanation,
+        silverClasses008Explanation.id: silverClasses008Explanation,
+        silverException008Explanation.id: silverException008Explanation,
+        silverArray009Explanation.id: silverArray009Explanation,
+        silverLambda005Explanation.id: silverLambda005Explanation,
+        goldStream012Explanation.id: goldStream012Explanation,
+        goldStream013Explanation.id: goldStream013Explanation,
+        goldGenerics008Explanation.id: goldGenerics008Explanation,
+        goldOptional008Explanation.id: goldOptional008Explanation,
+        goldCollections005Explanation.id: goldCollections005Explanation,
+        goldConcurrency009Explanation.id: goldConcurrency009Explanation,
+        goldDateTime005Explanation.id: goldDateTime005Explanation,
+        goldIo006Explanation.id: goldIo006Explanation,
+        goldClasses007Explanation.id: goldClasses007Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3892,6 +3909,282 @@ System.out.print("M");
             Step(index: 0, narration: "start() で別スレッドtが `T` を出力します。", highlightLines: [1, 2], variables: [], callStack: [], heap: [], predict: nil),
             Step(index: 1, narration: "join() によりmainはt完了まで待機するため、`M` は必ず後に出力されます。", highlightLines: [3, 4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "順序は？", choices: ["TM", "MT"], answerIndex: 0, hint: "joinは完了待ち", afterExplanation: "正解です。TMです。")),
             Step(index: 2, narration: "最終出力は `TM` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Mixed Batch Queue-002 Explanations
+
+    static let silverControlFlow010Explanation = Explanation(
+        id: "explain-silver-control-flow-010",
+        initialCode: """
+outer:
+for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+        if (i == 1 && j == 1) continue outer;
+        System.out.print(i + "" + j + " ");
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "i=0では条件に一度も一致せず、j=0,1,2で `00 01 02` を出力します。", highlightLines: [2, 3, 5], variables: [Variable(name: "i", type: "int", value: "0", scope: "outer loop")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "i=1ではj=0で `10` を出力した後、j=1で `continue outer` が実行され、j=2を飛ばします。", highlightLines: [4, 5], variables: [Variable(name: "i", type: "int", value: "1", scope: "outer loop"), Variable(name: "j", type: "int", value: "1", scope: "inner loop")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "`11` は出力される？", choices: ["出力される", "出力されない"], answerIndex: 1, hint: "continueの前にprintへ進むか", afterExplanation: "正解です。continue outerでprint行を通りません。")),
+            Step(index: 2, narration: "i=2では再び内側ループを完走し、最終出力は `00 01 02 10 20 21 22` です。", highlightLines: [2, 5], variables: [Variable(name: "i", type: "int", value: "2", scope: "outer loop")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverStringBuilder005Explanation = Explanation(
+        id: "explain-silver-string-builder-005",
+        initialCode: """
+StringBuilder sb = new StringBuilder("abc");
+sb.append("d").insert(1, "X").delete(3, 5);
+System.out.println(sb);
+""",
+        steps: [
+            Step(index: 0, narration: "`append(\"d\")` により sb は `abcd` になります。StringBuilderは同じオブジェクトを書き換えます。", highlightLines: [1, 2], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"abcd\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`insert(1,\"X\")` で index1 の前にXを挿入し `aXbcd`。続く `delete(3,5)` はindex3以上5未満、つまり `c`,`d` を削除します。", highlightLines: [2], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"aXb\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "delete後の値は？", choices: ["aXb", "aXbc", "abXd"], answerIndex: 0, hint: "end indexは含まない", afterExplanation: "正解です。cとdが削除されます。")),
+            Step(index: 2, narration: "最終出力は `aXb` です。", highlightLines: [3], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"aXb\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverCollections007Explanation = Explanation(
+        id: "explain-silver-collections-007",
+        initialCode: """
+List<String> list = new ArrayList<>(Arrays.asList("A", "B", "C"));
+Iterator<String> it = list.iterator();
+while (it.hasNext()) {
+    String s = it.next();
+    if (s.equals("B")) it.remove();
+}
+System.out.println(list);
+""",
+        steps: [
+            Step(index: 0, narration: "IteratorでA, B, Cを順に取り出します。Aでは条件不一致なので削除されません。", highlightLines: [2, 3, 4, 5], variables: [Variable(name: "s", type: "String", value: "\"A\"", scope: "while")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "Bを取り出した直後、`it.remove()` は直前に返した要素Bを安全に削除します。", highlightLines: [4, 5], variables: [Variable(name: "s", type: "String", value: "\"B\"", scope: "while"), Variable(name: "list", type: "List<String>", value: "[A, C]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "例外は起きる？", choices: ["起きる", "起きない"], answerIndex: 1, hint: "Iterator経由の削除", afterExplanation: "正解です。Iterator.remove()は走査中削除のためのAPIです。")),
+            Step(index: 2, narration: "Cは残り、最終出力は `[A, C]` です。", highlightLines: [7], variables: [Variable(name: "list", type: "List<String>", value: "[A, C]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverOverload007Explanation = Explanation(
+        id: "explain-silver-overload-007",
+        initialCode: """
+static void m(int x) { System.out.println("int"); }
+static void m(Integer x) { System.out.println("Integer"); }
+short s = 1;
+m(s);
+""",
+        steps: [
+            Step(index: 0, narration: "引数sの型はshortです。shortはプリミティブ型昇格でintへ変換できます。", highlightLines: [3, 4], variables: [Variable(name: "s", type: "short", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`m(Integer)` はshortから直接Integerへボクシングできないため候補にならず、`m(int)` が選ばれます。", highlightLines: [1, 2, 4], variables: [], callStack: [CallStackFrame(method: "m(int)", line: 1)], heap: [], predict: PredictPrompt(question: "選ばれるのは？", choices: ["m(int)", "m(Integer)", "曖昧"], answerIndex: 0, hint: "short→intは型昇格", afterExplanation: "正解です。m(int)です。")),
+            Step(index: 2, narration: "最終出力は `int` です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "m(int)", line: 1)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverClasses008Explanation = Explanation(
+        id: "explain-silver-classes-008",
+        initialCode: """
+class Box {
+    static int shared = 1;
+    int value = shared++;
+    Box() { value += shared; }
+}
+Box a = new Box();
+Box b = new Box();
+System.out.println(a.value + " " + b.value + " " + Box.shared);
+""",
+        steps: [
+            Step(index: 0, narration: "a生成時、フィールド初期化でvalueにsharedの旧値1が入り、sharedは2になります。続くコンストラクタでvalue += 2となりa.valueは3です。", highlightLines: [2, 3, 4, 6], variables: [Variable(name: "Box.shared", type: "int", value: "2", scope: "class"), Variable(name: "a.value", type: "int", value: "3", scope: "heap")], callStack: [CallStackFrame(method: "Box()", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "b生成時はvalueにsharedの旧値2が入り、sharedは3へ。その後value += 3でb.valueは5です。", highlightLines: [3, 4, 7], variables: [Variable(name: "Box.shared", type: "int", value: "3", scope: "class"), Variable(name: "b.value", type: "int", value: "5", scope: "heap")], callStack: [CallStackFrame(method: "Box()", line: 4)], heap: [], predict: PredictPrompt(question: "b.valueは？", choices: ["3", "4", "5"], answerIndex: 2, hint: "旧値2 + 現在shared3", afterExplanation: "正解です。2 + 3 = 5です。")),
+            Step(index: 2, narration: "最終出力は `3 5 3` です。", highlightLines: [8], variables: [Variable(name: "a.value", type: "int", value: "3", scope: "main"), Variable(name: "b.value", type: "int", value: "5", scope: "main"), Variable(name: "Box.shared", type: "int", value: "3", scope: "class")], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverException008Explanation = Explanation(
+        id: "explain-silver-exception-008",
+        initialCode: """
+static int run() {
+    try {
+        System.out.print("T ");
+        return 1;
+    } finally {
+        System.out.print("F ");
+    }
+}
+System.out.println(run());
+""",
+        steps: [
+            Step(index: 0, narration: "run()内のtryで `T ` を出力し、戻り値1を返す準備をします。", highlightLines: [2, 3, 4], variables: [Variable(name: "return value", type: "int", value: "1", scope: "run")], callStack: [CallStackFrame(method: "run", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "returnで戻る前にfinallyが必ず実行され、`F ` が出力されます。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "run", line: 6)], heap: [], predict: PredictPrompt(question: "finallyはいつ動く？", choices: ["println(run())の後", "run()から戻る前"], answerIndex: 1, hint: "finallyはメソッド脱出前", afterExplanation: "正解です。呼び出し元へ戻る前に動きます。")),
+            Step(index: 2, narration: "run()が1を返した後、main側のprintlnが1を出力します。最終出力は `T F 1` です。", highlightLines: [9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverArray009Explanation = Explanation(
+        id: "explain-silver-array-009",
+        initialCode: """
+int[][] array = new int[2][];
+array[0] = new int[] {1, 2, 3};
+array[1] = new int[] {4};
+System.out.println(array.length + " " + array[0].length + " " + array[1][0]);
+""",
+        steps: [
+            Step(index: 0, narration: "`new int[2][]` は外側だけ長さ2で作ります。内側配列はあとから個別に代入しています。", highlightLines: [1, 2, 3], variables: [Variable(name: "array.length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "array[0]は3要素、array[1]は1要素です。array[1][0]の値は4です。", highlightLines: [2, 3, 4], variables: [Variable(name: "array[0].length", type: "int", value: "3", scope: "main"), Variable(name: "array[1][0]", type: "int", value: "4", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "array[0].lengthは？", choices: ["1", "2", "3"], answerIndex: 2, hint: "{1,2,3}", afterExplanation: "正解です。3要素です。")),
+            Step(index: 2, narration: "最終出力は `2 3 4` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverLambda005Explanation = Explanation(
+        id: "explain-silver-lambda-005",
+        initialCode: """
+Predicate<String> p = s -> { System.out.print("A"); return s.length() > 2; };
+Predicate<String> q = s -> { System.out.print("B"); return s.startsWith("J"); };
+System.out.println(p.and(q).test("Hi"));
+""",
+        steps: [
+            Step(index: 0, narration: "`p.and(q).test(\"Hi\")` ではまず左側pを評価し、`A` を出力します。", highlightLines: [1, 3], variables: [Variable(name: "s", type: "String", value: "\"Hi\"", scope: "p")], callStack: [CallStackFrame(method: "Predicate.test", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "\"Hi\" の長さは2なので `s.length() > 2` はfalse。andは短絡評価なのでqは実行されず、`B` は出ません。", highlightLines: [1, 2, 3], variables: [Variable(name: "p result", type: "boolean", value: "false", scope: "and")], callStack: [CallStackFrame(method: "Predicate.and", line: 3)], heap: [], predict: PredictPrompt(question: "qは実行される？", choices: ["される", "されない"], answerIndex: 1, hint: "左がfalseのAND", afterExplanation: "正解です。ANDは左がfalseなら右を評価しません。")),
+            Step(index: 2, narration: "printlnがfalseを出力し、全体の出力は `Afalse` です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream012Explanation = Explanation(
+        id: "explain-gold-stream-012",
+        initialCode: """
+nested.stream()
+    .flatMap(List::stream)
+    .distinct()
+    .sorted()
+    .forEach(System.out::print);
+""",
+        steps: [
+            Step(index: 0, narration: "flatMapで内側Listを平坦化し、要素列は `2, 1, 2, 3` になります。", highlightLines: [1, 2], variables: [Variable(name: "stream", type: "Stream<Integer>", value: "2,1,2,3", scope: "pipeline")], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "distinctで2の重複を落として `2,1,3`。その後sortedで昇順 `1,2,3` になります。", highlightLines: [3, 4], variables: [Variable(name: "stream", type: "Stream<Integer>", value: "1,2,3", scope: "pipeline")], callStack: [], heap: [], predict: PredictPrompt(question: "sorted後の順は？", choices: ["2,1,3", "1,2,3", "2,1,2,3"], answerIndex: 1, hint: "distinctの後にsorted", afterExplanation: "正解です。昇順で1,2,3です。")),
+            Step(index: 2, narration: "forEachで順に出力され、最終出力は `123` です。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream013Explanation = Explanation(
+        id: "explain-gold-stream-013",
+        initialCode: """
+Map<Boolean, Long> map = Stream.of("a", "bb", "c")
+    .collect(Collectors.partitioningBy(
+        s -> s.length() == 1,
+        Collectors.counting()
+    ));
+System.out.println(map.get(true) + ":" + map.get(false));
+""",
+        steps: [
+            Step(index: 0, narration: "partitioningByは条件結果true/falseで分けます。長さ1は `a` と `c` の2件です。", highlightLines: [1, 2, 3], variables: [Variable(name: "true bucket", type: "Long", value: "2", scope: "map")], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "false側は長さ1ではない `bb` の1件。countingにより件数Longが入ります。", highlightLines: [3, 4], variables: [Variable(name: "false bucket", type: "Long", value: "1", scope: "map")], callStack: [], heap: [], predict: PredictPrompt(question: "map.get(false)は？", choices: ["0", "1", "null"], answerIndex: 1, hint: "bbがfalse側", afterExplanation: "正解です。1件です。")),
+            Step(index: 2, narration: "最終出力は `2:1` です。", highlightLines: [6], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldGenerics008Explanation = Explanation(
+        id: "explain-gold-generics-008",
+        initialCode: """
+static void addAll(List<? super Number> list) {
+    list.add(1);
+    list.add(2.5);
+}
+List<Object> values = new ArrayList<>();
+addAll(values);
+System.out.println(values);
+""",
+        steps: [
+            Step(index: 0, narration: "`List<Object>` は `List<? super Number>` として渡せます。ObjectはNumberのスーパータイプだからです。", highlightLines: [1, 5, 6], variables: [Variable(name: "values", type: "List<Object>", value: "[]", scope: "main")], callStack: [CallStackFrame(method: "addAll", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`? super Number` にはNumberおよびそのサブタイプを追加できるため、Integerの1とDoubleの2.5が入ります。", highlightLines: [2, 3], variables: [Variable(name: "values", type: "List<Object>", value: "[1, 2.5]", scope: "main")], callStack: [CallStackFrame(method: "addAll", line: 3)], heap: [], predict: PredictPrompt(question: "追加できる？", choices: ["できる", "できない"], answerIndex: 0, hint: "Consumer super", afterExplanation: "正解です。super境界は書き込み側で使えます。")),
+            Step(index: 2, narration: "同じListインスタンスが更新され、最終出力は `[1, 2.5]` です。", highlightLines: [7], variables: [Variable(name: "values", type: "List<Object>", value: "[1, 2.5]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldOptional008Explanation = Explanation(
+        id: "explain-gold-optional-008",
+        initialCode: """
+String result = Optional.of("Java")
+    .filter(s -> s.length() > 5)
+    .orElseGet(() -> "fallback");
+System.out.println(result);
+""",
+        steps: [
+            Step(index: 0, narration: "Optionalには `Java` が入っています。filter条件は長さが5より大きいことです。", highlightLines: [1, 2], variables: [Variable(name: "s", type: "String", value: "\"Java\"", scope: "filter")], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`Java` の長さは4なので条件false。Optionalは空になり、orElseGetのSupplierが実行されます。", highlightLines: [2, 3], variables: [Variable(name: "result", type: "String", value: "\"fallback\"", scope: "main")], callStack: [], heap: [], predict: PredictPrompt(question: "orElseGetは実行される？", choices: ["される", "されない"], answerIndex: 0, hint: "filter後は空", afterExplanation: "正解です。空Optionalなので実行されます。")),
+            Step(index: 2, narration: "最終出力は `fallback` です。", highlightLines: [4], variables: [Variable(name: "result", type: "String", value: "\"fallback\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections005Explanation = Explanation(
+        id: "explain-gold-collections-005",
+        initialCode: """
+Map<String, List<Integer>> map = new HashMap<>();
+map.computeIfAbsent("A", k -> new ArrayList<>()).add(1);
+map.computeIfAbsent("A", k -> new ArrayList<>()).add(2);
+System.out.println(map.get("A").size());
+""",
+        steps: [
+            Step(index: 0, narration: "1回目のcomputeIfAbsentではキーAがないため、新しいArrayListを作成してMapへ入れ、そのListに1を追加します。", highlightLines: [1, 2], variables: [Variable(name: "map[A]", type: "List<Integer>", value: "[1]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "2回目はキーAが既にあるため、ラムダで新規Listは作らず既存Listを返し、そこへ2を追加します。", highlightLines: [3], variables: [Variable(name: "map[A]", type: "List<Integer>", value: "[1, 2]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "sizeは？", choices: ["1", "2", "0"], answerIndex: 1, hint: "同じListへ追加", afterExplanation: "正解です。2件になります。")),
+            Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [4], variables: [Variable(name: "map[A].size()", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldConcurrency009Explanation = Explanation(
+        id: "explain-gold-concurrency-009",
+        initialCode: """
+CompletableFuture<Integer> future = CompletableFuture.<Integer>supplyAsync(() -> {
+    throw new RuntimeException();
+}).exceptionally(ex -> 10)
+  .thenApply(n -> n + 5);
+System.out.println(future.join());
+""",
+        steps: [
+            Step(index: 0, narration: "supplyAsync内でRuntimeExceptionが投げられ、CompletableFutureは例外完了します。", highlightLines: [1, 2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "exceptionallyが例外を受け取り、代替値10で正常系へ回復します。その後thenApplyで10+5になります。", highlightLines: [3, 4], variables: [Variable(name: "n", type: "Integer", value: "10 -> 15", scope: "future")], callStack: [], heap: [], predict: PredictPrompt(question: "joinで得る値は？", choices: ["10", "15", "例外"], answerIndex: 1, hint: "回復後にthenApply", afterExplanation: "正解です。10に5を足して15です。")),
+            Step(index: 2, narration: "最終出力は `15` です。", highlightLines: [5], variables: [Variable(name: "future result", type: "Integer", value: "15", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldDateTime005Explanation = Explanation(
+        id: "explain-gold-date-time-005",
+        initialCode: """
+LocalTime time = LocalTime.of(23, 30).plusMinutes(90);
+System.out.println(time);
+""",
+        steps: [
+            Step(index: 0, narration: "`LocalTime.of(23,30)` は23:30です。ここへ90分を加算します。", highlightLines: [1], variables: [Variable(name: "time", type: "LocalTime", value: "23:30 + 90min", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "90分後は翌日の01:00ですが、LocalTimeは日付を持たないため時刻だけが循環します。", highlightLines: [1], variables: [Variable(name: "time", type: "LocalTime", value: "01:00", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: PredictPrompt(question: "表示される時刻は？", choices: ["25:00", "01:00", "00:60"], answerIndex: 1, hint: "24時をまたぐ", afterExplanation: "正解です。01:00です。")),
+            Step(index: 2, narration: "最終出力は `01:00` です。", highlightLines: [2], variables: [Variable(name: "time", type: "LocalTime", value: "01:00", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldIo006Explanation = Explanation(
+        id: "explain-gold-io-006",
+        initialCode: """
+Path path = Path.of("/app/logs/app.log");
+System.out.println(path.resolveSibling("old.log"));
+""",
+        steps: [
+            Step(index: 0, narration: "pathの親は `/app/logs`、ファイル名は `app.log` です。", highlightLines: [1], variables: [Variable(name: "path", type: "Path", value: "/app/logs/app.log", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "resolveSiblingは同じ親ディレクトリ配下で、ファイル名部分を `old.log` に置き換えます。", highlightLines: [2], variables: [Variable(name: "result", type: "Path", value: "/app/logs/old.log", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "親ディレクトリは残る？", choices: ["残る", "消える"], answerIndex: 0, hint: "Sibling = 同じ親", afterExplanation: "正解です。同じ親の兄弟パスです。")),
+            Step(index: 2, narration: "最終出力は `/app/logs/old.log` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldClasses007Explanation = Explanation(
+        id: "explain-gold-classes-007",
+        initialCode: """
+record Point(int x, int y) {
+    Point {
+        if (x < 0) x = 0;
+    }
+}
+Point p = new Point(-1, 2);
+System.out.println(p.x() + "," + p.y());
+""",
+        steps: [
+            Step(index: 0, narration: "new Point(-1,2) でコンパクトコンストラクタに入り、パラメータxは-1、yは2です。", highlightLines: [2, 6], variables: [Variable(name: "x", type: "int", value: "-1", scope: "Point ctor"), Variable(name: "y", type: "int", value: "2", scope: "Point ctor")], callStack: [CallStackFrame(method: "Point", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`x < 0` がtrueなので、コンストラクタパラメータxを0へ補正します。その後recordコンポーネントへ代入されます。", highlightLines: [3], variables: [Variable(name: "x", type: "int", value: "0", scope: "Point ctor")], callStack: [CallStackFrame(method: "Point", line: 3)], heap: [], predict: PredictPrompt(question: "p.x()は？", choices: ["-1", "0", "コンパイルエラー"], answerIndex: 1, hint: "パラメータ補正後にフィールドへ", afterExplanation: "正解です。0です。")),
+            Step(index: 2, narration: "yは2のままなので、最終出力は `0,2` です。", highlightLines: [7], variables: [Variable(name: "p.x()", type: "int", value: "0", scope: "main"), Variable(name: "p.y()", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
         ]
     )
 }
