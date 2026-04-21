@@ -27,6 +27,8 @@ extension GlossaryTerm {
         // 関数型・Stream
         lambdaTerm, functionalInterface, methodReference,
         streamApi, intermediateOp, terminalOp, lazyEvaluation, optionalType,
+        // ローカライズ・フォーマット
+        localeTerm, resourceBundleTerm, formattingTerm,
         // 制御フロー
         `fallthrough`, switchExpression,
         // モダンJava
@@ -1594,6 +1596,92 @@ int val = switch (x) {
         relatedTermIds: ["fallthrough"],
         relatedLessonIds: [],
         relatedQuizIds: []
+    )
+
+    // MARK: - ローカライズ・フォーマット
+
+    static let localeTerm = GlossaryTerm(
+        id: "locale",
+        term: "Locale",
+        aliases: ["ロケール", "language tag", "BCP 47", "Locale.US", "Locale.JAPAN"],
+        summary: "言語・地域・文化圏を表す設定。数値、通貨、日付、メッセージ選択に影響する。",
+        body: """
+`Locale` は、言語や地域を表すオブジェクトです。
+
+```java
+Locale us = Locale.US;                 // en_US
+Locale br = Locale.forLanguageTag("pt-BR");
+Locale tag = new Locale.Builder()
+    .setLanguage("en")
+    .setRegion("US")
+    .build();
+```
+
+ポイント:
+
+- `getLanguage()` は言語コード、`getCountry()` は国/地域コードを返す
+- `toString()` は `en_US` のようなアンダースコア形式
+- `toLanguageTag()` は `en-US` のようなハイフン形式
+- [フォーマット](javasta://term/formatting)や[ResourceBundle](javasta://term/resource-bundle)の選択に使われる
+
+デフォルトLocaleに頼ると実行環境で結果が変わるため、試験問題では明示されたLocaleを優先して読むのが大事です。
+""",
+        relatedTermIds: ["formatting", "resource-bundle"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["gold-localization-001", "gold-localization-002", "gold-localization-003", "gold-localization-004", "gold-localization-005", "gold-localization-006", "gold-localization-010", "gold-localization-015", "gold-localization-022", "gold-localization-023", "gold-localization-024"]
+    )
+
+    static let resourceBundleTerm = GlossaryTerm(
+        id: "resource-bundle",
+        term: "ResourceBundle",
+        aliases: ["リソースバンドル", "ListResourceBundle", "MissingResourceException"],
+        summary: "Localeに応じてメッセージや設定値を切り替える仕組み。候補Localeと親バンドルを順に探す。",
+        body: """
+`ResourceBundle` は、Localeごとにメッセージや設定値を切り替える仕組みです。
+
+```java
+ResourceBundle rb = ResourceBundle.getBundle("Messages", Locale.JAPAN);
+String title = rb.getString("title");
+```
+
+探索の考え方:
+
+- `ja_JP` なら `Messages_ja_JP`、`Messages_ja`、`Messages` のように候補を探す
+- 子バンドルにキーがなければ親バンドルを探す
+- キーがどこにもなければ `MissingResourceException`
+- `ListResourceBundle` ではString以外のObject値も扱える
+
+メッセージ内に `{0}` のような差し込みがある場合、ResourceBundleはパターンを返すだけです。実際の置換は[MessageFormat](javasta://term/formatting)で行います。
+""",
+        relatedTermIds: ["locale", "formatting"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["gold-localization-001", "gold-localization-002", "gold-localization-007", "gold-localization-008", "gold-localization-009", "gold-localization-023"]
+    )
+
+    static let formattingTerm = GlossaryTerm(
+        id: "formatting",
+        term: "フォーマット",
+        aliases: ["NumberFormat", "DecimalFormat", "DateTimeFormatter", "MessageFormat", "parse", "ofPattern"],
+        summary: "数値・通貨・日付・メッセージをLocaleやパターンに従って文字列化、または文字列から解析する処理。",
+        body: """
+JavaのフォーマットAPIは、値を人間向けの文字列に変換したり、文字列から値を解析したりします。
+
+代表例:
+
+- `NumberFormat`: 数値、通貨、パーセントを[Locale](javasta://term/locale)に従って整形
+- `DecimalFormat`: `0000.00` や `#,##0` などのパターンで数値を整形
+- `DateTimeFormatter`: `ofPattern("uuuu/MM/dd")` などで日付時刻を整形・解析
+- `MessageFormat`: `Hello {0}` のようなメッセージパターンに値を差し込む
+
+注意点:
+
+- `NumberFormat.parse(String)` は、先頭から読める部分だけでNumberを返すことがある
+- `DateTimeFormatter` の `MM` は月、`mm` は分。大文字小文字を区別する
+- `MessageFormat` の単一引用符はエスケープに使われる
+""",
+        relatedTermIds: ["locale", "resource-bundle"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["gold-localization-003", "gold-localization-004", "gold-localization-006", "gold-localization-010", "gold-localization-011", "gold-localization-012", "gold-localization-013", "gold-localization-014", "gold-localization-015", "gold-localization-016", "gold-localization-017", "gold-localization-018", "gold-localization-019", "gold-localization-020", "gold-localization-021", "gold-localization-022", "gold-localization-023"]
     )
 
     // MARK: - モダンJava

@@ -129,6 +129,26 @@ extension QuizExpansion {
         goldSecureCoding018,
         goldSecureCoding019,
         goldSecureCoding020,
+        goldLocalization024,
+        goldLocalization005,
+        goldLocalization006,
+        goldLocalization007,
+        goldLocalization008,
+        goldLocalization009,
+        goldLocalization010,
+        goldLocalization011,
+        goldLocalization012,
+        goldLocalization013,
+        goldLocalization014,
+        goldLocalization015,
+        goldLocalization016,
+        goldLocalization017,
+        goldLocalization018,
+        goldLocalization019,
+        goldLocalization020,
+        goldLocalization021,
+        goldLocalization022,
+        goldLocalization023,
     ]
 
     // MARK: - Gold: Generics (extends wildcard)
@@ -511,6 +531,32 @@ public class Test {
 
     // MARK: - Gold: Localization (Currency)
 
+    static let goldLocalization024 = Quiz(
+        id: "gold-localization-024",
+        level: .gold,
+        category: "localization",
+        tags: ["Locale", "language tag", "BCP 47"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Locale loc = Locale.forLanguageTag("pt-BR");
+        System.out.println(loc.getLanguage() + ":" + loc.getCountry());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "pt:BR", correct: true, misconception: nil, explanation: "Localeのlanguageは小文字のpt、countryは大文字のBRとして取得されます。"),
+            Choice(id: "b", text: "pt_BR", correct: false, misconception: "LocaleのtoString形式と混同", explanation: "出力しているのはgetLanguageとgetCountryをコロンで連結したものです。"),
+            Choice(id: "c", text: "BR:pt", correct: false, misconception: "言語と国の順序を逆にしている", explanation: "language tagは言語-地域の順で、getLanguageがpt、getCountryがBRです。"),
+            Choice(id: "d", text: "Portuguese:Brazil", correct: false, misconception: "表示名が返ると誤解", explanation: "getLanguage/getCountryはコードを返します。表示名が必要ならgetDisplayLanguageなどを使います。"),
+        ],
+        explanationRef: "explain-gold-localization-024",
+        designIntent: "Localeの言語コードと国コード、language tagからの生成を確認する。"
+    )
+
     static let goldLocalization004 = Quiz(
         id: "gold-localization-004",
         level: .gold,
@@ -544,6 +590,560 @@ public class Test {
         ],
         explanationRef: "explain-gold-localization-004",
         designIntent: "NumberFormatのLocale指定が通貨記号と小数桁に影響することを確認する。"
+    )
+
+    static let goldLocalization005 = Quiz(
+        id: "gold-localization-005",
+        level: .gold,
+        category: "localization",
+        tags: ["Locale", "Builder", "toLanguageTag"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Locale loc = new Locale.Builder()
+            .setLanguage("en")
+            .setRegion("US")
+            .build();
+        System.out.println(loc.toLanguageTag());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "en-US", correct: true, misconception: nil, explanation: "Locale.Builderでlanguage=en、region=USを指定しているため、BCP 47形式ではen-USになります。"),
+            Choice(id: "b", text: "en_US", correct: false, misconception: "Locale.toString()形式と混同", explanation: "toLanguageTag()はハイフン区切りの言語タグを返します。"),
+            Choice(id: "c", text: "US-en", correct: false, misconception: "地域と言語の順序を逆にしている", explanation: "言語タグは言語-地域の順です。"),
+            Choice(id: "d", text: "English (United States)", correct: false, misconception: "表示名が返ると誤解", explanation: "toLanguageTagは表示名ではなく言語タグ文字列を返します。"),
+        ],
+        explanationRef: "explain-gold-localization-005",
+        designIntent: "Locale.BuilderとtoLanguageTagの表記差を確認する。"
+    )
+
+    static let goldLocalization006 = Quiz(
+        id: "gold-localization-006",
+        level: .gold,
+        category: "localization",
+        tags: ["Locale", "NumberFormat", "default locale"],
+        code: """
+import java.text.*;
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Locale.setDefault(Locale.JAPAN);
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+        System.out.println(nf.format(1234.5));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1,234.5", correct: true, misconception: nil, explanation: "NumberFormat生成時にLocale.USを明示しているため、デフォルトLocale.JAPANではなく米国形式が使われます。"),
+            Choice(id: "b", text: "1.234,5", correct: false, misconception: "ドイツ形式と混同", explanation: "Locale.USではグループ区切りがカンマ、小数点がピリオドです。"),
+            Choice(id: "c", text: "1234.5", correct: false, misconception: "区切り文字が入らないと誤解", explanation: "NumberFormatの数値形式では桁区切りが入ります。"),
+            Choice(id: "d", text: "1,234.50", correct: false, misconception: "固定小数2桁になると誤解", explanation: "通常のNumberInstanceであり、通貨形式ではありません。"),
+        ],
+        explanationRef: "explain-gold-localization-006",
+        designIntent: "デフォルトLocaleと明示Localeの優先関係を確認する。"
+    )
+
+    static let goldLocalization007 = Quiz(
+        id: "gold-localization-007",
+        level: .gold,
+        category: "localization",
+        tags: ["ResourceBundle", "ListResourceBundle", "parent fallback"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static class Messages extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] {
+                {"ok", "base-ok"}, {"cancel", "base-cancel"}
+            };
+        }
+    }
+    public static class Messages_ja extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] { {"ok", "ja-ok"} };
+        }
+    }
+    public static void main(String[] args) {
+        ResourceBundle rb = ResourceBundle.getBundle("Test$Messages", Locale.JAPAN);
+        System.out.println(rb.getString("ok") + ":" + rb.getString("cancel"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "ja-ok:base-cancel", correct: true, misconception: nil, explanation: "okはMessages_jaにあり、cancelは子にないため親のMessagesから取得されます。"),
+            Choice(id: "b", text: "ja-ok:null", correct: false, misconception: "親バンドルを探索しないと誤解", explanation: "ResourceBundleはキーが子にない場合、親バンドルも探索します。"),
+            Choice(id: "c", text: "base-ok:base-cancel", correct: false, misconception: "言語バンドルが使われないと誤解", explanation: "Locale.JAPANではMessages_jaが候補になり、okはja側から取得されます。"),
+            Choice(id: "d", text: "MissingResourceException", correct: false, misconception: "cancelが子にない時点で例外になると誤解", explanation: "親のMessagesにcancelがあるため例外にはなりません。"),
+        ],
+        explanationRef: "explain-gold-localization-007",
+        designIntent: "ResourceBundleの親バンドルへのキー単位フォールバックを確認する。"
+    )
+
+    static let goldLocalization008 = Quiz(
+        id: "gold-localization-008",
+        level: .gold,
+        category: "localization",
+        tags: ["ResourceBundle", "MissingResourceException"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static class Messages extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] { {"ok", "base-ok"} };
+        }
+    }
+    public static void main(String[] args) {
+        ResourceBundle rb = ResourceBundle.getBundle("Test$Messages", Locale.US);
+        try {
+            System.out.println(rb.getString("missing"));
+        } catch (MissingResourceException e) {
+            System.out.println("missing");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "missing", correct: true, misconception: nil, explanation: "指定キーがどの候補バンドルにもないためMissingResourceExceptionが発生し、catchでmissingを出力します。"),
+            Choice(id: "b", text: "base-ok", correct: false, misconception: "別キーの値が返ると誤解", explanation: "getStringは指定したキーだけを探します。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "見つからないキーがnullになると誤解", explanation: "ResourceBundleでキーが見つからない場合は例外です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "MissingResourceExceptionのcatchが不要と誤解", explanation: "MissingResourceExceptionはRuntimeException系なのでcatchは任意ですが、書いてもコンパイルできます。"),
+        ],
+        explanationRef: "explain-gold-localization-008",
+        designIntent: "ResourceBundleでキーが存在しない場合の例外を確認する。"
+    )
+
+    static let goldLocalization009 = Quiz(
+        id: "gold-localization-009",
+        level: .gold,
+        category: "localization",
+        tags: ["ResourceBundle", "getObject", "ListResourceBundle"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static class Config extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] { {"count", 3} };
+        }
+    }
+    public static void main(String[] args) {
+        ResourceBundle rb = ResourceBundle.getBundle("Test$Config", Locale.US);
+        Object value = rb.getObject("count");
+        System.out.println(value.getClass().getSimpleName() + ":" + value);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Integer:3", correct: true, misconception: nil, explanation: "ListResourceBundleはString以外のObjectも保持でき、3はIntegerとして取り出されます。"),
+            Choice(id: "b", text: "String:3", correct: false, misconception: "ResourceBundleの値は常にStringだと誤解", explanation: "getObjectではObject値を取り出せます。"),
+            Choice(id: "c", text: "int:3", correct: false, misconception: "プリミティブ型として保持されると誤解", explanation: "配列内の3はオートボクシングされてIntegerです。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "String以外は取り出せないと誤解", explanation: "getObjectで取り出しているためキャスト失敗は起きません。"),
+        ],
+        explanationRef: "explain-gold-localization-009",
+        designIntent: "ListResourceBundleはObject値を扱えることを確認する。"
+    )
+
+    static let goldLocalization010 = Quiz(
+        id: "gold-localization-010",
+        level: .gold,
+        category: "localization",
+        tags: ["NumberFormat", "Locale.GERMANY", "数値フォーマット"],
+        code: """
+import java.text.*;
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
+        System.out.println(nf.format(1234.5));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1.234,5", correct: true, misconception: nil, explanation: "Locale.GERMANYでは桁区切りにピリオド、小数区切りにカンマを使います。"),
+            Choice(id: "b", text: "1,234.5", correct: false, misconception: "米国形式と混同", explanation: "これはLocale.USの代表的な形式です。"),
+            Choice(id: "c", text: "1234,5", correct: false, misconception: "桁区切りが入らないと誤解", explanation: "NumberFormatの標準数値形式では桁区切りも適用されます。"),
+            Choice(id: "d", text: "1.234,50", correct: false, misconception: "常に小数2桁になると誤解", explanation: "通常のNumberInstanceは通貨形式ではないため固定2桁ではありません。"),
+        ],
+        explanationRef: "explain-gold-localization-010",
+        designIntent: "Localeによって数値の区切り記号が変わることを確認する。"
+    )
+
+    static let goldLocalization011 = Quiz(
+        id: "gold-localization-011",
+        level: .gold,
+        category: "localization",
+        tags: ["NumberFormat", "parse", "部分解析"],
+        code: """
+import java.text.*;
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+        Number n = nf.parse("12abc");
+        System.out.println(n);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "12", correct: true, misconception: nil, explanation: "NumberFormat.parse(String)は先頭から解析できる部分を読み、後続のabcを理由に例外にはしません。"),
+            Choice(id: "b", text: "12abc", correct: false, misconception: "文字列全体がそのまま返ると誤解", explanation: "parseの戻り値はNumberです。"),
+            Choice(id: "c", text: "ParseException", correct: false, misconception: "末尾に文字があると必ず例外と誤解", explanation: "先頭が解析できる場合、parse(String)はそこで得た数値を返します。完全一致を確認したいならParsePositionなどを確認します。"),
+            Choice(id: "d", text: "0", correct: false, misconception: "失敗時のデフォルト値が返ると誤解", explanation: "解析できた数値12が返ります。"),
+        ],
+        explanationRef: "explain-gold-localization-011",
+        designIntent: "NumberFormat.parse(String)が必ず全文消費するわけではないことを確認する。"
+    )
+
+    static let goldLocalization012 = Quiz(
+        id: "gold-localization-012",
+        level: .gold,
+        category: "localization",
+        tags: ["DecimalFormat", "pattern", "数値フォーマット"],
+        code: """
+import java.text.*;
+
+public class Test {
+    public static void main(String[] args) {
+        DecimalFormat df = new DecimalFormat("0000.00");
+        System.out.println(df.format(7.5));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "0007.50", correct: true, misconception: nil, explanation: "0は必須桁を表します。整数部は4桁、小数部は2桁にゼロ埋めされます。"),
+            Choice(id: "b", text: "7.5", correct: false, misconception: "パターンが出力に影響しないと誤解", explanation: "DecimalFormatのパターンに従いゼロ埋めされます。"),
+            Choice(id: "c", text: "0007.5", correct: false, misconception: "小数部の0を任意桁と誤解", explanation: "小数部の`00`は2桁固定を意味します。"),
+            Choice(id: "d", text: "7.50", correct: false, misconception: "整数部の0埋めを見落としている", explanation: "整数部にも`0000`が指定されています。"),
+        ],
+        explanationRef: "explain-gold-localization-012",
+        designIntent: "DecimalFormatパターンの0が必須桁であることを確認する。"
+    )
+
+    static let goldLocalization013 = Quiz(
+        id: "gold-localization-013",
+        level: .gold,
+        category: "localization",
+        tags: ["NumberFormat", "Percent", "フォーマット"],
+        code: """
+import java.text.*;
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        NumberFormat nf = NumberFormat.getPercentInstance(Locale.US);
+        System.out.println(nf.format(0.25));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "25%", correct: true, misconception: nil, explanation: "PercentInstanceは値を100倍したパーセント形式で表示します。0.25は25%です。"),
+            Choice(id: "b", text: "0.25%", correct: false, misconception: "100倍されないと誤解", explanation: "パーセント形式では内部値0.25が25%として表示されます。"),
+            Choice(id: "c", text: "25.0%", correct: false, misconception: "必ず小数1桁になると誤解", explanation: "標準のパーセント形式ではこの値は整数パーセントとして表示されます。"),
+            Choice(id: "d", text: "0.25", correct: false, misconception: "通常のNumberFormatと混同", explanation: "getPercentInstanceを使っているため%記号が付きます。"),
+        ],
+        explanationRef: "explain-gold-localization-013",
+        designIntent: "PercentInstanceの100倍表示を確認する。"
+    )
+
+    static let goldLocalization014 = Quiz(
+        id: "gold-localization-014",
+        level: .gold,
+        category: "localization",
+        tags: ["DateTimeFormatter", "ofPattern", "日付フォーマット"],
+        code: """
+import java.time.*;
+import java.time.format.*;
+
+public class Test {
+    public static void main(String[] args) {
+        LocalDate d = LocalDate.of(2026, 4, 5);
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        System.out.println(d.format(f));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2026/04/05", correct: true, misconception: nil, explanation: "yyyyは年、MMは2桁月、ddは2桁日を表すため2026/04/05になります。"),
+            Choice(id: "b", text: "2026/4/5", correct: false, misconception: "MM/ddのゼロ埋めを見落としている", explanation: "MMとddは2桁表示なので04と05になります。"),
+            Choice(id: "c", text: "04/05/2026", correct: false, misconception: "パターン順序を無視している", explanation: "パターンはyyyy/MM/ddの順です。"),
+            Choice(id: "d", text: "2026-04-05", correct: false, misconception: "ISO形式が常に使われると誤解", explanation: "DateTimeFormatter.ofPatternで独自パターンを指定しています。"),
+        ],
+        explanationRef: "explain-gold-localization-014",
+        designIntent: "DateTimeFormatter.ofPatternによる日付フォーマットを確認する。"
+    )
+
+    static let goldLocalization015 = Quiz(
+        id: "gold-localization-015",
+        level: .gold,
+        category: "localization",
+        tags: ["DateTimeFormatter", "Locale", "month text"],
+        code: """
+import java.time.*;
+import java.time.format.*;
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        LocalDate d = LocalDate.of(2026, 4, 5);
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("MMM d", Locale.US);
+        System.out.println(d.format(f));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Apr 5", correct: true, misconception: nil, explanation: "Locale.USでMMMを使うと4月は英語の短い月名Aprになります。"),
+            Choice(id: "b", text: "4月 5", correct: false, misconception: "デフォルトLocaleが使われると誤解", explanation: "ofPatternにLocale.USを渡しているため英語表記です。"),
+            Choice(id: "c", text: "April 5", correct: false, misconception: "MMMとMMMMを混同", explanation: "MMMは短い月名、MMMMは完全な月名です。"),
+            Choice(id: "d", text: "04 5", correct: false, misconception: "MMMを数値月と混同", explanation: "数値月はMM、テキスト月はMMMです。"),
+        ],
+        explanationRef: "explain-gold-localization-015",
+        designIntent: "DateTimeFormatterのテキスト月名がLocaleに依存することを確認する。"
+    )
+
+    static let goldLocalization016 = Quiz(
+        id: "gold-localization-016",
+        level: .gold,
+        category: "localization",
+        tags: ["DateTimeFormatter", "parse", "LocalDate"],
+        code: """
+import java.time.*;
+import java.time.format.*;
+
+public class Test {
+    public static void main(String[] args) {
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("uuuu/MM/dd");
+        LocalDate d = LocalDate.parse("2026/04/05", f);
+        System.out.println(d.getMonthValue());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "4", correct: true, misconception: nil, explanation: "指定パターンで2026/04/05をLocalDateに解析し、月の値4を出力します。"),
+            Choice(id: "b", text: "04", correct: false, misconception: "getMonthValueがゼロ埋め文字列を返すと誤解", explanation: "getMonthValueの戻り値はintなので4です。"),
+            Choice(id: "c", text: "DateTimeParseException", correct: false, misconception: "スラッシュ形式を解析できないと誤解", explanation: "ofPattern(\"uuuu/MM/dd\")を指定しているため解析できます。"),
+            Choice(id: "d", text: "APRIL", correct: false, misconception: "Month enumが返ると誤解", explanation: "getMonthValueは数値月を返します。Month enumが必要ならgetMonthです。"),
+        ],
+        explanationRef: "explain-gold-localization-016",
+        designIntent: "DateTimeFormatterを使ったparseとLocalDateの値取得を確認する。"
+    )
+
+    static let goldLocalization017 = Quiz(
+        id: "gold-localization-017",
+        level: .gold,
+        category: "localization",
+        tags: ["LocalDate.parse", "DateTimeParseException", "ISO"],
+        code: """
+import java.time.*;
+import java.time.format.*;
+
+public class Test {
+    public static void main(String[] args) {
+        try {
+            LocalDate.parse("2026/04/05");
+        } catch (DateTimeParseException e) {
+            System.out.println("parse error");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "parse error", correct: true, misconception: nil, explanation: "formatter未指定のLocalDate.parseはISO_LOCAL_DATE形式を期待するため、スラッシュ区切りは解析できません。"),
+            Choice(id: "b", text: "2026-04-05", correct: false, misconception: "自動的にスラッシュ形式も受け付けると誤解", explanation: "スラッシュ形式を使うならofPatternでFormatterを指定します。"),
+            Choice(id: "c", text: "何も出力されない", correct: false, misconception: "例外が握りつぶされると誤解", explanation: "catchでparse errorを出力しています。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "DateTimeParseExceptionのcatchが不要/不可と誤解", explanation: "DateTimeParseExceptionはRuntimeException系ですが、catchしても問題ありません。"),
+        ],
+        explanationRef: "explain-gold-localization-017",
+        designIntent: "formatter未指定のparseはISO形式を期待することを確認する。"
+    )
+
+    static let goldLocalization018 = Quiz(
+        id: "gold-localization-018",
+        level: .gold,
+        category: "localization",
+        tags: ["DateTimeFormatter", "ofPattern", "大文字小文字"],
+        code: """
+import java.time.*;
+import java.time.format.*;
+
+public class Test {
+    public static void main(String[] args) {
+        LocalDateTime t = LocalDateTime.of(2026, 4, 5, 9, 7);
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("MM:mm");
+        System.out.println(t.format(f));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "04:07", correct: true, misconception: nil, explanation: "MMは月、mmは分です。4月と7分なので04:07になります。"),
+            Choice(id: "b", text: "07:04", correct: false, misconception: "MMとmmの意味を逆にしている", explanation: "大文字Mは月、小文字mは分です。"),
+            Choice(id: "c", text: "04:04", correct: false, misconception: "両方とも月だと誤解", explanation: "後半のmmは分を表します。"),
+            Choice(id: "d", text: "09:07", correct: false, misconception: "MMを時刻の時と誤解", explanation: "時はHHなどで表します。"),
+        ],
+        explanationRef: "explain-gold-localization-018",
+        designIntent: "DateTimeFormatterパターン文字の大文字小文字の違いを確認する。"
+    )
+
+    static let goldLocalization019 = Quiz(
+        id: "gold-localization-019",
+        level: .gold,
+        category: "localization",
+        tags: ["MessageFormat", "format", "プレースホルダ"],
+        code: """
+import java.text.*;
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(MessageFormat.format("Hello {0}", "Java"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Hello Java", correct: true, misconception: nil, explanation: "{0}に最初の引数Javaが差し込まれます。"),
+            Choice(id: "b", text: "Hello {0}", correct: false, misconception: "プレースホルダが置換されないと誤解", explanation: "MessageFormatでは{0}が引数で置換されます。"),
+            Choice(id: "c", text: "Hello null", correct: false, misconception: "引数が渡っていないと誤解", explanation: "第2引数としてJavaを渡しています。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "static formatを使えないと誤解", explanation: "MessageFormat.format(String, Object...)はstaticメソッドです。"),
+        ],
+        explanationRef: "explain-gold-localization-019",
+        designIntent: "MessageFormatの基本的なプレースホルダ置換を確認する。"
+    )
+
+    static let goldLocalization020 = Quiz(
+        id: "gold-localization-020",
+        level: .gold,
+        category: "localization",
+        tags: ["MessageFormat", "quote", "エスケープ"],
+        code: """
+import java.text.*;
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(MessageFormat.format("'{0}' {0}", "Java"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "{0} Java", correct: true, misconception: nil, explanation: "MessageFormatでは単一引用符で囲んだ部分はリテラル扱いです。後ろの{0}だけがJavaに置換されます。"),
+            Choice(id: "b", text: "Java Java", correct: false, misconception: "引用符内の{0}も置換されると誤解", explanation: "`'{0}'` はリテラルの{0}として出力されます。"),
+            Choice(id: "c", text: "'Java' Java", correct: false, misconception: "引用符がそのまま残ると誤解", explanation: "MessageFormatの単一引用符はエスケープ用で、通常は出力されません。"),
+            Choice(id: "d", text: "IllegalArgumentException", correct: false, misconception: "引用符付きパターンが不正だと誤解", explanation: "この引用符の使い方は有効です。"),
+        ],
+        explanationRef: "explain-gold-localization-020",
+        designIntent: "MessageFormatで単一引用符がプレースホルダをリテラル化することを確認する。"
+    )
+
+    static let goldLocalization021 = Quiz(
+        id: "gold-localization-021",
+        level: .gold,
+        category: "localization",
+        tags: ["MessageFormat", "argument index"],
+        code: """
+import java.text.*;
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(MessageFormat.format("{1} scored {0}", 90, "Ana"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Ana scored 90", correct: true, misconception: nil, explanation: "{1}は2番目の引数Ana、{0}は1番目の引数90を参照します。"),
+            Choice(id: "b", text: "90 scored Ana", correct: false, misconception: "出現順に引数が割り当てられると誤解", explanation: "MessageFormatは波括弧内の番号で引数を参照します。"),
+            Choice(id: "c", text: "{1} scored {0}", correct: false, misconception: "置換されないと誤解", explanation: "引用符で囲んでいないため置換されます。"),
+            Choice(id: "d", text: "ArrayIndexOutOfBoundsException", correct: false, misconception: "{1}を範囲外と誤解", explanation: "引数は2つ渡されているため、インデックス1は有効です。"),
+        ],
+        explanationRef: "explain-gold-localization-021",
+        designIntent: "MessageFormatの引数番号は出現順ではなくインデックスであることを確認する。"
+    )
+
+    static let goldLocalization022 = Quiz(
+        id: "gold-localization-022",
+        level: .gold,
+        category: "localization",
+        tags: ["MessageFormat", "number", "Locale"],
+        code: """
+import java.text.*;
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        MessageFormat mf = new MessageFormat("{0,number,#,##0}", Locale.US);
+        System.out.println(mf.format(new Object[] { 1234 }));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1,234", correct: true, misconception: nil, explanation: "numberサブフォーマットに#,##0を指定し、Locale.USなのでカンマ区切りになります。"),
+            Choice(id: "b", text: "1234", correct: false, misconception: "サブフォーマットが無視されると誤解", explanation: "#,##0により桁区切りが入ります。"),
+            Choice(id: "c", text: "1.234", correct: false, misconception: "ドイツ形式と混同", explanation: "Locale.USを指定しているため区切りはカンマです。"),
+            Choice(id: "d", text: "{0,number,#,##0}", correct: false, misconception: "MessageFormatが置換しないと誤解", explanation: "MessageFormatはプレースホルダを数値フォーマットして置換します。"),
+        ],
+        explanationRef: "explain-gold-localization-022",
+        designIntent: "MessageFormat内で数値サブフォーマットとLocaleを使う挙動を確認する。"
+    )
+
+    static let goldLocalization023 = Quiz(
+        id: "gold-localization-023",
+        level: .gold,
+        category: "localization",
+        tags: ["ResourceBundle", "MessageFormat", "localized message"],
+        code: """
+import java.text.*;
+import java.util.*;
+
+public class Test {
+    public static class Texts extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] { {"notice", "Hi {0}"} };
+        }
+    }
+    public static class Texts_en extends ListResourceBundle {
+        protected Object[][] getContents() {
+            return new Object[][] { {"notice", "Hello {0}, you have {1}."} };
+        }
+    }
+    public static void main(String[] args) {
+        ResourceBundle rb = ResourceBundle.getBundle("Test$Texts", Locale.US);
+        String pattern = rb.getString("notice");
+        MessageFormat mf = new MessageFormat(pattern, Locale.US);
+        System.out.println(mf.format(new Object[] { "Taro", 3 }));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Hello Taro, you have 3.", correct: true, misconception: nil, explanation: "Locale.USではTexts_enが選ばれ、noticeのパターンにTaroと3が差し込まれます。"),
+            Choice(id: "b", text: "Hi Taro", correct: false, misconception: "ベースバンドルが常に優先されると誤解", explanation: "Locale.USではTexts_enが候補として見つかるため、そちらのnoticeが使われます。"),
+            Choice(id: "c", text: "Hello {0}, you have {1}.", correct: false, misconception: "ResourceBundle取得だけで置換されると誤解", explanation: "ResourceBundleは文字列パターンを返すだけで、MessageFormatが置換します。"),
+            Choice(id: "d", text: "MissingResourceException", correct: false, misconception: "Texts_enが見つからないと誤解", explanation: "Test$Texts_enクラスが定義されているため、Locale.USの言語候補として使えます。"),
+        ],
+        explanationRef: "explain-gold-localization-023",
+        designIntent: "ResourceBundleから取得したメッセージパターンをMessageFormatで整形する流れを確認する。"
     )
 
     // MARK: - Gold: Annotations (Override)
@@ -4130,15 +4730,17 @@ public class Test {
         code: """
 import java.io.*;
 
+class Box implements Serializable {}
+
 public class Test {
     public static void main(String[] args) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        new ObjectOutputStream(out).writeObject("data");
+        new ObjectOutputStream(out).writeObject(new Box());
 
         ObjectInputStream in = new ObjectInputStream(
             new ByteArrayInputStream(out.toByteArray()));
         in.setObjectInputFilter(info ->
-            info.serialClass() == String.class
+            info.serialClass() == Box.class
                 ? ObjectInputFilter.Status.REJECTED
                 : ObjectInputFilter.Status.UNDECIDED);
         try {
@@ -4151,8 +4753,8 @@ public class Test {
 """,
         question: "このコードを実行したとき、出力されるのはどれか？",
         choices: [
-            Choice(id: "a", text: "rejected", correct: true, misconception: nil, explanation: "ObjectInputFilterがStringクラスをREJECTEDにするため、readObject時にInvalidClassExceptionとして拒否されます。"),
-            Choice(id: "b", text: "data", correct: false, misconception: "フィルタがログ用途だけだと誤解", explanation: "REJECTEDを返すとデシリアライズは拒否されます。"),
+            Choice(id: "a", text: "rejected", correct: true, misconception: nil, explanation: "ObjectInputFilterがBoxクラスをREJECTEDにするため、readObject時にInvalidClassExceptionとして拒否されます。"),
+            Choice(id: "b", text: "何も出力されない", correct: false, misconception: "フィルタがログ用途だけだと誤解", explanation: "REJECTEDを返すとデシリアライズは拒否され、catch側でrejectedが出力されます。"),
             Choice(id: "c", text: "ClassCastException", correct: false, misconception: "型キャスト失敗と混同", explanation: "キャスト前に入力フィルタで拒否されます。"),
             Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "ObjectInputFilterをラムダで指定できないと誤解", explanation: "ObjectInputFilterは関数型インターフェースとしてラムダで指定できます。"),
         ],
