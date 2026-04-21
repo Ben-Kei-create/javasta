@@ -10,7 +10,10 @@ struct HomeView: View {
     @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
     @AppStorage("homeSectionOrderV1") private var homeSectionOrderRaw: String = HomeSectionID.defaultOrderRaw
-    @State private var hoveredSection: HomeSectionID? = nil
+    @State private var draggingSection: HomeSectionID?
+    @State private var dragLocationY: CGFloat?
+    @State private var dragGrabOffsetY: CGFloat = 0
+    @State private var sectionFrames: [HomeSectionID: CGRect] = [:]
 
     private var selectedVersion: JavaExamVersion {
         JavaExamVersion(rawValue: selectedExamVersionRaw) ?? .se17
@@ -37,7 +40,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         headerSection
 
-                        ForEach(sectionOrder, id: \.self) { sectionId in
+                        ForEach(visibleSectionOrder, id: \.self) { sectionId in
                             reorderableSection(for: sectionId)
                                 .transition(.scale(scale: 0.96).combined(with: .opacity))
                         }
@@ -45,23 +48,12 @@ struct HomeView: View {
                         Color.clear
                             .frame(maxWidth: .infinity)
                             .frame(height: 60)
-                            .dropDestination(for: String.self) { items, _ in
-                                guard let first = items.first,
-                                      let src = HomeSectionID(rawValue: first) else { return false }
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                                    var order = sectionOrder
-                                    order.removeAll { $0 == src }
-                                    order.append(src)
-                                    homeSectionOrderRaw = HomeSectionID.encode(order)
-                                }
-                                hoveredSection = nil
-                                return true
-                            } isTargeted: { targeted in
-                                if !targeted && hoveredSection == nil { }
-                            }
                     }
                     .padding(.bottom, Spacing.lg)
                     .animation(.spring(response: 0.45, dampingFraction: 0.82), value: sectionOrder)
+                    .onPreferenceChange(HomeSectionFramePreferenceKey.self) { frames in
+                        sectionFrames = frames
+                    }
                     .background(
                         Color.jbAccent
                             .opacity(isReordering ? 0.06 : 0)
@@ -69,6 +61,8 @@ struct HomeView: View {
                             .animation(.easeInOut(duration: 0.25), value: isReordering)
                     )
                 }
+                .coordinateSpace(name: HomeSectionDragSpace.name)
+                .scrollDisabled(isReordering)
             }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $showSettings) {
@@ -321,47 +315,39 @@ struct HomeView: View {
         return decoded.filter { HomeSectionID.allCases.contains($0) }
     }
 
-    private var isReordering: Bool { hoveredSection != nil }
+    private var visibleSectionOrder: [HomeSectionID] {
+        sectionOrder.filter { id in
+            if case .reviewQueue = id {
+                return !reviewQueueQuizzes.isEmpty
+            }
+            return true
+        }
+    }
+
+    private var isReordering: Bool { draggingSection != nil }
 
     @ViewBuilder
     private func reorderableSection(for id: HomeSectionID) -> some View {
         let content = sectionContent(for: id)
-        if case .reviewQueue = id, reviewQueueQuizzes.isEmpty {
-            EmptyView()
-        } else {
-            content
-                .padding(.vertical, 2)
-                .background(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .fill(Color.jbAccent.opacity(hoveredSection == id ? 0.14 : (isReordering ? 0.05 : 0)))
-                        .padding(.horizontal, Spacing.sm)
-                        .animation(.easeInOut(duration: 0.22), value: hoveredSection)
-                )
-                .scaleEffect(hoveredSection == id ? 1.02 : 1.0)
-                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: hoveredSection)
-                .draggable(id.rawValue) {
-                    dragPreview(for: id)
-                }
-                .dropDestination(for: String.self) { items, _ in
-                    guard let first = items.first,
-                          let src = HomeSectionID(rawValue: first),
-                          src != id else {
-                        hoveredSection = nil
-                        return false
-                    }
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        moveSection(src, before: id)
-                    }
-                    hoveredSection = nil
-                    return true
-                } isTargeted: { targeted in
-                    if targeted {
-                        hoveredSection = id
-                    } else if hoveredSection == id {
-                        hoveredSection = nil
-                    }
-                }
-        }
+        content
+            .padding(.vertical, 2)
+            .background(sectionFrameReader(for: id))
+            .background(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .fill(Color.jbAccent.opacity(draggingSection == id ? 0.14 : (isReordering ? 0.05 : 0)))
+                    .padding(.horizontal, Spacing.sm)
+                    .animation(.easeInOut(duration: 0.22), value: draggingSection)
+            )
+            .scaleEffect(draggingSection == id ? 1.02 : 1.0)
+            .offset(y: dragOffsetY(for: id))
+            .zIndex(draggingSection == id ? 10 : 0)
+            .shadow(
+                color: Color.black.opacity(draggingSection == id ? 0.22 : 0),
+                radius: draggingSection == id ? 18 : 0,
+                y: draggingSection == id ? 12 : 0
+            )
+            .animation(.spring(response: 0.32, dampingFraction: 0.78), value: draggingSection)
+            .gesture(reorderGesture(for: id))
     }
 
     @ViewBuilder
@@ -390,35 +376,105 @@ struct HomeView: View {
         }
     }
 
-    private func dragPreview(for id: HomeSectionID) -> some View {
-        HStack(spacing: Spacing.xs) {
-            Image(systemName: "line.3.horizontal")
-                .foregroundStyle(Color.jbAccent)
-            Text(id.displayTitle)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(Color.jbText)
-        }
-        .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.sm)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbAccent.opacity(0.6), lineWidth: 1)
+    private func sectionFrameReader(for id: HomeSectionID) -> some View {
+        GeometryReader { proxy in
+            Color.clear
+                .preference(
+                    key: HomeSectionFramePreferenceKey.self,
+                    value: [id: proxy.frame(in: .named(HomeSectionDragSpace.name))]
                 )
-        )
+        }
     }
 
-    private func moveSection(_ source: HomeSectionID, before target: HomeSectionID) {
-        var order = sectionOrder
-        order.removeAll { $0 == source }
-        if let idx = order.firstIndex(of: target) {
-            order.insert(source, at: idx)
-        } else {
-            order.append(source)
+    private func reorderGesture(for id: HomeSectionID) -> some Gesture {
+        LongPressGesture(minimumDuration: 0.28, maximumDistance: 18)
+            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named(HomeSectionDragSpace.name)))
+            .onChanged { value in
+                switch value {
+                case .first(true):
+                    beginSectionDrag(id)
+                case .second(true, let drag):
+                    beginSectionDrag(id)
+                    guard let drag else { return }
+                    updateSectionDrag(id, drag: drag)
+                default:
+                    break
+                }
+            }
+            .onEnded { _ in
+                endSectionDrag()
+            }
+    }
+
+    private func beginSectionDrag(_ id: HomeSectionID) {
+        guard draggingSection == nil || draggingSection == id else { return }
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) {
+            draggingSection = id
         }
-        homeSectionOrderRaw = HomeSectionID.encode(order)
+    }
+
+    private func updateSectionDrag(_ id: HomeSectionID, drag: DragGesture.Value) {
+        guard draggingSection == id else { return }
+        if dragLocationY == nil, let frame = sectionFrames[id] {
+            dragGrabOffsetY = drag.startLocation.y - frame.midY
+        }
+        dragLocationY = drag.location.y
+        updateSectionPosition(id, draggedCenterY: drag.location.y - dragGrabOffsetY)
+    }
+
+    private func updateSectionPosition(_ id: HomeSectionID, draggedCenterY: CGFloat) {
+        let visibleOrder = visibleSectionOrder
+        guard visibleOrder.count > 1, visibleOrder.contains(id) else { return }
+
+        let insertionIndex = visibleOrder.firstIndex { target in
+            guard let frame = sectionFrames[target] else { return false }
+            return draggedCenterY < frame.midY
+        } ?? visibleOrder.count
+
+        withAnimation(.spring(response: 0.44, dampingFraction: 0.84)) {
+            moveSection(id, toVisibleInsertionIndex: insertionIndex, visibleOrder: visibleOrder)
+        }
+    }
+
+    private func moveSection(
+        _ source: HomeSectionID,
+        toVisibleInsertionIndex insertionIndex: Int,
+        visibleOrder: [HomeSectionID]
+    ) {
+        guard let oldIndex = visibleOrder.firstIndex(of: source) else { return }
+
+        var reorderedVisible = visibleOrder
+        reorderedVisible.remove(at: oldIndex)
+
+        let adjustedIndex = insertionIndex > oldIndex ? insertionIndex - 1 : insertionIndex
+        let safeIndex = min(max(adjustedIndex, 0), reorderedVisible.count)
+        guard safeIndex != oldIndex else { return }
+
+        reorderedVisible.insert(source, at: safeIndex)
+
+        var reorderedIterator = reorderedVisible.makeIterator()
+        let visibleSet = Set(visibleOrder)
+        let newOrder = sectionOrder.map { sectionId in
+            visibleSet.contains(sectionId) ? (reorderedIterator.next() ?? sectionId) : sectionId
+        }
+        homeSectionOrderRaw = HomeSectionID.encode(newOrder)
+    }
+
+    private func dragOffsetY(for id: HomeSectionID) -> CGFloat {
+        guard draggingSection == id,
+              let frame = sectionFrames[id],
+              let dragLocationY else {
+            return 0
+        }
+        return dragLocationY - frame.midY - dragGrabOffsetY
+    }
+
+    private func endSectionDrag() {
+        withAnimation(.spring(response: 0.36, dampingFraction: 0.82)) {
+            draggingSection = nil
+            dragLocationY = nil
+            dragGrabOffsetY = 0
+        }
     }
 
     private var accuracyColor: Color {
@@ -459,6 +515,18 @@ enum HomeSectionID: String, CaseIterable, Codable, Hashable {
 
     static func decode(_ raw: String) -> [HomeSectionID] {
         raw.split(separator: ",").compactMap { HomeSectionID(rawValue: String($0)) }
+    }
+}
+
+private enum HomeSectionDragSpace {
+    static let name = "home-section-drag-space"
+}
+
+private struct HomeSectionFramePreferenceKey: PreferenceKey {
+    static var defaultValue: [HomeSectionID: CGRect] = [:]
+
+    static func reduce(value: inout [HomeSectionID: CGRect], nextValue: () -> [HomeSectionID: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
 
