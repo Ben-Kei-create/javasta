@@ -3380,6 +3380,10 @@ public class Test {
         silverControlFlow007,
         silverDataTypes006,
         silverException007,
+        silverJavaBasics006,
+        silverClasses007,
+        silverCollections006,
+        silverDataTypes007,
     ]
 
     static let generatedGoldQueue: [Quiz] = [
@@ -3392,6 +3396,8 @@ public class Test {
         goldGenerics007,
         goldStream010,
         goldConcurrency006,
+        goldStream011,
+        goldOptional007,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -4058,5 +4064,169 @@ public class Test {
         ],
         explanationRef: "explain-gold-concurrency-006",
         designIntent: "joinによる順序保証を理解させる。"
+    )
+
+    static let silverJavaBasics006 = Quiz(
+        id: "silver-java-basics-006",
+        level: .silver,
+        category: "java-basics",
+        tags: ["演算子", "前置後置", "基礎"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int x = 5;
+        int y = x++;
+        System.out.println(x + " " + y);
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "5 5", correct: false, misconception: nil, explanation: "x++後、xは6になります。"),
+            Choice(id: "b", text: "6 5", correct: true, misconception: nil, explanation: "後置++は代入後に増加するため y=5, x=6 です。"),
+            Choice(id: "c", text: "6 6", correct: false, misconception: "後置と前置を混同", explanation: "yには増加前の値が入ります。"),
+            Choice(id: "d", text: "5 6", correct: false, misconception: nil, explanation: "xが増えるのでこの並びにはなりません。"),
+        ],
+        explanationRef: "explain-silver-java-basics-006",
+        designIntent: "後置インクリメントの評価タイミングを確認する。"
+    )
+
+    static let silverClasses007 = Quiz(
+        id: "silver-classes-007",
+        level: .silver,
+        category: "classes",
+        tags: ["this", "フィールド", "シャドーイング"],
+        code: """
+public class Test {
+    int value = 1;
+    void setValue(int value) {
+        this.value = value;
+    }
+    public static void main(String[] args) {
+        Test t = new Test();
+        t.setValue(10);
+        System.out.println(t.value);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: false, misconception: "引数がフィールドに反映されないと誤解", explanation: "this.valueでフィールド更新しています。"),
+            Choice(id: "b", text: "10", correct: true, misconception: nil, explanation: "this.valueでインスタンスフィールドに10を代入しています。"),
+            Choice(id: "c", text: "0", correct: false, misconception: nil, explanation: "初期値1が10に更新されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "構文は正しいです。"),
+        ],
+        explanationRef: "explain-silver-classes-007",
+        designIntent: "同名引数とフィールドの区別にthisを使う基本を確認する。"
+    )
+
+    static let silverCollections006 = Quiz(
+        id: "silver-collections-006",
+        level: .silver,
+        category: "collections",
+        tags: ["List", "size", "remove", "基礎"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("A");
+        list.add("B");
+        list.remove("A");
+        System.out.println(list.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "0", correct: false, misconception: nil, explanation: "Bが1件残ります。"),
+            Choice(id: "b", text: "1", correct: true, misconception: nil, explanation: "Aを削除後、Bのみ残るためサイズ1です。"),
+            Choice(id: "c", text: "2", correct: false, misconception: "removeが効かないと誤解", explanation: "remove(\"A\") でAは削除されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "APIの使い方は正しいです。"),
+        ],
+        explanationRef: "explain-silver-collections-006",
+        designIntent: "Listの追加・削除・サイズ取得の基本動作を確認する。"
+    )
+
+    static let silverDataTypes007 = Quiz(
+        id: "silver-data-types-007",
+        level: .silver,
+        category: "data-types",
+        tags: ["boolean", "比較演算子", "基礎"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int a = 3;
+        int b = 5;
+        boolean r = a < b;
+        System.out.println(r);
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "3 < 5 はtrueです。"),
+            Choice(id: "b", text: "false", correct: false, misconception: nil, explanation: "比較結果はtrueです。"),
+            Choice(id: "c", text: "1", correct: false, misconception: "booleanを数値と混同", explanation: "Javaはbooleanを1/0で出力しません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "正しい比較式です。"),
+        ],
+        explanationRef: "explain-silver-data-types-007",
+        designIntent: "比較演算子の基礎評価結果を確認する。"
+    )
+
+    static let goldStream011 = Quiz(
+        id: "gold-stream-011",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "count", "filter"],
+        code: """
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        long c = Stream.of("a", "bb", "ccc")
+            .filter(s -> s.length() >= 2)
+            .count();
+        System.out.println(c);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: false, misconception: nil, explanation: "bbとcccの2件が条件一致です。"),
+            Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "長さ2以上は bb と ccc の2件です。"),
+            Choice(id: "c", text: "3", correct: false, misconception: "filter条件を見落とし", explanation: "aは条件外です。"),
+            Choice(id: "d", text: "0", correct: false, misconception: nil, explanation: "一致要素があります。"),
+        ],
+        explanationRef: "explain-gold-stream-011",
+        designIntent: "filter後の要素数をcountで求める基本パターンを確認する。"
+    )
+
+    static let goldOptional007 = Quiz(
+        id: "gold-optional-007",
+        level: .gold,
+        category: "optional-api",
+        tags: ["Optional", "ofNullable", "orElse"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        String s = null;
+        String r = Optional.ofNullable(s).orElse("default");
+        System.out.println(r);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "null", correct: false, misconception: nil, explanation: "orElseでデフォルト値が使われます。"),
+            Choice(id: "b", text: "default", correct: true, misconception: nil, explanation: "ofNullable(null)は空OptionalとなるためorElse値が返ります。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "文法は正しいです。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "ofNullableとofを混同", explanation: "ofNullableはnullを許容します。"),
+        ],
+        explanationRef: "explain-gold-optional-007",
+        designIntent: "ofNullable + orElse の基本利用を確認する。"
     )
 }
