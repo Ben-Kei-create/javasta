@@ -647,11 +647,6 @@ struct LevelSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-//            Text("他問題")
-//                .font(.system(size: 13, weight: .bold))
-//                .foregroundStyle(Color.jbText)
-//                .padding(.horizontal, Spacing.md)
-
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Spacing.sm) {
                     ForEach(quizzes.prefix(previewCount)) { quiz in

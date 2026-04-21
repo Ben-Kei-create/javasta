@@ -84,7 +84,138 @@ extension Explanation {
             goldOptional001.id: goldOptional001,
         ]
 
-        return base.merging(generatedAuthoredSamples, uniquingKeysWith: { _, new in new })
+        return base
+            .merging(generatedAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
+    }
+
+    private static var auditBackfillSamples: [String: Explanation] {
+        var samples: [String: Explanation] = [:]
+        for quiz in Quiz.samples where auditBackfillRefs.contains(quiz.explanationRef) {
+            samples[quiz.explanationRef] = focusedBackfillTrace(for: quiz, ref: quiz.explanationRef)
+        }
+        return samples
+    }
+
+    private static let auditBackfillRefs: Set<String> = [
+        "explain-gold-annotations-002",
+        "explain-gold-classes-003",
+        "explain-gold-classes-004",
+        "explain-gold-classes-005",
+        "explain-gold-classes-006",
+        "explain-gold-collections-002",
+        "explain-gold-collections-003",
+        "explain-gold-collections-004",
+        "explain-gold-concurrency-007",
+        "explain-gold-concurrency-008",
+        "explain-gold-date-time-002",
+        "explain-gold-date-time-003",
+        "explain-gold-date-time-004",
+        "explain-gold-exception-006",
+        "explain-gold-generics-006",
+        "explain-gold-io-003",
+        "explain-gold-io-004",
+        "explain-gold-io-005",
+        "explain-gold-jdbc-003",
+        "explain-gold-module-003",
+        "explain-gold-optional-007",
+        "explain-gold-stream-011",
+        "explain-silver-array-004",
+        "explain-silver-array-005",
+        "explain-silver-array-006",
+        "explain-silver-array-007",
+        "explain-silver-array-008",
+        "explain-silver-arraylist-001",
+        "explain-silver-classes-007",
+        "explain-silver-collections-006",
+        "explain-silver-control-flow-008",
+        "explain-silver-control-flow-009",
+        "explain-silver-data-types-003",
+        "explain-silver-data-types-007",
+        "explain-silver-data-types-008",
+        "explain-silver-data-types-009",
+        "explain-silver-data-types-010",
+        "explain-silver-data-types-011",
+        "explain-silver-data-types-012",
+        "explain-silver-inheritance-004",
+        "explain-silver-inheritance-005",
+        "explain-silver-inheritance-006",
+        "explain-silver-inheritance-007",
+        "explain-silver-java-basics-006",
+        "explain-silver-operators-001",
+        "explain-silver-operators-002",
+        "explain-silver-string-006",
+        "explain-silver-stringbuilder-002",
+        "explain-silver-stringbuilder-003",
+        "explain-silver-stringbuilder-004",
+    ]
+
+    private static func focusedBackfillTrace(for quiz: Quiz, ref: String) -> Explanation {
+        let lines = quiz.code.components(separatedBy: .newlines)
+        let mainLine = lines.firstIndex { $0.contains("main(") }.map { $0 + 1 } ?? 1
+        let decisionLine = bestDecisionLine(in: lines)
+        let correctChoice = quiz.choices.first { $0.correct }
+        let focus = focusSnippet(from: lines, at: decisionLine)
+
+        return Explanation(
+            id: ref,
+            initialCode: quiz.code,
+            codeTabs: quiz.codeTabs,
+            steps: [
+                Step(
+                    index: 0,
+                    narration: "この問題は「\(quiz.designIntent)」を確認します。まず `main` から実行を開始し、判断に効く行 `\(focus)` に注目します。",
+                    highlightLines: Array(Set([mainLine, decisionLine])).sorted(),
+                    variables: [],
+                    callStack: [CallStackFrame(method: "main", line: mainLine)],
+                    heap: [],
+                    predict: nil
+                ),
+                Step(
+                    index: 1,
+                    narration: correctChoice?.explanation ?? quiz.designIntent,
+                    highlightLines: [decisionLine],
+                    variables: [],
+                    callStack: [CallStackFrame(method: "main", line: decisionLine)],
+                    heap: [],
+                    predict: PredictPrompt(
+                        question: quiz.question,
+                        choices: quiz.choices.map(\.text),
+                        answerIndex: max(quiz.choices.firstIndex(where: { $0.correct }) ?? 0, 0),
+                        hint: quiz.tags.joined(separator: " / "),
+                        afterExplanation: correctChoice?.explanation ?? quiz.designIntent
+                    )
+                ),
+                Step(
+                    index: 2,
+                    narration: "したがって正解は「\(correctChoice?.text ?? "該当なし")」です。コードの評価結果と選択肢の説明が一致するかを最後に確認します。",
+                    highlightLines: [decisionLine],
+                    variables: [],
+                    callStack: [CallStackFrame(method: "main", line: decisionLine)],
+                    heap: [],
+                    predict: nil
+                ),
+            ]
+        )
+    }
+
+    private static func bestDecisionLine(in lines: [String]) -> Int {
+        let preferredTokens = ["System.out", "return", "throw", "catch", "if", "for", "while", ".add", ".remove", ".get", ".map", ".filter", ".orElse", ".parse", ".format", ".test", ".apply"]
+        if let index = lines.lastIndex(where: { line in
+            preferredTokens.contains { line.contains($0) }
+        }) {
+            return index + 1
+        }
+        return max(lines.count, 1)
+    }
+
+    private static func focusSnippet(from lines: [String], at line: Int) -> String {
+        guard lines.indices.contains(line - 1) else { return "" }
+        let trimmed = lines[line - 1].trimmingCharacters(in: .whitespaces)
+        if trimmed.count <= 96 {
+            return trimmed
+        }
+        return String(trimmed.prefix(93)) + "..."
     }
 
     private static func quickTrace(for quiz: Quiz, ref: String) -> Explanation {
@@ -2641,6 +2772,9 @@ public class Test {
         silverControlFlow002Explanation.id: silverControlFlow002Explanation,
         silverJavaBasics002Explanation.id: silverJavaBasics002Explanation,
         silverLambda001Explanation.id: silverLambda001Explanation,
+        silverLambda002Explanation.id: silverLambda002Explanation,
+        silverLambda003Explanation.id: silverLambda003Explanation,
+        silverLambda004Explanation.id: silverLambda004Explanation,
         silverMultiFileOverride001Explanation.id: silverMultiFileOverride001Explanation,
         silverStringBuilder001Explanation.id: silverStringBuilder001Explanation,
         goldStream002Explanation.id: goldStream002Explanation,
@@ -2688,6 +2822,47 @@ public class Test {
         goldLocalization022Explanation.id: goldLocalization022Explanation,
         goldLocalization023Explanation.id: goldLocalization023Explanation,
         goldLocalization024Explanation.id: goldLocalization024Explanation,
+        goldLambdaConstructorRef001Explanation.id: goldLambdaConstructorRef001Explanation,
+        goldFunctionalLambda001Explanation.id: goldFunctionalLambda001Explanation,
+        goldFunctionalLambda002Explanation.id: goldFunctionalLambda002Explanation,
+        goldFunctionalLambda003Explanation.id: goldFunctionalLambda003Explanation,
+        goldFunctionalLambda004Explanation.id: goldFunctionalLambda004Explanation,
+        goldFunctionalLambda005Explanation.id: goldFunctionalLambda005Explanation,
+        goldFunctionalLambda006Explanation.id: goldFunctionalLambda006Explanation,
+        goldFunctionalLambda007Explanation.id: goldFunctionalLambda007Explanation,
+        goldFunctionalLambda008Explanation.id: goldFunctionalLambda008Explanation,
+        goldFunctionalLambda009Explanation.id: goldFunctionalLambda009Explanation,
+        goldFunctionalLambda010Explanation.id: goldFunctionalLambda010Explanation,
+        goldFunctionalLambda011Explanation.id: goldFunctionalLambda011Explanation,
+        goldFunctionalLambda012Explanation.id: goldFunctionalLambda012Explanation,
+        goldFunctionalLambda013Explanation.id: goldFunctionalLambda013Explanation,
+        goldFunctionalLambda014Explanation.id: goldFunctionalLambda014Explanation,
+        goldFunctionalLambda015Explanation.id: goldFunctionalLambda015Explanation,
+        goldFunctionalLambda016Explanation.id: goldFunctionalLambda016Explanation,
+        goldFunctionalLambda017Explanation.id: goldFunctionalLambda017Explanation,
+        goldFunctionalLambda018Explanation.id: goldFunctionalLambda018Explanation,
+        goldFunctionalLambda019Explanation.id: goldFunctionalLambda019Explanation,
+        goldFunctionalLambda020Explanation.id: goldFunctionalLambda020Explanation,
+        goldFunctionalLambda021Explanation.id: goldFunctionalLambda021Explanation,
+        goldFunctionalLambda022Explanation.id: goldFunctionalLambda022Explanation,
+        goldFunctionalLambda023Explanation.id: goldFunctionalLambda023Explanation,
+        goldFunctionalLambda024Explanation.id: goldFunctionalLambda024Explanation,
+        goldFunctionalLambda025Explanation.id: goldFunctionalLambda025Explanation,
+        goldFunctionalLambda026Explanation.id: goldFunctionalLambda026Explanation,
+        goldFunctionalLambda027Explanation.id: goldFunctionalLambda027Explanation,
+        goldFunctionalLambda028Explanation.id: goldFunctionalLambda028Explanation,
+        goldFunctionalLambda029Explanation.id: goldFunctionalLambda029Explanation,
+        goldFunctionalLambda030Explanation.id: goldFunctionalLambda030Explanation,
+        goldFunctionalLambda031Explanation.id: goldFunctionalLambda031Explanation,
+        goldFunctionalLambda032Explanation.id: goldFunctionalLambda032Explanation,
+        goldFunctionalLambda033Explanation.id: goldFunctionalLambda033Explanation,
+        goldFunctionalLambda034Explanation.id: goldFunctionalLambda034Explanation,
+        goldFunctionalLambda035Explanation.id: goldFunctionalLambda035Explanation,
+        goldFunctionalLambda036Explanation.id: goldFunctionalLambda036Explanation,
+        goldFunctionalLambda037Explanation.id: goldFunctionalLambda037Explanation,
+        goldFunctionalLambda038Explanation.id: goldFunctionalLambda038Explanation,
+        goldFunctionalLambda039Explanation.id: goldFunctionalLambda039Explanation,
+        goldFunctionalLambda040Explanation.id: goldFunctionalLambda040Explanation,
         goldModule001Explanation.id: goldModule001Explanation,
         goldModule002Explanation.id: goldModule002Explanation,
         goldPathNormalize001Explanation.id: goldPathNormalize001Explanation,
@@ -3422,6 +3597,65 @@ public class Test {
         ]
     )
 
+    static let silverLambda002Explanation = Explanation(
+        id: "explain-silver-lambda-002",
+        initialCode: """
+import java.util.function.Predicate;
+
+public class Test {
+    public static void main(String[] args) {
+        Predicate<String> p = s -> s.length() > 2;
+        System.out.println(p.negate().test("Hi"));
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`p` は `s.length() > 2` を判定するPredicateです。`\"Hi\"` の長さは2なので、元の判定はfalseになります。", highlightLines: [5], variables: [Variable(name: "p", type: "Predicate<String>", value: "length > 2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "`p.negate()` はPredicateのdefaultメソッドで、元の判定結果を反転します。falseがtrueに反転されます。", highlightLines: [6], variables: [Variable(name: "p.test(\"Hi\")", type: "boolean", value: "false", scope: "main"), Variable(name: "p.negate().test(\"Hi\")", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "printlnされる値は？", choices: ["true", "false", "コンパイルエラー"], answerIndex: 0, hint: "negateは結果を反転する", afterExplanation: "正解です。元がfalseなので反転してtrueです。")),
+            Step(index: 2, narration: "最終出力は `true` です。", highlightLines: [6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverLambda003Explanation = Explanation(
+        id: "explain-silver-lambda-003",
+        initialCode: """
+import java.util.function.Predicate;
+
+public class Test {
+    public static void main(String[] args) {
+        int base = 1;
+        Predicate<Integer> p = x -> x > base;
+        base++;
+        System.out.println(p.test(2));
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`base` はローカル変数です。ラムダ式からローカル変数を参照するには、finalまたは実質的finalである必要があります。", highlightLines: [5, 6], variables: [Variable(name: "base", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "後続の `base++` により、`base` は実質的finalではなくなります。したがってラムダ式 `x -> x > base` の部分でコンパイルエラーです。", highlightLines: [6, 7], variables: [Variable(name: "base", type: "int", value: "変更される", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "このコードの結果は？", choices: ["true", "false", "コンパイルエラー"], answerIndex: 2, hint: "ラムダが捕捉するローカル変数は実質的finalが必要", afterExplanation: "正解です。base++があるためコンパイルエラーです。")),
+            Step(index: 2, narration: "実行時例外ではなく、コンパイル時に捕捉規則違反として判定されます。", highlightLines: [6], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverLambda004Explanation = Explanation(
+        id: "explain-silver-lambda-004",
+        initialCode: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Function<String, String> f = String::trim;
+        System.out.println("[" + f.apply(" A ") + "]");
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`String::trim` は、引数として受け取ったStringに対して `trim()` を呼ぶ非staticインスタンスメソッド参照です。`Function<String, String>` に適合します。", highlightLines: [5], variables: [Variable(name: "f", type: "Function<String, String>", value: "String::trim", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "`f.apply(\" A \")` は `\" A \".trim()` と同等で、前後の空白を取り除いて `\"A\"` を返します。", highlightLines: [6], variables: [Variable(name: "f.apply(\" A \")", type: "String", value: "\"A\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["[ A ]", "[A]", "コンパイルエラー"], answerIndex: 1, hint: "trimは前後の空白を削除", afterExplanation: "正解です。角括弧の中はAだけです。")),
+            Step(index: 2, narration: "最終出力は `[A]` です。", highlightLines: [6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
     static let silverMultiFileOverride001Explanation = Explanation(
         id: "explain-silver-multifile-override-001",
         initialCode: """
@@ -3457,6 +3691,573 @@ public class Test {
         ]
     )
 
+    // MARK: - 解説: メソッド参照の使い分け
+        static let goldLambdaMethodReference001Explanation = Explanation(
+            id: "explain-gold-lambda-method-ref-001",
+            initialCode: """
+    String str = "Javasta";
+    Supplier<Integer> s = str::length; // 特定
+    Function<String, Integer> f = String::length; // 任意
+    """,
+            steps: [
+                Step(index: 1,
+                     narration: "特定のオブジェクト `str` を使った参照 `str::length` を作成します。このラムダは、常に `str.length()` を実行する『引数なし・戻り値あり』の処理になるため、Supplierに適合します。",
+                     highlightLines: [2, 3],
+                     variables: [
+                         Variable(name: "str", type: "String", value: "\"Javasta\"", scope: "main"),
+                         Variable(name: "s", type: "Supplier", value: "str.length()", scope: "main")
+                     ],
+                     callStack: [CallStackFrame(method: "main", line: 3)],
+                     heap: [], predict: nil),
+                Step(index: 2,
+                     narration: "クラス名 `String` を使った参照 `String::length` を作成します。これは『文字列を1つ受け取り、その文字列のlength()を呼ぶ』という処理になります。",
+                     highlightLines: [6],
+                     variables: [
+                         Variable(name: "f", type: "Function", value: "(String x) -> x.length()", scope: "main")
+                     ],
+                     callStack: [CallStackFrame(method: "main", line: 6)],
+                     heap: [],
+                     predict: PredictPrompt(
+                         question: "f.apply(\"Java\") を実行したとき、length() はどの文字列に対して呼び出されますか？",
+                         choices: ["元の \"Javasta\"", "引数の \"Java\"", "コンパイルエラーになる"],
+                         answerIndex: 1,
+                         hint: "クラス名::メソッド名の形式（任意オブジェクトの参照）では、第一引数が呼び出し元になります。",
+                         afterExplanation: "正解です！この違いが試験での最大のひっかけポイントです。"
+                     )),
+                Step(index: 3,
+                     narration: "s.get() は固定で 7 を返し、f.apply(\"Java\") は引数に対して実行されるため 4 を返します。\n出力: 7 4",
+                     highlightLines: [8],
+                     variables: [],
+                     callStack: [CallStackFrame(method: "main", line: 8)],
+                     heap: [], predict: nil)
+            ]
+        )
+
+    static let goldLambdaConstructorRef001Explanation = Explanation(
+        id: "explain-gold-lambda-constructor-ref-001",
+        initialCode: """
+Supplier<List<String>> s = ArrayList::new;
+List<String> list = s.get();
+list.add("Gold");
+System.out.println(list.get(0));
+""",
+        steps: [
+            Step(index: 0, narration: "`ArrayList::new` は無引数コンストラクタ参照です。`Supplier.get()` が呼ばれた時点で新しいArrayListを生成します。", highlightLines: [1, 2], variables: [Variable(name: "s", type: "Supplier<List<String>>", value: "ArrayList::new", scope: "main")], callStack: [CallStackFrame(method: "get", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "生成されたリストに `Gold` を追加し、0番目を取り出すため出力は `Gold` です。", highlightLines: [3, 4], variables: [Variable(name: "list", type: "ArrayList<String>", value: "[Gold]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "コンストラクタが実行されるタイミングは？", choices: ["sの代入時", "s.get()呼び出し時"], answerIndex: 1, hint: "Supplierはgetで供給します。", afterExplanation: "正解です。get()でnew ArrayList()相当が動きます。")),
+        ]
+    )
+
+    static let goldFunctionalLambda001Explanation = Explanation(
+        id: "explain-gold-functional-lambda-001",
+        initialCode: """
+@FunctionalInterface
+interface NamedTask {
+    void run();
+    String toString();
+}
+NamedTask task = () -> System.out.print("OK");
+task.run();
+""",
+        steps: [
+            Step(index: 0, narration: "`run()` は抽象メソッドです。`toString()` はObjectのpublicメソッドと同じシグネチャなので、関数型インターフェース判定では数えません。", highlightLines: [1, 3, 4], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "ラムダは `run()` の実装になります。`task.run()` で本体が実行され、`OK` が出力されます。", highlightLines: [6, 7], variables: [Variable(name: "task", type: "NamedTask", value: "lambda", scope: "main")], callStack: [CallStackFrame(method: "run", line: 7)], heap: [], predict: PredictPrompt(question: "SAMとして数える抽象メソッドは？", choices: ["runだけ", "runとtoString"], answerIndex: 0, hint: "Objectメソッドは特別扱いです。", afterExplanation: "正解です。runだけです。")),
+        ]
+    )
+
+    static let goldFunctionalLambda002Explanation = Explanation(
+        id: "explain-gold-functional-lambda-002",
+        initialCode: """
+var f = (String s) -> s.length();
+System.out.println(f.apply("Java"));
+""",
+        steps: [
+            Step(index: 0, narration: "ラムダ式は単独では型が確定せず、`Function<String,Integer>` などのターゲット型が必要です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`var` は右辺から型を推論しますが、右辺のラムダにターゲット型がないため `var f = ...` の行でコンパイルエラーです。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "varだけでラムダの型は決まる？", choices: ["決まる", "決まらない"], answerIndex: 1, hint: "ラムダにはターゲット型が必要です。", afterExplanation: "正解です。明示的な関数型インターフェースが必要です。")),
+        ]
+    )
+
+    static let goldFunctionalLambda003Explanation = Explanation(
+        id: "explain-gold-functional-lambda-003",
+        initialCode: """
+Predicate<String> empty = s -> s.isEmpty();
+System.out.println(empty.test(""));
+""",
+        steps: [
+            Step(index: 0, narration: "`Predicate<String>` の抽象メソッドは `boolean test(String)` です。引数1つで型を明示しないため、`s ->` の括弧を省略できます。", highlightLines: [1], variables: [Variable(name: "empty", type: "Predicate<String>", value: "s.isEmpty()", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`empty.test(\"\")` では空文字の `isEmpty()` がtrueなので、出力は `true` です。", highlightLines: [2], variables: [Variable(name: "s", type: "String", value: "\"\"", scope: "lambda")], callStack: [CallStackFrame(method: "test", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda004Explanation = Explanation(
+        id: "explain-gold-functional-lambda-004",
+        initialCode: """
+Function<String, Integer> f = s -> { s.length(); };
+System.out.println(f.apply("Java"));
+""",
+        steps: [
+            Step(index: 0, narration: "`Function<String,Integer>` はStringを受け取りIntegerを返す必要があります。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "ブロックラムダ `{ ... }` では値を返すなら `return` が必要です。この本体は値を返していないためコンパイルエラーです。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "ブロックラムダで戻り値が必要な時は？", choices: ["returnを書く", "最後の式が自動で返る"], answerIndex: 0, hint: "式ラムダとの違いです。", afterExplanation: "正解です。returnが必要です。")),
+        ]
+    )
+
+    static let goldFunctionalLambda005Explanation = Explanation(
+        id: "explain-gold-functional-lambda-005",
+        initialCode: """
+Consumer<String> c = System.out::print;
+c.accept("A");
+""",
+        steps: [
+            Step(index: 0, narration: "`Consumer<String>` の抽象メソッドは `accept(String)` で戻り値はvoidです。`System.out.print(String)` と対応します。", highlightLines: [1], variables: [Variable(name: "c", type: "Consumer<String>", value: "System.out.print", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`c.accept(\"A\")` でprintが実行され、`A` が出力されます。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "accept", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda006Explanation = Explanation(
+        id: "explain-gold-functional-lambda-006",
+        initialCode: """
+Supplier<String> s = () -> "Hi";
+System.out.println(s.get());
+""",
+        steps: [
+            Step(index: 0, narration: "`Supplier<T>` は引数なしでTを返します。引数なしラムダは `() ->` と書きます。", highlightLines: [1], variables: [Variable(name: "s", type: "Supplier<String>", value: "\"Hi\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`s.get()` でラムダが評価され、戻り値 `Hi` が出力されます。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "get", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda007Explanation = Explanation(
+        id: "explain-gold-functional-lambda-007",
+        initialCode: """
+BiFunction<String, String, String> join = (a, b) -> a + b;
+System.out.println(join.apply("A", "B"));
+""",
+        steps: [
+            Step(index: 0, narration: "`BiFunction<T,U,R>` は2つの引数を受け取り1つの値を返します。2引数ラムダでは括弧が必要です。", highlightLines: [1], variables: [Variable(name: "join", type: "BiFunction<String,String,String>", value: "a + b", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`apply(\"A\", \"B\")` でaがA、bがBになり、連結結果 `AB` が出力されます。", highlightLines: [2], variables: [Variable(name: "a", type: "String", value: "\"A\"", scope: "lambda"), Variable(name: "b", type: "String", value: "\"B\"", scope: "lambda")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda008Explanation = Explanation(
+        id: "explain-gold-functional-lambda-008",
+        initialCode: """
+int base = 1;
+Supplier<Integer> s = () -> base;
+base = 2;
+System.out.println(s.get());
+""",
+        steps: [
+            Step(index: 0, narration: "ラムダがローカル変数 `base` を参照しています。このような変数はfinalまたは実質的finalでなければなりません。", highlightLines: [1, 2], variables: [Variable(name: "base", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "3行目で `base` に再代入しているため実質的finalではありません。コンパイルエラーです。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "再代入されたbaseをラムダで参照できる？", choices: ["できる", "できない"], answerIndex: 1, hint: "実質的finalが必要です。", afterExplanation: "正解です。コンパイルエラーです。")),
+        ]
+    )
+
+    static let goldFunctionalLambda009Explanation = Explanation(
+        id: "explain-gold-functional-lambda-009",
+        initialCode: """
+List<String> list = new ArrayList<>();
+Runnable r = () -> list.add("A");
+r.run();
+System.out.println(list.size());
+""",
+        steps: [
+            Step(index: 0, narration: "`list` 変数自体は再代入されていないため実質的finalです。ラムダ内で参照できます。", highlightLines: [1, 2], variables: [Variable(name: "list", type: "ArrayList<String>", value: "[]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`r.run()` で参照先のArrayListにAを追加します。変数の再代入ではなくオブジェクトの状態変更なので許され、サイズは1です。", highlightLines: [3, 4], variables: [Variable(name: "list", type: "ArrayList<String>", value: "[A]", scope: "main")], callStack: [CallStackFrame(method: "run", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda010Explanation = Explanation(
+        id: "explain-gold-functional-lambda-010",
+        initialCode: """
+Function<String, Integer> f = Integer::parseInt;
+System.out.println(f.apply("123") + 1);
+""",
+        steps: [
+            Step(index: 0, narration: "`Integer::parseInt` は `String -> int` の静的メソッド参照です。戻り値intはFunctionのIntegerへボクシングされます。", highlightLines: [1], variables: [Variable(name: "f", type: "Function<String,Integer>", value: "Integer.parseInt", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`f.apply(\"123\")` はIntegerの123です。`+ 1` は数値加算なので出力は `124` です。", highlightLines: [2], variables: [Variable(name: "f.apply", type: "Integer", value: "123", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda011Explanation = Explanation(
+        id: "explain-gold-functional-lambda-011",
+        initialCode: """
+Function<String, String> f = String::toUpperCase;
+System.out.println(f.apply("java"));
+""",
+        steps: [
+            Step(index: 0, narration: "`String::toUpperCase` は任意オブジェクトのインスタンスメソッド参照です。Functionの引数がレシーバになります。", highlightLines: [1], variables: [Variable(name: "f", type: "Function<String,String>", value: "s -> s.toUpperCase()", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`f.apply(\"java\")` は `\"java\".toUpperCase()` と同等なので、`JAVA` を出力します。", highlightLines: [2], variables: [Variable(name: "receiver", type: "String", value: "\"java\"", scope: "lambda")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda012Explanation = Explanation(
+        id: "explain-gold-functional-lambda-012",
+        initialCode: """
+String prefix = "Hi ";
+Function<String, String> f = prefix::concat;
+System.out.println(f.apply("Java"));
+""",
+        steps: [
+            Step(index: 0, narration: "`prefix::concat` は特定オブジェクト `prefix` を固定レシーバにするメソッド参照です。", highlightLines: [1, 2], variables: [Variable(name: "prefix", type: "String", value: "\"Hi \"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`f.apply(\"Java\")` は `prefix.concat(\"Java\")` と同等です。出力は `Hi Java` です。", highlightLines: [3], variables: [Variable(name: "argument", type: "String", value: "\"Java\"", scope: "lambda")], callStack: [CallStackFrame(method: "apply", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda013Explanation = Explanation(
+        id: "explain-gold-functional-lambda-013",
+        initialCode: """
+Function<String, StringBuilder> f = StringBuilder::new;
+System.out.println(f.apply("abc").reverse());
+""",
+        steps: [
+            Step(index: 0, narration: "`StringBuilder::new` はStringを受け取るコンストラクタ参照として、`Function<String,StringBuilder>` に適合します。", highlightLines: [1], variables: [Variable(name: "f", type: "Function<String,StringBuilder>", value: "new StringBuilder(String)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`abc` からStringBuilderを作り、`reverse()` で反転するため出力は `cba` です。", highlightLines: [2], variables: [Variable(name: "builder", type: "StringBuilder", value: "\"cba\"", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda014Explanation = Explanation(
+        id: "explain-gold-functional-lambda-014",
+        initialCode: """
+IntFunction<int[]> maker = int[]::new;
+System.out.println(maker.apply(3).length);
+""",
+        steps: [
+            Step(index: 0, narration: "`int[]::new` は配列コンストラクタ参照です。`IntFunction<int[]>` のint引数が配列長になります。", highlightLines: [1], variables: [Variable(name: "maker", type: "IntFunction<int[]>", value: "int[]::new", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`maker.apply(3)` は長さ3のint配列を返します。要素初期値ではなくlengthを出しているため `3` です。", highlightLines: [2], variables: [Variable(name: "array.length", type: "int", value: "3", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda015Explanation = Explanation(
+        id: "explain-gold-functional-lambda-015",
+        initialCode: """
+IntPredicate even = i -> i % 2 == 0;
+System.out.println(even.test(4));
+""",
+        steps: [
+            Step(index: 0, narration: "`IntPredicate` はintを受け取りbooleanを返すプリミティブ特化インターフェースです。", highlightLines: [1], variables: [Variable(name: "even", type: "IntPredicate", value: "i % 2 == 0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`even.test(4)` では4 % 2が0なので、出力は `true` です。", highlightLines: [2], variables: [Variable(name: "i", type: "int", value: "4", scope: "lambda")], callStack: [CallStackFrame(method: "test", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda016Explanation = Explanation(
+        id: "explain-gold-functional-lambda-016",
+        initialCode: """
+IntUnaryOperator op = i -> i + 1;
+System.out.println(op.applyAsInt(5));
+""",
+        steps: [
+            Step(index: 0, narration: "`IntUnaryOperator` はintを受け取りintを返します。実行メソッドは `applyAsInt` です。", highlightLines: [1, 2], variables: [Variable(name: "op", type: "IntUnaryOperator", value: "i + 1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "5に1を足して6を返すため、出力は `6` です。", highlightLines: [2], variables: [Variable(name: "return", type: "int", value: "6", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsInt", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda017Explanation = Explanation(
+        id: "explain-gold-functional-lambda-017",
+        initialCode: """
+ToIntFunction<String> length = String::length;
+System.out.println(length.applyAsInt("Gold"));
+""",
+        steps: [
+            Step(index: 0, narration: "`ToIntFunction<String>` はStringを受け取りintを返します。`String::length` はこの形に適合します。", highlightLines: [1], variables: [Variable(name: "length", type: "ToIntFunction<String>", value: "String::length", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Gold` の長さは4です。`applyAsInt` の戻り値はプリミティブintなので出力は `4` です。", highlightLines: [2], variables: [Variable(name: "receiver", type: "String", value: "\"Gold\"", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsInt", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda018Explanation = Explanation(
+        id: "explain-gold-functional-lambda-018",
+        initialCode: """
+DoubleBinaryOperator div = (a, b) -> a / b;
+System.out.println(div.applyAsDouble(5.0, 2.0));
+""",
+        steps: [
+            Step(index: 0, narration: "`DoubleBinaryOperator` はdoubleを2つ受け取りdoubleを返します。実行メソッドは `applyAsDouble` です。", highlightLines: [1, 2], variables: [Variable(name: "div", type: "DoubleBinaryOperator", value: "a / b", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "5.0 / 2.0 はdouble除算なので2.5です。出力は `2.5` です。", highlightLines: [2], variables: [Variable(name: "return", type: "double", value: "2.5", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsDouble", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda019Explanation = Explanation(
+        id: "explain-gold-functional-lambda-019",
+        initialCode: """
+LongSupplier s = () -> 10L;
+LongUnaryOperator twice = x -> x * 2;
+System.out.println(twice.applyAsLong(s.getAsLong()));
+""",
+        steps: [
+            Step(index: 0, narration: "`LongSupplier.getAsLong()` が10Lを返します。`LongUnaryOperator` はlongを受け取りlongを返します。", highlightLines: [1, 2, 3], variables: [Variable(name: "s.getAsLong()", type: "long", value: "10", scope: "main")], callStack: [CallStackFrame(method: "getAsLong", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`twice.applyAsLong(10)` は20を返します。出力は `20` です。", highlightLines: [3], variables: [Variable(name: "return", type: "long", value: "20", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsLong", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda020Explanation = Explanation(
+        id: "explain-gold-functional-lambda-020",
+        initialCode: """
+Function<Integer, Integer> plusOne = x -> x + 1;
+Function<Integer, Integer> timesTwo = x -> x * 2;
+System.out.println(
+    plusOne.andThen(timesTwo).apply(3) + ":" +
+    plusOne.compose(timesTwo).apply(3)
+);
+""",
+        steps: [
+            Step(index: 0, narration: "`andThen` は左の関数を先に実行してから右の関数を実行します。`plusOne.andThen(timesTwo).apply(3)` は `(3 + 1) * 2` で8です。", highlightLines: [1, 2, 4], variables: [Variable(name: "andThen", type: "Integer", value: "8", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`compose` は引数の関数を先に実行します。`plusOne.compose(timesTwo).apply(3)` は `(3 * 2) + 1` で7なので、出力は `8:7` です。", highlightLines: [5], variables: [Variable(name: "compose", type: "Integer", value: "7", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 5)], heap: [], predict: PredictPrompt(question: "andThen側の値は？", choices: ["8", "7"], answerIndex: 0, hint: "plusOneの後にtimesTwoです。", afterExplanation: "正解です。8です。")),
+        ]
+    )
+
+    static let goldFunctionalLambda021Explanation = Explanation(
+        id: "explain-gold-functional-lambda-021",
+        initialCode: """
+Predicate<String> p = s -> { System.out.print("A"); return true; };
+Predicate<String> q = s -> { System.out.print("B"); return true; };
+System.out.println(p.or(q).test("x"));
+""",
+        steps: [
+            Step(index: 0, narration: "`Predicate.or` は短絡評価します。まず左側のpが評価され、`A` を出力してtrueを返します。", highlightLines: [1, 3], variables: [Variable(name: "p.test", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "test", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "左がtrueなのでqは実行されず、`B` は出ません。printlnが結果trueを続けて出すため、全体は `Atrue` です。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "qは実行される？", choices: ["される", "されない"], answerIndex: 1, hint: "orの左がtrueです。", afterExplanation: "正解です。短絡します。")),
+        ]
+    )
+
+    static let goldFunctionalLambda022Explanation = Explanation(
+        id: "explain-gold-functional-lambda-022",
+        initialCode: """
+Function<Integer, Integer> f = x -> x + 1;
+Integer result = f.apply(1);
+System.out.println(result);
+""",
+        steps: [
+            Step(index: 0, narration: "`Function<Integer,Integer>` の引数xはIntegerです。`x + 1` の演算時にxはintへアンボクシングされます。", highlightLines: [1], variables: [Variable(name: "x", type: "Integer", value: "1", scope: "lambda")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "計算結果2は戻り値Integerへボクシングされます。`result` は2なので出力は `2` です。", highlightLines: [2, 3], variables: [Variable(name: "result", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda023Explanation = Explanation(
+        id: "explain-gold-functional-lambda-023",
+        initialCode: """
+IntFunction<Integer> f = i -> i;
+System.out.println(f.apply(3).getClass().getSimpleName());
+""",
+        steps: [
+            Step(index: 0, narration: "`IntFunction<R>` はintを受け取りますが、戻り値Rは参照型です。ここではRがIntegerです。", highlightLines: [1], variables: [Variable(name: "i", type: "int", value: "3", scope: "lambda")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "戻り値のint 3はIntegerにボクシングされます。実体クラス名は `Integer` です。", highlightLines: [2], variables: [Variable(name: "f.apply(3)", type: "Integer", value: "3", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda024Explanation = Explanation(
+        id: "explain-gold-functional-lambda-024",
+        initialCode: """
+BiFunction<String, String, String> f = (var a, var b) -> a + b;
+System.out.println(f.apply("A", "B"));
+""",
+        steps: [
+            Step(index: 0, narration: "ラムダ引数に `var` を使う場合、すべての仮引数で一貫して `var` を使えば有効です。", highlightLines: [1], variables: [Variable(name: "a", type: "String", value: "inferred", scope: "lambda"), Variable(name: "b", type: "String", value: "inferred", scope: "lambda")], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`apply(\"A\", \"B\")` でAとBを連結し、出力は `AB` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda025Explanation = Explanation(
+        id: "explain-gold-functional-lambda-025",
+        initialCode: """
+BiFunction<String, String, String> f = (var a, b) -> a + b;
+System.out.println(f.apply("A", "B"));
+""",
+        steps: [
+            Step(index: 0, narration: "`var` 付き引数と暗黙型引数を同じラムダの仮引数リストで混在させることはできません。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`(var a, b)` の `b` も `var b` にするか、両方からvarを外す必要があります。このコードはコンパイルエラーです。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "varと暗黙型は混在できる？", choices: ["できる", "できない"], answerIndex: 1, hint: "ラムダ引数の一貫性ルールです。", afterExplanation: "正解です。混在できません。")),
+        ]
+    )
+
+    static let goldFunctionalLambda026Explanation = Explanation(
+        id: "explain-gold-functional-lambda-026",
+        initialCode: """
+IntSupplier supplier = () -> 10;
+IntConsumer consumer = x -> System.out.print(x);
+consumer.accept(supplier.getAsInt());
+""",
+        steps: [
+            Step(index: 0, narration: "`IntSupplier` は引数なしでintを返すため、`getAsInt()` の結果は10です。", highlightLines: [1, 3], variables: [Variable(name: "supplier.getAsInt()", type: "int", value: "10", scope: "main")], callStack: [CallStackFrame(method: "getAsInt", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`IntConsumer.accept(int)` が10を受け取り、そのまま出力します。Boxingは不要です。", highlightLines: [2, 3], variables: [Variable(name: "x", type: "int", value: "10", scope: "lambda")], callStack: [CallStackFrame(method: "accept", line: 3)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["10", "10.0", "何も出ない"], answerIndex: 0, hint: "getAsIntの戻り値がacceptに渡る", afterExplanation: "正解です。10です。")),
+        ]
+    )
+
+    static let goldFunctionalLambda027Explanation = Explanation(
+        id: "explain-gold-functional-lambda-027",
+        initialCode: """
+IntBinaryOperator op = (a, b) -> a * b + 1;
+System.out.println(op.applyAsInt(2, 3));
+""",
+        steps: [
+            Step(index: 0, narration: "`IntBinaryOperator` は2つのintを受け取りintを返します。`applyAsInt(2, 3)` でa=2、b=3です。", highlightLines: [1, 2], variables: [Variable(name: "a", type: "int", value: "2", scope: "lambda"), Variable(name: "b", type: "int", value: "3", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsInt", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "ラムダ本体は `2 * 3 + 1` なので7。出力は `7` です。", highlightLines: [1, 2], variables: [Variable(name: "return", type: "int", value: "7", scope: "lambda")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda028Explanation = Explanation(
+        id: "explain-gold-functional-lambda-028",
+        initialCode: """
+IntToDoubleFunction half = x -> x / 2.0;
+System.out.println(half.applyAsDouble(5));
+""",
+        steps: [
+            Step(index: 0, narration: "`IntToDoubleFunction` はintを受け取りdoubleを返します。`applyAsDouble(5)` でx=5です。", highlightLines: [1, 2], variables: [Variable(name: "x", type: "int", value: "5", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsDouble", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`x / 2.0` はdouble演算なので `5 / 2.0 = 2.5`。出力は `2.5` です。", highlightLines: [1, 2], variables: [Variable(name: "return", type: "double", value: "2.5", scope: "lambda")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda029Explanation = Explanation(
+        id: "explain-gold-functional-lambda-029",
+        initialCode: """
+DoubleUnaryOperator add = d -> d + 1.0;
+DoubleUnaryOperator square = d -> d * d;
+System.out.println(
+    add.andThen(square).applyAsDouble(2.0) + ":" +
+    add.compose(square).applyAsDouble(2.0)
+);
+""",
+        steps: [
+            Step(index: 0, narration: "`andThen` はaddを先に実行してからsquareを実行します。2.0に1.0を足して3.0、二乗して9.0です。", highlightLines: [1, 2, 4], variables: [Variable(name: "andThen", type: "double", value: "9.0", scope: "main")], callStack: [CallStackFrame(method: "applyAsDouble", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`compose` は引数側のsquareが先です。2.0を二乗して4.0、それに1.0を足して5.0。出力は `9.0:5.0` です。", highlightLines: [5], variables: [Variable(name: "compose", type: "double", value: "5.0", scope: "main")], callStack: [CallStackFrame(method: "applyAsDouble", line: 5)], heap: [], predict: PredictPrompt(question: "compose側の値は？", choices: ["9.0", "5.0"], answerIndex: 1, hint: "composeはsquareが先", afterExplanation: "正解です。5.0です。")),
+        ]
+    )
+
+    static let goldFunctionalLambda030Explanation = Explanation(
+        id: "explain-gold-functional-lambda-030",
+        initialCode: """
+DoublePredicate p = d -> d == Double.NaN;
+System.out.println(p.test(Double.NaN));
+""",
+        steps: [
+            Step(index: 0, narration: "`DoublePredicate` はdoubleを受け取ってbooleanを返します。ここではNaNを `==` で比較しています。", highlightLines: [1, 2], variables: [Variable(name: "d", type: "double", value: "NaN", scope: "lambda")], callStack: [CallStackFrame(method: "test", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "NaNは自分自身とも `==` では等しくありません。そのため `p.test(Double.NaN)` はfalseです。", highlightLines: [1, 2], variables: [Variable(name: "return", type: "boolean", value: "false", scope: "lambda")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "NaN == NaN は？", choices: ["true", "false"], answerIndex: 1, hint: "NaN比較の特例", afterExplanation: "正解です。falseです。")),
+        ]
+    )
+
+    static let goldFunctionalLambda031Explanation = Explanation(
+        id: "explain-gold-functional-lambda-031",
+        initialCode: """
+LongBinaryOperator op = (a, b) -> a * b;
+System.out.println(op.applyAsLong(6L, 7L));
+""",
+        steps: [
+            Step(index: 0, narration: "`LongBinaryOperator` は2つのlongを受け取りlongを返します。`applyAsLong(6L, 7L)` でa=6、b=7です。", highlightLines: [1, 2], variables: [Variable(name: "a", type: "long", value: "6", scope: "lambda"), Variable(name: "b", type: "long", value: "7", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsLong", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`6L * 7L` は42L。printlnでは `42` と表示されます。", highlightLines: [1, 2], variables: [Variable(name: "return", type: "long", value: "42", scope: "lambda")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda032Explanation = Explanation(
+        id: "explain-gold-functional-lambda-032",
+        initialCode: """
+LongToIntFunction f = x -> (int) x;
+System.out.println(f.applyAsInt(2147483648L));
+""",
+        steps: [
+            Step(index: 0, narration: "`LongToIntFunction` はlongを受け取りintを返します。ラムダ内で `(int) x` と明示キャストしています。", highlightLines: [1, 2], variables: [Variable(name: "x", type: "long", value: "2147483648", scope: "lambda")], callStack: [CallStackFrame(method: "applyAsInt", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "2147483648Lはint最大値を1超えています。intへキャストすると下位32ビットが使われ、`-2147483648` になります。", highlightLines: [1, 2], variables: [Variable(name: "return", type: "int", value: "-2147483648", scope: "lambda")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "キャスト結果は？", choices: ["2147483648", "-2147483648", "例外"], answerIndex: 1, hint: "int範囲を超えています", afterExplanation: "正解です。intの最小値になります。")),
+        ]
+    )
+
+    static let goldFunctionalLambda033Explanation = Explanation(
+        id: "explain-gold-functional-lambda-033",
+        initialCode: """
+ObjIntConsumer<StringBuilder> c = (sb, i) -> sb.append(i);
+StringBuilder sb = new StringBuilder("A");
+c.accept(sb, 3);
+System.out.println(sb);
+""",
+        steps: [
+            Step(index: 0, narration: "`ObjIntConsumer<T>` はT型のオブジェクトとintを受け取り、戻り値なしで処理します。ここではStringBuilderと3を渡します。", highlightLines: [1, 3], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"A\"", scope: "main"), Variable(name: "i", type: "int", value: "3", scope: "lambda")], callStack: [CallStackFrame(method: "accept", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`sb.append(i)` で末尾に3が追加されます。StringBuilderは同じオブジェクトを変更するので出力は `A3` です。", highlightLines: [1, 4], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"A3\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda034Explanation = Explanation(
+        id: "explain-gold-functional-lambda-034",
+        initialCode: """
+ToDoubleFunction<String> f = Double::parseDouble;
+System.out.println(f.applyAsDouble("1.5") + 1);
+""",
+        steps: [
+            Step(index: 0, narration: "`Double::parseDouble` はStringを受け取りdoubleを返すため、`ToDoubleFunction<String>` に適合します。", highlightLines: [1], variables: [Variable(name: "f", type: "ToDoubleFunction<String>", value: "Double.parseDouble", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`f.applyAsDouble(\"1.5\")` は1.5です。数値加算で1を足すため、出力は `2.5` です。", highlightLines: [2], variables: [Variable(name: "applyAsDouble", type: "double", value: "1.5", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda035Explanation = Explanation(
+        id: "explain-gold-functional-lambda-035",
+        initialCode: """
+Predicate<String> p = s -> { System.out.print("A"); return false; };
+Predicate<String> q = s -> { System.out.print("B"); return true; };
+System.out.println(p.and(q).test("x"));
+""",
+        steps: [
+            Step(index: 0, narration: "`Predicate.and` は左から評価します。まずpが実行され、`A` を出力してfalseを返します。", highlightLines: [1, 3], variables: [Variable(name: "p.test", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "test", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "andは左がfalseなら短絡するためqは実行されません。`B` は出ず、printlnがfalseを続けて出すので `Afalse` です。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "qは実行される？", choices: ["される", "されない"], answerIndex: 1, hint: "andの左がfalse", afterExplanation: "正解です。短絡します。")),
+        ]
+    )
+
+    static let goldFunctionalLambda036Explanation = Explanation(
+        id: "explain-gold-functional-lambda-036",
+        initialCode: """
+Function<String, String> id = Function.identity();
+System.out.println(id.andThen(String::toUpperCase).apply("go"));
+""",
+        steps: [
+            Step(index: 0, narration: "`Function.identity()` は入力をそのまま返す関数です。代入先型から `String -> String` と推論されます。", highlightLines: [1], variables: [Variable(name: "id", type: "Function<String,String>", value: "x -> x", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`andThen(String::toUpperCase)` により、identityで返した `\"go\"` にtoUpperCaseが適用されます。出力は `GO` です。", highlightLines: [2], variables: [Variable(name: "value", type: "String", value: "\"GO\"", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda037Explanation = Explanation(
+        id: "explain-gold-functional-lambda-037",
+        initialCode: """
+UnaryOperator<String> op = String::toUpperCase;
+System.out.println(op.apply("java"));
+""",
+        steps: [
+            Step(index: 0, narration: "`UnaryOperator<T>` は `Function<T,T>` の特殊形です。`String::toUpperCase` はStringを受け取りStringを返す形に適合します。", highlightLines: [1], variables: [Variable(name: "op", type: "UnaryOperator<String>", value: "String::toUpperCase", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`op.apply(\"java\")` は `\"java\".toUpperCase()` と同等です。出力は `JAVA` です。", highlightLines: [2], variables: [Variable(name: "return", type: "String", value: "\"JAVA\"", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldFunctionalLambda038Explanation = Explanation(
+        id: "explain-gold-functional-lambda-038",
+        initialCode: """
+BinaryOperator<Integer> max = BinaryOperator.maxBy(Integer::compare);
+System.out.println(max.apply(3, 5));
+""",
+        steps: [
+            Step(index: 0, narration: "`BinaryOperator.maxBy` はComparatorで大きいと判断された値を返すBinaryOperatorを作ります。", highlightLines: [1], variables: [Variable(name: "max", type: "BinaryOperator<Integer>", value: "maxBy(Integer::compare)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Integer::compare` で3と5を比較すると5が大きいので、`max.apply(3, 5)` は5を返します。", highlightLines: [2], variables: [Variable(name: "return", type: "Integer", value: "5", scope: "main")], callStack: [CallStackFrame(method: "apply", line: 2)], heap: [], predict: PredictPrompt(question: "maxByが返す値は？", choices: ["3", "5", "8"], answerIndex: 1, hint: "compareで大きい方", afterExplanation: "正解です。5です。")),
+        ]
+    )
+
+    static let goldFunctionalLambda039Explanation = Explanation(
+        id: "explain-gold-functional-lambda-039",
+        initialCode: """
+Integer a = 100;
+Integer b = 100;
+Integer c = 200;
+Integer d = 200;
+System.out.println((a == b) + ":" + (c == d));
+""",
+        steps: [
+            Step(index: 0, narration: "オートボクシングでは通常 `Integer.valueOf` が使われます。標準では -128 から 127 のIntegerがキャッシュされます。", highlightLines: [1, 2, 3, 4], variables: [Variable(name: "a == b", type: "boolean", value: "true", scope: "main"), Variable(name: "c == d", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`100` はキャッシュ範囲内なので同一参照、`200` は標準範囲外なので別参照です。`==` は参照比較のため出力は `true:false` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "a == b の結果は？", choices: ["true", "false"], answerIndex: 0, hint: "100はIntegerキャッシュ範囲内", afterExplanation: "正解です。trueです。")),
+        ]
+    )
+
+    static let goldFunctionalLambda040Explanation = Explanation(
+        id: "explain-gold-functional-lambda-040",
+        initialCode: """
+Integer x = null;
+int y = x;
+System.out.println(y);
+""",
+        steps: [
+            Step(index: 0, narration: "`Integer x = null` は参照型なので有効です。しかし `int y = x` ではIntegerからintへのアンボクシングが必要になります。", highlightLines: [1, 2], variables: [Variable(name: "x", type: "Integer", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "アンボクシングは実質的に `x.intValue()` を呼ぶ動きです。xがnullなのでこの行でNullPointerExceptionが発生し、printlnには進みません。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "例外が起きる行は？", choices: ["Integer x = null;", "int y = x;", "System.out.println(y);"], answerIndex: 1, hint: "nullをintに変換する瞬間", afterExplanation: "正解です。アンボクシング時です。")),
+        ]
+    )
+    
+    
+    
     // MARK: - Gold placeholder backfill batch
 
     static let goldStream002Explanation = Explanation(

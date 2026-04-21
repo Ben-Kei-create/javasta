@@ -26,7 +26,7 @@ extension GlossaryTerm {
         genericsInvariance, pecs,
         // 関数型・Stream
         lambdaTerm, functionalInterface, methodReference,
-        streamApi, intermediateOp, terminalOp, lazyEvaluation, optionalType,
+        primitiveFunctionalInterfaceTerm, streamApi, intermediateOp, terminalOp, lazyEvaluation, optionalType,
         // ローカライズ・フォーマット
         localeTerm, resourceBundleTerm, formattingTerm,
         // 制御フロー
@@ -277,7 +277,7 @@ a.bark();   // → Dog#bark が呼ばれる
 """,
         relatedTermIds: ["overload", "type-promotion"],
         relatedLessonIds: [],
-        relatedQuizIds: ["silver-autoboxing-001"]
+        relatedQuizIds: ["silver-autoboxing-001", "gold-functional-lambda-022", "gold-functional-lambda-023", "gold-functional-lambda-039", "gold-functional-lambda-040"]
     )
 
     static let varargs = GlossaryTerm(
@@ -392,7 +392,7 @@ Integer d = 200;   // 別インスタンス → c == d は false
 """,
         relatedTermIds: ["boxing", "reference-equals", "wrapper-class"],
         relatedLessonIds: [],
-        relatedQuizIds: ["silver-autoboxing-001"]
+        relatedQuizIds: ["silver-autoboxing-001", "gold-functional-lambda-039"]
     )
 
     static let wrapperClass = GlossaryTerm(
@@ -415,7 +415,7 @@ Integer d = 200;   // 別インスタンス → c == d は false
 """,
         relatedTermIds: ["boxing", "integer-cache"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["silver-autoboxing-001", "gold-functional-lambda-022", "gold-functional-lambda-023", "gold-functional-lambda-039", "gold-functional-lambda-040"]
     )
 
     // MARK: - 制御フロー
@@ -1500,9 +1500,9 @@ x -> x * 2             // 括弧省略可
 
 [メソッド参照](javasta://term/method-reference)でさらに短く書ける場合があります。
 """,
-        relatedTermIds: ["functional-interface", "method-reference", "stream"],
+        relatedTermIds: ["functional-interface", "method-reference", "primitive-functional-interface", "stream"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-lambda-effectively-final-001", "gold-functional-lambda-002", "gold-functional-lambda-003", "gold-functional-lambda-004", "gold-functional-lambda-008", "gold-functional-lambda-009", "gold-functional-lambda-024", "gold-functional-lambda-025"]
     )
 
     static let functionalInterface = GlossaryTerm(
@@ -1528,9 +1528,9 @@ Predicate<String> isLong = s -> s.length() > 5;
 isLong.test("hello");   // false
 ```
 """,
-        relatedTermIds: ["lambda", "method-reference", "interface"],
+        relatedTermIds: ["lambda", "method-reference", "primitive-functional-interface", "interface"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-functional-lambda-001", "gold-functional-lambda-003", "gold-functional-lambda-005", "gold-functional-lambda-006", "gold-functional-lambda-007", "gold-functional-lambda-020", "gold-functional-lambda-021", "gold-functional-lambda-022"]
     )
 
     static let methodReference = GlossaryTerm(
@@ -1555,9 +1555,33 @@ List<String> words = List.of("b", "a", "c");
 words.stream().sorted(String::compareTo).toList();
 ```
 """,
-        relatedTermIds: ["lambda", "functional-interface", "stream"],
+        relatedTermIds: ["lambda", "functional-interface", "primitive-functional-interface", "stream"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-lambda-method-ref-001", "gold-lambda-constructor-ref-001", "gold-functional-lambda-005", "gold-functional-lambda-010", "gold-functional-lambda-011", "gold-functional-lambda-012", "gold-functional-lambda-013", "gold-functional-lambda-014", "gold-functional-lambda-017"]
+    )
+
+    static let primitiveFunctionalInterfaceTerm = GlossaryTerm(
+        id: "primitive-functional-interface",
+        term: "プリミティブ特化関数型インターフェース",
+        aliases: ["IntPredicate", "IntUnaryOperator", "ToIntFunction", "DoubleBinaryOperator", "LongSupplier", "LongUnaryOperator"],
+        summary: "int/double/longなどを直接扱い、Boxing/Unboxingを避けるための関数型インターフェース群。",
+        body: """
+`java.util.function` には、プリミティブ型を直接扱う関数型インターフェースがあります。
+
+代表例:
+
+- `IntPredicate`: `int -> boolean`
+- `IntUnaryOperator`: `int -> int`
+- `ToIntFunction<T>`: `T -> int`
+- `DoubleBinaryOperator`: `(double, double) -> double`
+- `LongSupplier`: `() -> long`
+- `LongUnaryOperator`: `long -> long`
+
+通常の `Function<Integer, Integer>` は計算時に[Boxing / Unboxing](javasta://term/boxing)が発生しがちです。大量データやStream処理では、`IntStream` や `IntUnaryOperator` のようなプリミティブ特化版を選ぶと余計なラッパー生成を避けられます。
+""",
+        relatedTermIds: ["functional-interface", "lambda", "method-reference", "boxing"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["gold-functional-lambda-014", "gold-functional-lambda-015", "gold-functional-lambda-016", "gold-functional-lambda-017", "gold-functional-lambda-018", "gold-functional-lambda-019", "gold-functional-lambda-023", "gold-functional-lambda-026", "gold-functional-lambda-027", "gold-functional-lambda-028", "gold-functional-lambda-029", "gold-functional-lambda-030", "gold-functional-lambda-031", "gold-functional-lambda-032", "gold-functional-lambda-033", "gold-functional-lambda-034"]
     )
 
     // MARK: - 制御フロー追加
