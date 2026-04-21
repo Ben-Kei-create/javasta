@@ -2643,6 +2643,14 @@ public class Test {
         silverLambda001Explanation.id: silverLambda001Explanation,
         silverMultiFileOverride001Explanation.id: silverMultiFileOverride001Explanation,
         silverStringBuilder001Explanation.id: silverStringBuilder001Explanation,
+        goldStream002Explanation.id: goldStream002Explanation,
+        goldStream003Explanation.id: goldStream003Explanation,
+        goldStream004Explanation.id: goldStream004Explanation,
+        goldStream005Explanation.id: goldStream005Explanation,
+        goldOptional002Explanation.id: goldOptional002Explanation,
+        goldOptional003Explanation.id: goldOptional003Explanation,
+        goldGenerics002Explanation.id: goldGenerics002Explanation,
+        goldGenerics003Explanation.id: goldGenerics003Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3321,6 +3329,168 @@ public class Test {
             Step(index: 0, narration: "初期値は `A`。`append(\"B\")` で `AB` になります。", highlightLines: [3, 4], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"AB\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
             Step(index: 1, narration: "続く `reverse()` で `BA` に反転されます。", highlightLines: [4], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"BA\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["AB", "BA", "A"], answerIndex: 1, hint: "append後にreverse", afterExplanation: "正解です。BAです。")),
             Step(index: 2, narration: "最終出力は `BA` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Gold placeholder backfill batch
+
+    static let goldStream002Explanation = Explanation(
+        id: "explain-gold-stream-002",
+        initialCode: """
+import java.util.*;
+public class Test {
+    public static void main(String[] args) {
+        int result = List.of("a", "bb", "ccc").stream()
+            .map(String::length)
+            .filter(n -> n > 1)
+            .findFirst()
+            .orElse(0);
+        System.out.println(result);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "文字列長は 1,2,3 に変換されます。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "filter(n > 1) で 2,3 が残り、findFirstで最初の2を取得します。", highlightLines: [7], variables: [Variable(name: "result", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "orElse(0) が使われる？", choices: ["使われる", "使われない"], answerIndex: 1, hint: "findFirstで値あり", afterExplanation: "正解です。値2があるのでorElseは使われません。")),
+            Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream003Explanation = Explanation(
+        id: "explain-gold-stream-003",
+        initialCode: """
+import java.util.*;
+import java.util.stream.*;
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = List.of("A", "BB", "C", "DDD");
+        Map<Integer, List<String>> map = list.stream()
+            .collect(Collectors.groupingBy(String::length));
+        System.out.println(map.get(1));
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "groupingBy(String::length) は長さをキーにしてリストを作ります。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+            Step(index: 1, narration: "長さ1のグループには `A` と `C` が入ります。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: PredictPrompt(question: "map.get(1) は？", choices: ["A", "[A, C]", "null"], answerIndex: 1, hint: "値はList<String>", afterExplanation: "正解です。長さ1要素のリストです。")),
+            Step(index: 2, narration: "最終出力は `[A, C]` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream004Explanation = Explanation(
+        id: "explain-gold-stream-004",
+        initialCode: """
+import java.util.stream.Stream;
+public class Test {
+    public static void main(String[] args) {
+        Stream.of("A", "B").peek(System.out::print);
+        System.out.print("X");
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`peek` は中間操作で終端操作がない限り実行されません。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "このコードには終端操作がないため `A`,`B` は出力されません。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "何が表示される？", choices: ["ABX", "X", "XAB"], answerIndex: 1, hint: "print(\"X\") は普通に実行", afterExplanation: "正解です。Xのみです。")),
+            Step(index: 2, narration: "最終出力は `X` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream005Explanation = Explanation(
+        id: "explain-gold-stream-005",
+        initialCode: """
+import java.util.stream.Stream;
+public class Test {
+    public static void main(String[] args) {
+        int result = Stream.of(1, 2, 3)
+            .reduce(10, Integer::sum);
+        System.out.println(result);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "reduceのidentityは10で、累積の初期値として使われます。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "10 + 1 + 2 + 3 = 16 になります。", highlightLines: [5], variables: [Variable(name: "result", type: "int", value: "16", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["6", "10", "16"], answerIndex: 2, hint: "identityを忘れない", afterExplanation: "正解です。16です。")),
+            Step(index: 2, narration: "最終出力は `16` です。", highlightLines: [6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldOptional002Explanation = Explanation(
+        id: "explain-gold-optional-002",
+        initialCode: """
+import java.util.*;
+public class Test {
+    static String fallback() {
+        System.out.print("F");
+        return "fallback";
+    }
+    public static void main(String[] args) {
+        String result = Optional.of("java").orElse(fallback());
+        System.out.println(result);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`orElse(fallback())` は引数を先に評価するため、fallback()が必ず実行され `F` が出ます。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+            Step(index: 1, narration: "ただしOptionalには値`java`があるため、採用される戻り値は `java` です。", highlightLines: [8], variables: [Variable(name: "result", type: "String", value: "\"java\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: PredictPrompt(question: "最終表示は？", choices: ["java", "Fjava", "Ffallback"], answerIndex: 1, hint: "副作用F + 値java", afterExplanation: "正解です。Fjavaです。")),
+            Step(index: 2, narration: "最終出力は `Fjava` です。", highlightLines: [9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldOptional003Explanation = Explanation(
+        id: "explain-gold-optional-003",
+        initialCode: """
+import java.util.Optional;
+public class Test {
+    public static void main(String[] args) {
+        try {
+            Optional.of(null);
+            System.out.println("OK");
+        } catch (NullPointerException e) {
+            System.out.println("NPE");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`Optional.of(null)` はnull非許容のため即 `NullPointerException` を投げます。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "例外はcatch節で受け取られ `NPE` を出力します。", highlightLines: [7, 8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: PredictPrompt(question: "OKは表示される？", choices: ["される", "されない"], answerIndex: 1, hint: "try途中で例外", afterExplanation: "正解です。OK行には到達しません。")),
+            Step(index: 2, narration: "最終出力は `NPE` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldGenerics002Explanation = Explanation(
+        id: "explain-gold-generics-002",
+        initialCode: """
+import java.util.*;
+public class Test {
+    public static void main(String[] args) {
+        List<? super Integer> nums = new ArrayList<Number>();
+        nums.add(10);
+        Object value = nums.get(0);
+        System.out.println(value);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`? super Integer` にはIntegerの追加が安全に行えます。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "取り出し型はObjectですが、中身は追加した `10` です。", highlightLines: [6], variables: [Variable(name: "value", type: "Object", value: "10", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["10", "null", "コンパイルエラー"], answerIndex: 0, hint: "格納値は保持される", afterExplanation: "正解です。10です。")),
+            Step(index: 2, narration: "最終出力は `10` です。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldGenerics003Explanation = Explanation(
+        id: "explain-gold-generics-003",
+        initialCode: """
+import java.util.*;
+public class Test {
+    static void print(List<String> values) { System.out.println("String"); }
+    static void print(List<Integer> values) { System.out.println("Integer"); }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "一見すると型引数違いのオーバーロードですが、Javaの型消去後は両方とも `print(List)` になります。", highlightLines: [3, 4], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "同一シグネチャ重複となるためクラス定義時点でコンパイルエラーです。", highlightLines: [3, 4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "結果は？", choices: ["正常コンパイル", "コンパイルエラー", "実行時ClassCastException"], answerIndex: 1, hint: "erasureで衝突", afterExplanation: "正解です。コンパイルエラーです。")),
+            Step(index: 2, narration: "このコードはコンパイルエラーになります。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
         ]
     )
 }
