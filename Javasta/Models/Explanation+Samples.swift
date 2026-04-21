@@ -2617,11 +2617,17 @@ public class Test {
         silverDataTypes005Explanation.id: silverDataTypes005Explanation,
         silverCollections004Explanation.id: silverCollections004Explanation,
         silverInheritance003Explanation.id: silverInheritance003Explanation,
+        silverJavaBasics005Explanation.id: silverJavaBasics005Explanation,
+        silverOverload006Explanation.id: silverOverload006Explanation,
+        silverString005Explanation.id: silverString005Explanation,
+        silverCollections005Explanation.id: silverCollections005Explanation,
         goldStream007Explanation.id: goldStream007Explanation,
         goldGenerics005Explanation.id: goldGenerics005Explanation,
         goldOptional005Explanation.id: goldOptional005Explanation,
         goldStream008Explanation.id: goldStream008Explanation,
         goldOptional006Explanation.id: goldOptional006Explanation,
+        goldStream009Explanation.id: goldStream009Explanation,
+        goldGenerics007Explanation.id: goldGenerics007Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -2880,6 +2886,124 @@ public class Test {
             Step(index: 0, narration: "`Optional.of(\"x\")` から開始し、flatMapで wrap を適用します。", highlightLines: [8, 9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
             Step(index: 1, narration: "wrapは Optional.of(\"[x]\") を返し、flatMapで平坦化された結果を得ます。", highlightLines: [4, 5, 9], variables: [Variable(name: "r", type: "String", value: "\"[x]\"", scope: "main")], callStack: [CallStackFrame(method: "wrap", line: 5)], heap: [], predict: PredictPrompt(question: "orElse(\"none\") は使われる？", choices: ["使われる", "使われない"], answerIndex: 1, hint: "値ありOptionalです。", afterExplanation: "その通りです。値があるので使われません。")),
             Step(index: 2, narration: "最終出力は `[x]` です。", highlightLines: [11], variables: [], callStack: [CallStackFrame(method: "main", line: 11)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverJavaBasics005Explanation = Explanation(
+        id: "explain-silver-java-basics-005",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        Integer a = 127;
+        Integer b = 127;
+        Integer c = 128;
+        Integer d = 128;
+        System.out.print((a == b) + " ");
+        System.out.println(c == d);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "127はIntegerキャッシュ範囲(-128〜127)内なので `a==b` はtrueになります。", highlightLines: [3, 4, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+            Step(index: 1, narration: "128は通常キャッシュ外のため `c` と `d` は別参照となり `c==d` はfalseです。", highlightLines: [5, 6, 8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: PredictPrompt(question: "最終出力は？", choices: ["true true", "true false", "false false"], answerIndex: 1, hint: "127と128の差に注目", afterExplanation: "正解です。true falseです。")),
+            Step(index: 2, narration: "最終出力は `true false` です。", highlightLines: [7, 8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverOverload006Explanation = Explanation(
+        id: "explain-silver-overload-006",
+        initialCode: """
+public class Test {
+    static void m(String... s)  { System.out.print("S "); }
+    static void m(Integer... i) { System.out.print("I "); }
+    public static void main(String[] args) {
+        m(null);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`m(null)` は String... と Integer... の両方に適用可能です。", highlightLines: [2, 3, 5], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "どちらも可変長引数で優先順位が付かず、最も具体的な候補を一意に決められません。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "結果は？", choices: ["Sが出力", "Iが出力", "コンパイルエラー"], answerIndex: 2, hint: "曖昧解決", afterExplanation: "正解です。コンパイルエラーです。")),
+            Step(index: 2, narration: "このコードはオーバーロード曖昧でコンパイルエラーになります。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverString005Explanation = Explanation(
+        id: "explain-silver-string-005",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        String s = "ABCDE";
+        System.out.println(s.substring(1, 4));
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`substring(1, 4)` は begin=1を含み、end=4を含みません。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "index1=B, index2=C, index3=D が対象になります。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "取り出される文字列は？", choices: ["BCD", "BCDE", "ABCD"], answerIndex: 0, hint: "endは含まない", afterExplanation: "その通りです。BCDです。")),
+            Step(index: 2, narration: "最終出力は `BCD` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverCollections005Explanation = Explanation(
+        id: "explain-silver-collections-005",
+        initialCode: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("A", "B");
+        list.set(0, "X");
+        System.out.print(list + " ");
+        list.add("C");
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`Arrays.asList` は固定長リストを返します。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "`set` は要素置換なので成功し、`[X, B]` が出力されます。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "続く add(\"C\") は？", choices: ["成功する", "UnsupportedOperationException"], answerIndex: 1, hint: "サイズ変更可否", afterExplanation: "正解です。固定長のためaddは失敗します。")),
+            Step(index: 2, narration: "`add` はサイズ変更なので `UnsupportedOperationException` が発生します。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream009Explanation = Explanation(
+        id: "explain-gold-stream-009",
+        initialCode: """
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Stream.of(1, 2, 3)
+            .peek(System.out::print);
+        System.out.println("END");
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`peek` は中間操作で、終端操作が呼ばれるまで実行されません。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "このコードには終端操作がないため 1,2,3 は出力されません。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "実際に表示されるのは？", choices: ["123END", "END", "何もなし"], answerIndex: 1, hint: "printlnは通常実行される", afterExplanation: "正解です。ENDのみです。")),
+            Step(index: 2, narration: "最終出力は `END` です。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldGenerics007Explanation = Explanation(
+        id: "explain-gold-generics-007",
+        initialCode: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<?> list = new ArrayList<String>();
+        // list.add("A");
+        list.add(null);
+        System.out.println(list.size());
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`List<?>` は要素型不明のため、型安全に追加できる値は基本的にnullのみです。", highlightLines: [5, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+            Step(index: 1, narration: "コメント行 `list.add(\"A\")` を有効化するとコンパイルエラーですが、`list.add(null)` は有効です。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "現在のコードのsizeは？", choices: ["0", "1", "コンパイルエラー"], answerIndex: 1, hint: "nullを1件追加", afterExplanation: "その通りです。1です。")),
+            Step(index: 2, narration: "最終出力は `1` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
         ]
     )
 }

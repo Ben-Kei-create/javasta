@@ -3372,6 +3372,10 @@ public class Test {
         silverDataTypes005,
         silverCollections004,
         silverInheritance003,
+        silverJavaBasics005,
+        silverOverload006,
+        silverString005,
+        silverCollections005,
     ]
 
     static let generatedGoldQueue: [Quiz] = [
@@ -3380,6 +3384,8 @@ public class Test {
         goldOptional005,
         goldStream008,
         goldOptional006,
+        goldStream009,
+        goldGenerics007,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3723,5 +3729,165 @@ public class Test {
         ],
         explanationRef: "explain-gold-optional-006",
         designIntent: "flatMapでOptionalの入れ子を回避する使い方を確認する。"
+    )
+
+    static let silverJavaBasics005 = Quiz(
+        id: "silver-java-basics-005",
+        level: .silver,
+        category: "java-basics",
+        tags: ["ラッパークラス", "Integer", "==", "ひっかけ"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        Integer a = 127;
+        Integer b = 127;
+        Integer c = 128;
+        Integer d = 128;
+        System.out.print((a == b) + " ");
+        System.out.println(c == d);
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "true true", correct: false, misconception: "すべて同じキャッシュと誤解", explanation: "Integerのキャッシュ範囲外(128)では同一参照になりません。"),
+            Choice(id: "b", text: "true false", correct: true, misconception: nil, explanation: "127はキャッシュされ同一参照、128は通常別インスタンスです。"),
+            Choice(id: "c", text: "false false", correct: false, misconception: "オートボクシングで毎回新規生成と誤解", explanation: "127はキャッシュされます。"),
+            Choice(id: "d", text: "false true", correct: false, misconception: nil, explanation: "127側の比較がtrueになります。"),
+        ],
+        explanationRef: "explain-silver-java-basics-005",
+        designIntent: "Integerキャッシュ範囲(-128〜127)による == 比較の罠を押さえる。"
+    )
+
+    static let silverOverload006 = Quiz(
+        id: "silver-overload-006",
+        level: .silver,
+        category: "overload-resolution",
+        tags: ["オーバーロード", "varargs", "null", "ひっかけ"],
+        code: """
+public class Test {
+    static void m(String... s)  { System.out.print("S "); }
+    static void m(Integer... i) { System.out.print("I "); }
+    public static void main(String[] args) {
+        m(null);
+    }
+}
+""",
+        question: "このコードについて正しい説明はどれか？",
+        choices: [
+            Choice(id: "a", text: "S が出力される", correct: false, misconception: nil, explanation: "String... と Integer... のどちらにもnullが適用可能で優劣が付きません。"),
+            Choice(id: "b", text: "I が出力される", correct: false, misconception: nil, explanation: "同様に一意に選べません。"),
+            Choice(id: "c", text: "コンパイルエラー（曖昧）", correct: true, misconception: nil, explanation: "null引数で両varargs候補が同等に適用可能なため曖昧です。"),
+            Choice(id: "d", text: "実行時NullPointerException", correct: false, misconception: nil, explanation: "実行前にオーバーロード解決で失敗します。"),
+        ],
+        explanationRef: "explain-silver-overload-006",
+        designIntent: "null + 複数varargs候補で曖昧解決になるケースを確認する。"
+    )
+
+    static let silverString005 = Quiz(
+        id: "silver-string-005",
+        level: .silver,
+        category: "string",
+        tags: ["substring", "index", "標準API"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        String s = "ABCDE";
+        System.out.println(s.substring(1, 4));
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "ABCD", correct: false, misconception: "開始indexを0と誤解", explanation: "開始は1なのでBからです。"),
+            Choice(id: "b", text: "BCD", correct: true, misconception: nil, explanation: "substring(begin, end) は begin含む / end含まないため BCD です。"),
+            Choice(id: "c", text: "BCDE", correct: false, misconception: "end含むと誤解", explanation: "end index 4 の文字Eは含まれません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "有効なsubstring呼び出しです。"),
+        ],
+        explanationRef: "explain-silver-string-005",
+        designIntent: "substringの begin inclusive / end exclusive を確実にする。"
+    )
+
+    static let silverCollections005 = Quiz(
+        id: "silver-collections-005",
+        level: .silver,
+        category: "collections",
+        tags: ["Arrays.asList", "固定長リスト", "UnsupportedOperationException"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("A", "B");
+        list.set(0, "X");
+        System.out.print(list + " ");
+        list.add("C");
+    }
+}
+""",
+        question: "このコードについて正しい説明はどれか？",
+        choices: [
+            Choice(id: "a", text: "[X, B] C が出力される", correct: false, misconception: "asList結果が可変長と誤解", explanation: "addはUnsupportedOperationExceptionになります。"),
+            Choice(id: "b", text: "[X, B] の後に UnsupportedOperationException が発生する", correct: true, misconception: nil, explanation: "setは可能ですが、サイズ変更を伴うaddは不可です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "コードはコンパイル可能です。"),
+            Choice(id: "d", text: "最初のsetで例外が出る", correct: false, misconception: nil, explanation: "setは許可されています。"),
+        ],
+        explanationRef: "explain-silver-collections-005",
+        designIntent: "Arrays.asListの固定長リスト特性（set可/add不可）を区別させる。"
+    )
+
+    static let goldStream009 = Quiz(
+        id: "gold-stream-009",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "peek", "遅延評価", "終端操作"],
+        code: """
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Stream.of(1, 2, 3)
+            .peek(System.out::print);
+        System.out.println("END");
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "123END", correct: false, misconception: "peekで即実行されると誤解", explanation: "終端操作がないためpeekは実行されません。"),
+            Choice(id: "b", text: "END", correct: true, misconception: nil, explanation: "Streamパイプラインは終端操作なしでは実行されません。"),
+            Choice(id: "c", text: "何も出力されない", correct: false, misconception: nil, explanation: "println(\"END\") は実行されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "文法的には正しいコードです。"),
+        ],
+        explanationRef: "explain-gold-stream-009",
+        designIntent: "Stream中間操作の遅延実行をpeekで再確認する。"
+    )
+
+    static let goldGenerics007 = Quiz(
+        id: "gold-generics-007",
+        level: .gold,
+        category: "generics",
+        tags: ["ワイルドカード", "List<?>", "add"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<?> list = new ArrayList<String>();
+        // list.add("A");
+        list.add(null);
+        System.out.println(list.size());
+    }
+}
+""",
+        question: "このコードに関する説明として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "コメント行を有効化してもコンパイル成功する", correct: false, misconception: "List<?>に任意型add可能と誤解", explanation: "要素型不明のためnull以外はaddできません。"),
+            Choice(id: "b", text: "現在のコードは1を出力する", correct: true, misconception: nil, explanation: "nullの追加は許可されるため要素数は1になります。"),
+            Choice(id: "c", text: "現在のコードは0を出力する", correct: false, misconception: nil, explanation: "nullが1件追加されています。"),
+            Choice(id: "d", text: "実行時ClassCastException", correct: false, misconception: nil, explanation: "不正キャストはしていません。"),
+        ],
+        explanationRef: "explain-gold-generics-007",
+        designIntent: "List<?> への追加制約（nullのみ可）を明確にする。"
     )
 }
