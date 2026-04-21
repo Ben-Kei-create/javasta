@@ -9,11 +9,6 @@ struct HomeView: View {
     @State private var expandedMetric: HomeMetric = .accuracy
     @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
-    @AppStorage("homeSectionOrderV1") private var homeSectionOrderRaw: String = HomeSectionID.defaultOrderRaw
-    @State private var draggingSection: HomeSectionID?
-    @State private var dragLocationY: CGFloat?
-    @State private var dragGrabOffsetY: CGFloat = 0
-    @State private var sectionFrames: [HomeSectionID: CGRect] = [:]
 
     private var selectedVersion: JavaExamVersion {
         JavaExamVersion(rawValue: selectedExamVersionRaw) ?? .se17
@@ -41,7 +36,8 @@ struct HomeView: View {
                         headerSection
 
                         ForEach(visibleSectionOrder, id: \.self) { sectionId in
-                            reorderableSection(for: sectionId)
+                            sectionContent(for: sectionId)
+                                .padding(.vertical, 2)
                                 .transition(.scale(scale: 0.96).combined(with: .opacity))
                         }
 
@@ -50,13 +46,7 @@ struct HomeView: View {
                             .frame(height: 60)
                     }
                     .padding(.bottom, Spacing.lg)
-                    .animation(.spring(response: 0.45, dampingFraction: 0.82), value: sectionOrder)
-                    .onPreferenceChange(HomeSectionFramePreferenceKey.self) { frames in
-                        sectionFrames = frames
-                    }
                 }
-                .coordinateSpace(name: HomeSectionDragSpace.name)
-                .scrollDisabled(isReordering)
             }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $showSettings) {
@@ -299,43 +289,15 @@ struct HomeView: View {
         }
     }
 
-    // MARK: Reorderable sections
-
-    private var sectionOrder: [HomeSectionID] {
-        var decoded = HomeSectionID.decode(homeSectionOrderRaw)
-        for id in HomeSectionID.allCases where !decoded.contains(id) {
-            decoded.append(id)
-        }
-        return decoded.filter { HomeSectionID.allCases.contains($0) }
-    }
+    // MARK: Home sections
 
     private var visibleSectionOrder: [HomeSectionID] {
-        sectionOrder.filter { id in
+        HomeSectionID.fixedOrder.filter { id in
             if case .reviewQueue = id {
                 return !reviewQueueQuizzes.isEmpty
             }
             return true
         }
-    }
-
-    private var isReordering: Bool { draggingSection != nil }
-
-    @ViewBuilder
-    private func reorderableSection(for id: HomeSectionID) -> some View {
-        let content = sectionContent(for: id)
-        content
-            .padding(.vertical, 2)
-            .background(sectionFrameReader(for: id))
-            .scaleEffect(draggingSection == id ? 1.02 : 1.0)
-            .offset(y: dragOffsetY(for: id))
-            .zIndex(draggingSection == id ? 10 : 0)
-            .shadow(
-                color: Color.black.opacity(draggingSection == id ? 0.22 : 0),
-                radius: draggingSection == id ? 18 : 0,
-                y: draggingSection == id ? 12 : 0
-            )
-            .animation(.spring(response: 0.32, dampingFraction: 0.78), value: draggingSection)
-            .gesture(reorderGesture(for: id))
     }
 
     @ViewBuilder
@@ -364,107 +326,6 @@ struct HomeView: View {
         }
     }
 
-    private func sectionFrameReader(for id: HomeSectionID) -> some View {
-        GeometryReader { proxy in
-            Color.clear
-                .preference(
-                    key: HomeSectionFramePreferenceKey.self,
-                    value: [id: proxy.frame(in: .named(HomeSectionDragSpace.name))]
-                )
-        }
-    }
-
-    private func reorderGesture(for id: HomeSectionID) -> some Gesture {
-        LongPressGesture(minimumDuration: 0.28, maximumDistance: 18)
-            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named(HomeSectionDragSpace.name)))
-            .onChanged { value in
-                switch value {
-                case .first(true):
-                    beginSectionDrag(id)
-                case .second(true, let drag):
-                    beginSectionDrag(id)
-                    guard let drag else { return }
-                    updateSectionDrag(id, drag: drag)
-                default:
-                    break
-                }
-            }
-            .onEnded { _ in
-                endSectionDrag()
-            }
-    }
-
-    private func beginSectionDrag(_ id: HomeSectionID) {
-        guard draggingSection == nil || draggingSection == id else { return }
-        withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) {
-            draggingSection = id
-        }
-    }
-
-    private func updateSectionDrag(_ id: HomeSectionID, drag: DragGesture.Value) {
-        guard draggingSection == id else { return }
-        if dragLocationY == nil, let frame = sectionFrames[id] {
-            dragGrabOffsetY = drag.startLocation.y - frame.midY
-        }
-        dragLocationY = drag.location.y
-        updateSectionPosition(id, draggedCenterY: drag.location.y - dragGrabOffsetY)
-    }
-
-    private func updateSectionPosition(_ id: HomeSectionID, draggedCenterY: CGFloat) {
-        let visibleOrder = visibleSectionOrder
-        guard visibleOrder.count > 1, visibleOrder.contains(id) else { return }
-
-        let insertionIndex = visibleOrder.firstIndex { target in
-            guard let frame = sectionFrames[target] else { return false }
-            return draggedCenterY < frame.midY
-        } ?? visibleOrder.count
-
-        withAnimation(.spring(response: 0.44, dampingFraction: 0.84)) {
-            moveSection(id, toVisibleInsertionIndex: insertionIndex, visibleOrder: visibleOrder)
-        }
-    }
-
-    private func moveSection(
-        _ source: HomeSectionID,
-        toVisibleInsertionIndex insertionIndex: Int,
-        visibleOrder: [HomeSectionID]
-    ) {
-        guard let oldIndex = visibleOrder.firstIndex(of: source) else { return }
-
-        var reorderedVisible = visibleOrder
-        reorderedVisible.remove(at: oldIndex)
-
-        let adjustedIndex = insertionIndex > oldIndex ? insertionIndex - 1 : insertionIndex
-        let safeIndex = min(max(adjustedIndex, 0), reorderedVisible.count)
-        guard safeIndex != oldIndex else { return }
-
-        reorderedVisible.insert(source, at: safeIndex)
-
-        var reorderedIterator = reorderedVisible.makeIterator()
-        let visibleSet = Set(visibleOrder)
-        let newOrder = sectionOrder.map { sectionId in
-            visibleSet.contains(sectionId) ? (reorderedIterator.next() ?? sectionId) : sectionId
-        }
-        homeSectionOrderRaw = HomeSectionID.encode(newOrder)
-    }
-
-    private func dragOffsetY(for id: HomeSectionID) -> CGFloat {
-        guard draggingSection == id,
-              let frame = sectionFrames[id],
-              let dragLocationY else {
-            return 0
-        }
-        return dragLocationY - frame.midY - dragGrabOffsetY
-    }
-
-    private func endSectionDrag() {
-        withAnimation(.spring(response: 0.36, dampingFraction: 0.82)) {
-            draggingSection = nil
-            dragLocationY = nil
-            dragGrabOffsetY = 0
-        }
-    }
-
     private var accuracyColor: Color {
         guard progress.answerAttemptCount(level: selectedLevel) > 0 else { return Color.jbSubtext }
         let p = progress.levelAccuracyPercent(selectedLevel)
@@ -476,12 +337,20 @@ struct HomeView: View {
 
 // MARK: - HomeSectionID
 
-enum HomeSectionID: String, CaseIterable, Codable, Hashable {
+enum HomeSectionID: String, CaseIterable, Hashable {
     case commandCenter
     case heatmap
     case reviewQueue
     case practiceModes
     case levelSection
+
+    static let fixedOrder: [HomeSectionID] = [
+        .commandCenter,
+        .heatmap,
+        .reviewQueue,
+        .practiceModes,
+        .levelSection
+    ]
 
     var displayTitle: String {
         switch self {
@@ -493,29 +362,6 @@ enum HomeSectionID: String, CaseIterable, Codable, Hashable {
         }
     }
 
-    static var defaultOrderRaw: String {
-        encode(Self.allCases)
-    }
-
-    static func encode(_ ids: [HomeSectionID]) -> String {
-        ids.map { $0.rawValue }.joined(separator: ",")
-    }
-
-    static func decode(_ raw: String) -> [HomeSectionID] {
-        raw.split(separator: ",").compactMap { HomeSectionID(rawValue: String($0)) }
-    }
-}
-
-private enum HomeSectionDragSpace {
-    static let name = "home-section-drag-space"
-}
-
-private struct HomeSectionFramePreferenceKey: PreferenceKey {
-    static var defaultValue: [HomeSectionID: CGRect] = [:]
-
-    static func reduce(value: inout [HomeSectionID: CGRect], nextValue: () -> [HomeSectionID: CGRect]) {
-        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
-    }
 }
 
 // MARK: - HomeMetric
@@ -800,41 +646,48 @@ struct LevelSectionView: View {
     private let previewCount = 5
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Spacing.sm) {
-                ForEach(quizzes.prefix(previewCount)) { quiz in
-                    QuizCardView(quiz: quiz, onTap: { onSelect(quiz) })
-                }
-                NavigationLink {
-                    AllQuizzesView(
-                        level: level,
-                        version: version,
-                        onSelect: onSelect,
-                        onStartSession: onStartSession
-                    )
-                } label: {
-                    VStack(spacing: Spacing.xs) {
-                        Image(systemName: "chevron.right.2")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(Color.jbAccent)
-                        Text("すべて見る")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Color.jbAccent)
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            Text("他問題")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Color.jbText)
+                .padding(.horizontal, Spacing.md)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.sm) {
+                    ForEach(quizzes.prefix(previewCount)) { quiz in
+                        QuizCardView(quiz: quiz, onTap: { onSelect(quiz) })
                     }
-                    .frame(width: 80, height: 118)
-                    .background(
-                        RoundedRectangle(cornerRadius: Radius.md)
-                            .fill(Color.jbCard)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: Radius.md)
-                                    .stroke(Color.jbAccent.opacity(0.35), lineWidth: 1)
-                            )
-                    )
+                    NavigationLink {
+                        AllQuizzesView(
+                            level: level,
+                            version: version,
+                            onSelect: onSelect,
+                            onStartSession: onStartSession
+                        )
+                    } label: {
+                        VStack(spacing: Spacing.xs) {
+                            Image(systemName: "chevron.right.2")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(Color.jbAccent)
+                            Text("すべて見る")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Color.jbAccent)
+                        }
+                        .frame(width: 80, height: 118)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .fill(Color.jbCard)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.md)
+                                        .stroke(Color.jbAccent.opacity(0.35), lineWidth: 1)
+                                )
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, 4)
             }
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, 4)
         }
     }
 }

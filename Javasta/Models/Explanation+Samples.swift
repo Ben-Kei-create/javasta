@@ -2692,6 +2692,68 @@ public class Test {
         goldDateTime005Explanation.id: goldDateTime005Explanation,
         goldIo006Explanation.id: goldIo006Explanation,
         goldClasses007Explanation.id: goldClasses007Explanation,
+        silverFinal001Explanation.id: silverFinal001Explanation,
+        silverFinal002Explanation.id: silverFinal002Explanation,
+        silverFinal003Explanation.id: silverFinal003Explanation,
+        silverStatic001Explanation.id: silverStatic001Explanation,
+        silverStatic002Explanation.id: silverStatic002Explanation,
+        silverStatic003Explanation.id: silverStatic003Explanation,
+        silverStatic004Explanation.id: silverStatic004Explanation,
+        goldStatic005Explanation.id: goldStatic005Explanation,
+        goldStatic006Explanation.id: goldStatic006Explanation,
+        silverEnum001Explanation.id: silverEnum001Explanation,
+        silverEnum002Explanation.id: silverEnum002Explanation,
+        silverEnum003Explanation.id: silverEnum003Explanation,
+        goldEnum004Explanation.id: goldEnum004Explanation,
+        goldEnum005Explanation.id: goldEnum005Explanation,
+        silverObject001Explanation.id: silverObject001Explanation,
+        silverObject002Explanation.id: silverObject002Explanation,
+        goldObject003Explanation.id: goldObject003Explanation,
+        goldObject004Explanation.id: goldObject004Explanation,
+        goldAnnotations003Explanation.id: goldAnnotations003Explanation,
+        goldAnnotations004Explanation.id: goldAnnotations004Explanation,
+        goldAnnotations005Explanation.id: goldAnnotations005Explanation,
+        goldAnnotations006Explanation.id: goldAnnotations006Explanation,
+        goldAnnotations007Explanation.id: goldAnnotations007Explanation,
+        goldAnnotations008Explanation.id: goldAnnotations008Explanation,
+        goldAnnotations009Explanation.id: goldAnnotations009Explanation,
+        goldAnnotations010Explanation.id: goldAnnotations010Explanation,
+        goldAnnotations011Explanation.id: goldAnnotations011Explanation,
+        goldAnnotations012Explanation.id: goldAnnotations012Explanation,
+        goldException007Explanation.id: goldException007Explanation,
+        goldException008Explanation.id: goldException008Explanation,
+        goldException009Explanation.id: goldException009Explanation,
+        goldException010Explanation.id: goldException010Explanation,
+        goldException011Explanation.id: goldException011Explanation,
+        goldException012Explanation.id: goldException012Explanation,
+        goldException013Explanation.id: goldException013Explanation,
+        goldException014Explanation.id: goldException014Explanation,
+        goldException015Explanation.id: goldException015Explanation,
+        goldException016Explanation.id: goldException016Explanation,
+        goldException017Explanation.id: goldException017Explanation,
+        goldException018Explanation.id: goldException018Explanation,
+        goldException019Explanation.id: goldException019Explanation,
+        goldException020Explanation.id: goldException020Explanation,
+        goldSecureCoding001Explanation.id: goldSecureCoding001Explanation,
+        goldSecureCoding002Explanation.id: goldSecureCoding002Explanation,
+        goldSecureCoding003Explanation.id: goldSecureCoding003Explanation,
+        goldSecureCoding004Explanation.id: goldSecureCoding004Explanation,
+        goldSecureCoding005Explanation.id: goldSecureCoding005Explanation,
+        goldSecureCoding006Explanation.id: goldSecureCoding006Explanation,
+        goldSecureCoding007Explanation.id: goldSecureCoding007Explanation,
+        goldSecureCoding008Explanation.id: goldSecureCoding008Explanation,
+        goldSecureCoding009Explanation.id: goldSecureCoding009Explanation,
+        goldSecureCoding010Explanation.id: goldSecureCoding010Explanation,
+        goldSecureCoding011Explanation.id: goldSecureCoding011Explanation,
+        goldSecureCoding012Explanation.id: goldSecureCoding012Explanation,
+        goldSecureCoding013Explanation.id: goldSecureCoding013Explanation,
+        goldSecureCoding014Explanation.id: goldSecureCoding014Explanation,
+        goldSecureCoding015Explanation.id: goldSecureCoding015Explanation,
+        goldSecureCoding016Explanation.id: goldSecureCoding016Explanation,
+        goldSecureCoding017Explanation.id: goldSecureCoding017Explanation,
+        goldSecureCoding018Explanation.id: goldSecureCoding018Explanation,
+        goldSecureCoding019Explanation.id: goldSecureCoding019Explanation,
+        goldSecureCoding020Explanation.id: goldSecureCoding020Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -4185,6 +4247,1107 @@ System.out.println(p.x() + "," + p.y());
             Step(index: 0, narration: "new Point(-1,2) でコンパクトコンストラクタに入り、パラメータxは-1、yは2です。", highlightLines: [2, 6], variables: [Variable(name: "x", type: "int", value: "-1", scope: "Point ctor"), Variable(name: "y", type: "int", value: "2", scope: "Point ctor")], callStack: [CallStackFrame(method: "Point", line: 2)], heap: [], predict: nil),
             Step(index: 1, narration: "`x < 0` がtrueなので、コンストラクタパラメータxを0へ補正します。その後recordコンポーネントへ代入されます。", highlightLines: [3], variables: [Variable(name: "x", type: "int", value: "0", scope: "Point ctor")], callStack: [CallStackFrame(method: "Point", line: 3)], heap: [], predict: PredictPrompt(question: "p.x()は？", choices: ["-1", "0", "コンパイルエラー"], answerIndex: 1, hint: "パラメータ補正後にフィールドへ", afterExplanation: "正解です。0です。")),
             Step(index: 2, narration: "yは2のままなので、最終出力は `0,2` です。", highlightLines: [7], variables: [Variable(name: "p.x()", type: "int", value: "0", scope: "main"), Variable(name: "p.y()", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Modifier / Static / Enum / Object Batch
+
+    static let silverFinal001Explanation = Explanation(
+        id: "explain-silver-final-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        final int x = 10;
+        x++;
+        System.out.println(x);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`final int x = 10;` で、ローカル変数xは一度だけ代入された状態になります。", highlightLines: [3], variables: [Variable(name: "x", type: "int", value: "10", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`x++` は見た目は短くても、読み取り後にxへ新しい値を書き戻す操作です。つまりfinal変数への再代入になります。", highlightLines: [4], variables: [Variable(name: "x", type: "int", value: "10", scope: "main")], callStack: [CallStackFrame(method: "compile", line: 4)], heap: [], predict: PredictPrompt(question: "x++は許される？", choices: ["許される", "コンパイルエラー"], answerIndex: 1, hint: "++ は代入を含みます。", afterExplanation: "正解です。finalローカル変数には再代入できません。")),
+            Step(index: 2, narration: "コンパイルエラーになるため、`System.out.println(x);` までは実行されません。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverFinal002Explanation = Explanation(
+        id: "explain-silver-final-002",
+        initialCode: """
+class Card {
+    final String rank;
+    static final String SUIT = "S";
+
+    Card(String rank) {
+        this.rank = rank;
+    }
+
+    String label() {
+        return rank + SUIT;
+    }
+}
+
+Card card = new Card("A");
+System.out.println(card.label());
+""",
+        steps: [
+            Step(index: 0, narration: "`static final String SUIT` はクラス側の定数として `S` に初期化されています。`rank` はblank finalフィールドなので、コンストラクタで一度だけ代入できます。", highlightLines: [2, 3], variables: [Variable(name: "SUIT", type: "String", value: "\"S\"", scope: "Card")], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`new Card(\"A\")` でコンストラクタに入り、`this.rank = rank;` により各インスタンスのfinalフィールドrankへAを保存します。", highlightLines: [5, 6, 14], variables: [Variable(name: "rank", type: "String", value: "\"A\"", scope: "Card ctor")], callStack: [CallStackFrame(method: "Card", line: 6)], heap: [HeapObject(id: "card", type: "Card", fields: ["rank": "\"A\""])], predict: PredictPrompt(question: "finalフィールドrankはここで代入できる？", choices: ["できる", "できない"], answerIndex: 0, hint: "blank finalはコンストラクタで初期化できます。", afterExplanation: "正解です。全コンストラクタ経路で一度だけ代入されれば有効です。")),
+            Step(index: 2, narration: "`label()` はインスタンスフィールドrankとstaticフィールドSUITを同じクラス内から参照し、`AS` を返します。", highlightLines: [9, 10, 15], variables: [Variable(name: "card.label()", type: "String", value: "\"AS\"", scope: "main")], callStack: [CallStackFrame(method: "label", line: 10)], heap: [HeapObject(id: "card", type: "Card", fields: ["rank": "\"A\""])], predict: nil),
+        ]
+    )
+
+    static let silverFinal003Explanation = Explanation(
+        id: "explain-silver-final-003",
+        initialCode: """
+class Parent {
+    final void show() {
+        System.out.print("P");
+    }
+}
+
+class Child extends Parent {
+    void show() {
+        System.out.print("C");
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`Parent.show()` には `final` が付いています。これはサブクラスで同じシグネチャのメソッドとしてオーバーライドできない、という意味です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Child` は `void show()` を宣言しており、`Parent.show()` をオーバーライドしようとしています。", highlightLines: [7, 8], variables: [], callStack: [CallStackFrame(method: "compile", line: 8)], heap: [], predict: PredictPrompt(question: "エラーになる場所は？", choices: ["extends Parent", "Childのshow()", "mainメソッド"], answerIndex: 1, hint: "継承自体は可能です。禁止されるのはfinalメソッドの上書きです。", afterExplanation: "正解です。Childのshow()宣言がfinalメソッドのオーバーライドとして拒否されます。")),
+            Step(index: 2, narration: "したがってこのコードはコンパイルエラーです。finalメソッドを持つクラスを継承すること自体はできます。", highlightLines: [8], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverStatic001Explanation = Explanation(
+        id: "explain-silver-static-001",
+        initialCode: """
+class Counter {
+    static int total = 0;
+    int id = ++total;
+}
+
+Counter a = new Counter();
+Counter b = new Counter();
+System.out.println(a.id + ":" + b.id + ":" + Counter.total);
+""",
+        steps: [
+            Step(index: 0, narration: "Counterクラスのstaticフィールドtotalはクラスに1つだけあり、初期値は0です。", highlightLines: [2], variables: [Variable(name: "total", type: "int", value: "0", scope: "Counter")], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "1つ目の `new Counter()` で `++total` が先にtotalを1へ増やし、その値がa.idになります。", highlightLines: [3, 6], variables: [Variable(name: "total", type: "int", value: "1", scope: "Counter"), Variable(name: "a.id", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "Counter init", line: 3)], heap: [HeapObject(id: "a", type: "Counter", fields: ["id": "1"])], predict: nil),
+            Step(index: 2, narration: "2つ目の生成でも同じtotalを共有するため、b.idは2、Counter.totalも2です。", highlightLines: [7, 8], variables: [Variable(name: "total", type: "int", value: "2", scope: "Counter"), Variable(name: "b.id", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 8)], heap: [HeapObject(id: "a", type: "Counter", fields: ["id": "1"]), HeapObject(id: "b", type: "Counter", fields: ["id": "2"])], predict: PredictPrompt(question: "出力は？", choices: ["1:2:2", "1:1:0", "0:1:2"], answerIndex: 0, hint: "totalは共有、++totalは前置です。", afterExplanation: "正解です。出力は1:2:2です。")),
+        ]
+    )
+
+    static let silverStatic002Explanation = Explanation(
+        id: "explain-silver-static-002",
+        initialCode: """
+class Tool {
+    int size = 3;
+
+    static int twice() {
+        return size * 2;
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`size` はstaticではないため、Toolインスタンスごとに存在するフィールドです。", highlightLines: [2], variables: [Variable(name: "size", type: "int", value: "3", scope: "Tool instance")], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`twice()` はstaticメソッドです。static文脈には暗黙の `this` がないので、どのToolインスタンスのsizeか決められません。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "compile", line: 5)], heap: [], predict: PredictPrompt(question: "staticメソッドからsizeを直接読める？", choices: ["読める", "読めない"], answerIndex: 1, hint: "非staticメンバには対象インスタンスが必要です。", afterExplanation: "正解です。`new Tool().size` のような対象が必要です。")),
+            Step(index: 2, narration: "そのため `return size * 2;` がコンパイルエラーになります。実行時の例外ではありません。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverStatic003Explanation = Explanation(
+        id: "explain-silver-static-003",
+        initialCode: """
+class Item {
+    static int rate = 2;
+    int price;
+    Item(int price) { this.price = price; }
+    int total() { return price * rate; }
+    static void change(int newRate) { rate = newRate; }
+}
+
+Item item = new Item(5);
+System.out.print(item.total() + " ");
+Item.change(3);
+System.out.println(item.total());
+""",
+        steps: [
+            Step(index: 0, narration: "Itemクラスのrateはstaticで共有され、最初は2です。`new Item(5)` でitem.priceは5になります。", highlightLines: [2, 4, 9], variables: [Variable(name: "rate", type: "int", value: "2", scope: "Item"), Variable(name: "item.price", type: "int", value: "5", scope: "main")], callStack: [CallStackFrame(method: "Item", line: 4)], heap: [HeapObject(id: "item", type: "Item", fields: ["price": "5"])], predict: nil),
+            Step(index: 1, narration: "インスタンスメソッド `total()` では、インスタンス側のpriceとクラス側のrateの両方を参照できます。最初は5 * 2で10です。", highlightLines: [5, 10], variables: [Variable(name: "price", type: "int", value: "5", scope: "item"), Variable(name: "rate", type: "int", value: "2", scope: "Item")], callStack: [CallStackFrame(method: "total", line: 5)], heap: [], predict: PredictPrompt(question: "最初のtotal()は？", choices: ["5", "10", "15"], answerIndex: 1, hint: "rateは2です。", afterExplanation: "正解です。5 * 2で10です。")),
+            Step(index: 2, narration: "`Item.change(3)` で共有rateが3になります。同じitemで再度total()を呼ぶと5 * 3で15です。", highlightLines: [6, 11, 12], variables: [Variable(name: "rate", type: "int", value: "3", scope: "Item"), Variable(name: "item.total()", type: "int", value: "15", scope: "main")], callStack: [CallStackFrame(method: "main", line: 12)], heap: [HeapObject(id: "item", type: "Item", fields: ["price": "5"])], predict: nil),
+        ]
+    )
+
+    static let silverStatic004Explanation = Explanation(
+        id: "explain-silver-static-004",
+        initialCode: """
+class Config {
+    static int value = 7;
+    static String name() { return "OK"; }
+}
+
+Config config = null;
+System.out.println(config.name() + ":" + config.value);
+""",
+        steps: [
+            Step(index: 0, narration: "Configクラスのstaticフィールドvalueは7、staticメソッドname()はOKを返すメソッドです。どちらもインスタンスではなくクラスに属します。", highlightLines: [2, 3], variables: [Variable(name: "value", type: "int", value: "7", scope: "Config")], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`config` にはnullが入っています。ただし `config.name()` と `config.value` はstaticメンバなので、実際にはConfigのメンバとして解決されます。", highlightLines: [6, 7], variables: [Variable(name: "config", type: "Config", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "NullPointerExceptionになる？", choices: ["なる", "ならない"], answerIndex: 1, hint: "呼んでいる先はstaticメンバです。", afterExplanation: "正解です。推奨される書き方ではありませんが、staticメンバはクラス側で解決されます。")),
+            Step(index: 2, narration: "name()はOK、valueは7なので、最終出力は `OK:7` です。", highlightLines: [7], variables: [Variable(name: "出力", type: "String", value: "\"OK:7\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStatic005Explanation = Explanation(
+        id: "explain-gold-static-005",
+        initialCode: """
+class Parent {
+    static String name() { return "P"; }
+    String label() { return "PI"; }
+}
+class Child extends Parent {
+    static String name() { return "C"; }
+    String label() { return "CI"; }
+}
+Parent p = new Child();
+System.out.println(p.name() + ":" + p.label());
+""",
+        steps: [
+            Step(index: 0, narration: "`p` の宣言型はParent、実体はChildです。この2つを分けて読みます。", highlightLines: [9], variables: [Variable(name: "p", type: "Parent", value: "Child instance", scope: "main")], callStack: [CallStackFrame(method: "main", line: 9)], heap: [HeapObject(id: "p", type: "Child", fields: [:])], predict: nil),
+            Step(index: 1, narration: "`p.name()` はstaticメソッドです。staticメソッドはオーバーライドではなく隠蔽なので、参照型Parentに基づきParent.name()が選ばれます。", highlightLines: [2, 6, 10], variables: [Variable(name: "p.name()", type: "String", value: "\"P\"", scope: "main")], callStack: [CallStackFrame(method: "Parent.name", line: 2)], heap: [], predict: PredictPrompt(question: "name()はどちら？", choices: ["Parent.name()", "Child.name()"], answerIndex: 0, hint: "staticは参照型で決まります。", afterExplanation: "正解です。Parent版でPです。")),
+            Step(index: 2, narration: "`p.label()` はインスタンスメソッドなので、実体Childに基づいてChild.label()が呼ばれます。出力は `P:CI` です。", highlightLines: [3, 7, 10], variables: [Variable(name: "p.label()", type: "String", value: "\"CI\"", scope: "main")], callStack: [CallStackFrame(method: "Child.label", line: 7)], heap: [HeapObject(id: "p", type: "Child", fields: [:])], predict: nil),
+        ]
+    )
+
+    static let goldStatic006Explanation = Explanation(
+        id: "explain-gold-static-006",
+        initialCode: """
+class Logger {
+    static int n = init();
+    static {
+        System.out.print("B" + n + " ");
+        n++;
+    }
+    Logger() { System.out.print("C" + n + " "); }
+    static int init() {
+        System.out.print("A ");
+        return 1;
+    }
+}
+
+new Logger();
+new Logger();
+System.out.println(Logger.n);
+""",
+        steps: [
+            Step(index: 0, narration: "最初にLoggerを使うタイミングでクラス初期化が始まります。宣言順に `static int n = init();` が実行され、Aを出力してnは1になります。", highlightLines: [2, 8, 9, 14], variables: [Variable(name: "n", type: "int", value: "1", scope: "Logger")], callStack: [CallStackFrame(method: "init", line: 8)], heap: [], predict: nil),
+            Step(index: 1, narration: "次にstaticブロックが一度だけ実行されます。現在のnは1なのでB1を出力し、その後nを2に増やします。", highlightLines: [3, 4, 5], variables: [Variable(name: "n", type: "int", value: "2", scope: "Logger")], callStack: [CallStackFrame(method: "static init", line: 5)], heap: [], predict: PredictPrompt(question: "staticブロックは2回目のnewでも走る？", choices: ["走る", "走らない"], answerIndex: 1, hint: "クラス初期化は一度だけです。", afterExplanation: "正解です。2回目以降のnewではコンストラクタだけです。")),
+            Step(index: 2, narration: "コンストラクタはインスタンス生成ごとに2回実行され、どちらもC2を出力します。最後にLogger.nの2を出力するため、全体は `A B1 C2 C2 2` です。", highlightLines: [7, 14, 15, 16], variables: [Variable(name: "n", type: "int", value: "2", scope: "Logger")], callStack: [CallStackFrame(method: "main", line: 16)], heap: [HeapObject(id: "logger1", type: "Logger", fields: [:]), HeapObject(id: "logger2", type: "Logger", fields: [:])], predict: nil),
+        ]
+    )
+
+    static let silverEnum001Explanation = Explanation(
+        id: "explain-silver-enum-001",
+        initialCode: """
+enum Level { LOW, MEDIUM, HIGH }
+Level level = Level.MEDIUM;
+System.out.println(level.name() + ":" + level.ordinal());
+""",
+        steps: [
+            Step(index: 0, narration: "LevelにはLOW、MEDIUM、HIGHの3つの定数があります。宣言順の番号ordinalは0始まりです。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`level` には2番目の定数MEDIUMが入ります。name()は定数名そのものを返します。", highlightLines: [2, 3], variables: [Variable(name: "level", type: "Level", value: "MEDIUM", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "MEDIUMのordinalは？", choices: ["0", "1", "2"], answerIndex: 1, hint: "LOWが0です。", afterExplanation: "正解です。MEDIUMは1です。")),
+            Step(index: 2, narration: "したがって出力は `MEDIUM:1` です。", highlightLines: [3], variables: [Variable(name: "level.name()", type: "String", value: "\"MEDIUM\"", scope: "main"), Variable(name: "level.ordinal()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverEnum002Explanation = Explanation(
+        id: "explain-silver-enum-002",
+        initialCode: """
+enum Size {
+    SMALL(1), LARGE(3);
+    private final int code;
+    Size(int code) { this.code = code; }
+    int code() { return code; }
+}
+System.out.println(Size.LARGE.code());
+""",
+        steps: [
+            Step(index: 0, narration: "enum定数SMALLとLARGEは、それぞれコンストラクタ引数1と3を持って生成されます。", highlightLines: [2, 4], variables: [], callStack: [CallStackFrame(method: "Size", line: 4)], heap: [HeapObject(id: "SMALL", type: "Size", fields: ["code": "1"]), HeapObject(id: "LARGE", type: "Size", fields: ["code": "3"])], predict: nil),
+            Step(index: 1, narration: "`Size.LARGE.code()` はLARGE定数のインスタンスメソッドを呼び、LARGEが持つcodeフィールドを返します。", highlightLines: [5, 7], variables: [Variable(name: "Size.LARGE.code", type: "int", value: "3", scope: "Size")], callStack: [CallStackFrame(method: "code", line: 5)], heap: [], predict: PredictPrompt(question: "LARGEのcodeは？", choices: ["1", "3", "0"], answerIndex: 1, hint: "LARGE(3)です。", afterExplanation: "正解です。LARGEのコンストラクタ引数は3です。")),
+            Step(index: 2, narration: "最終出力は `3` です。enumは単なる名前の列ではなく、フィールドやメソッドも持てます。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverEnum003Explanation = Explanation(
+        id: "explain-silver-enum-003",
+        initialCode: """
+enum Day { MON, TUE }
+System.out.print(Day.values().length + " ");
+System.out.println(Day.valueOf("MON") == Day.MON);
+""",
+        steps: [
+            Step(index: 0, narration: "`Day.values()` は宣言済みの全enum定数を配列で返します。MONとTUEの2件なのでlengthは2です。", highlightLines: [1, 2], variables: [Variable(name: "Day.values().length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Day.valueOf(\"MON\")` は文字列名に一致する既存のenum定数Day.MONを返します。新しいインスタンスは作りません。", highlightLines: [3], variables: [Variable(name: "Day.valueOf(\"MON\")", type: "Day", value: "MON", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "== の結果は？", choices: ["true", "false"], answerIndex: 0, hint: "enum定数は固定インスタンスです。", afterExplanation: "正解です。同じDay.MONなのでtrueです。")),
+            Step(index: 2, narration: "最終出力は `2 true` です。", highlightLines: [2, 3], variables: [Variable(name: "出力", type: "String", value: "\"2 true\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldEnum004Explanation = Explanation(
+        id: "explain-gold-enum-004",
+        initialCode: """
+enum Op {
+    PLUS { int apply(int a, int b) { return a + b; } },
+    TIMES { int apply(int a, int b) { return a * b; } };
+    abstract int apply(int a, int b);
+}
+System.out.println(Op.PLUS.apply(2, 3) + ":" + Op.TIMES.apply(2, 3));
+""",
+        steps: [
+            Step(index: 0, narration: "Opは抽象メソッドapplyを持つenumです。各定数PLUS/TIMESが自分用のクラス本体でapplyを実装しています。", highlightLines: [1, 2, 3, 4], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`Op.PLUS.apply(2, 3)` はPLUS定数側の実装を使うため、2 + 3で5です。", highlightLines: [2, 6], variables: [Variable(name: "PLUS.apply(2,3)", type: "int", value: "5", scope: "main")], callStack: [CallStackFrame(method: "PLUS.apply", line: 2)], heap: [], predict: PredictPrompt(question: "TIMES.apply(2,3)は？", choices: ["5", "6"], answerIndex: 1, hint: "TIMESは掛け算です。", afterExplanation: "正解です。2 * 3で6です。")),
+            Step(index: 2, narration: "`Op.TIMES.apply(2, 3)` はTIMES定数側の実装を使い、2 * 3で6です。出力は `5:6` です。", highlightLines: [3, 6], variables: [Variable(name: "TIMES.apply(2,3)", type: "int", value: "6", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldEnum005Explanation = Explanation(
+        id: "explain-gold-enum-005",
+        initialCode: """
+enum Color { RED, BLUE }
+static String label(Color color) {
+    return switch (color) {
+        case RED -> "R";
+        case BLUE -> "B";
+    };
+}
+System.out.println(label(Color.BLUE));
+""",
+        steps: [
+            Step(index: 0, narration: "Color enumにはREDとBLUEの2定数だけがあります。switch式ではこの2つをcaseで扱っています。", highlightLines: [1, 3, 4, 5], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`label(Color.BLUE)` ではcolorがBLUEなので、BLUEケースの式 `\"B\"` がswitch式の値になります。", highlightLines: [5, 8], variables: [Variable(name: "color", type: "Color", value: "BLUE", scope: "label")], callStack: [CallStackFrame(method: "label", line: 5)], heap: [], predict: PredictPrompt(question: "defaultなしでコンパイルできる？", choices: ["できる", "できない"], answerIndex: 0, hint: "enumの全定数がcaseにあります。", afterExplanation: "正解です。REDとBLUEを網羅しているためdefaultなしで成立します。")),
+            Step(index: 2, narration: "labelはBを返し、printlnが `B` を出力します。", highlightLines: [8], variables: [Variable(name: "label(Color.BLUE)", type: "String", value: "\"B\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverObject001Explanation = Explanation(
+        id: "explain-silver-object-001",
+        initialCode: """
+Object a = new Object();
+Object b = a;
+Object c = new Object();
+System.out.println(a.equals(b) + ":" + a.equals(c));
+""",
+        steps: [
+            Step(index: 0, narration: "`a` は新しいObjectを参照し、`b = a` によってbも同じObjectを参照します。", highlightLines: [1, 2], variables: [Variable(name: "a", type: "Object", value: "obj1", scope: "main"), Variable(name: "b", type: "Object", value: "obj1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [HeapObject(id: "obj1", type: "Object", fields: [:])], predict: nil),
+            Step(index: 1, narration: "`c` は別の `new Object()` なので、a/bとは異なる参照です。Objectのデフォルトequalsは参照同一性を比較します。", highlightLines: [3, 4], variables: [Variable(name: "c", type: "Object", value: "obj2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [HeapObject(id: "obj1", type: "Object", fields: [:]), HeapObject(id: "obj2", type: "Object", fields: [:])], predict: PredictPrompt(question: "a.equals(c)は？", choices: ["true", "false"], answerIndex: 1, hint: "cは別インスタンスです。", afterExplanation: "正解です。Object.equalsのままなら別参照はfalseです。")),
+            Step(index: 2, narration: "`a.equals(b)` はtrue、`a.equals(c)` はfalseなので、出力は `true:false` です。", highlightLines: [4], variables: [Variable(name: "a.equals(b)", type: "boolean", value: "true", scope: "main"), Variable(name: "a.equals(c)", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverObject002Explanation = Explanation(
+        id: "explain-silver-object-002",
+        initialCode: """
+Object value = "Java";
+System.out.println(value.getClass().getSimpleName() + ":" + value.toString());
+""",
+        steps: [
+            Step(index: 0, narration: "`value` の宣言型はObjectですが、実体は文字列リテラル `Java`、つまりStringインスタンスです。", highlightLines: [1], variables: [Variable(name: "value", type: "Object", value: "\"Java\" (String)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`getClass()` は変数の宣言型ではなく実行時クラスを返します。そのためsimpleNameはStringです。", highlightLines: [2], variables: [Variable(name: "value.getClass().getSimpleName()", type: "String", value: "\"String\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "toString()はどの実装？", choices: ["Objectの実装", "Stringの実装"], answerIndex: 1, hint: "インスタンスメソッドは実体側で動的に選ばれます。", afterExplanation: "正解です。String.toString()が呼ばれ、Java自身を返します。")),
+            Step(index: 2, narration: "`value.toString()` はStringの実装でJavaを返すので、出力は `String:Java` です。", highlightLines: [2], variables: [Variable(name: "value.toString()", type: "String", value: "\"Java\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldObject003Explanation = Explanation(
+        id: "explain-gold-object-003",
+        initialCode: """
+class Key {
+    private final int id;
+    Key(int id) { this.id = id; }
+    public boolean equals(Object obj) {
+        return obj instanceof Key other && other.id == id;
+    }
+    public int hashCode() { return id; }
+}
+Set<Key> set = new HashSet<>();
+set.add(new Key(1));
+set.add(new Key(1));
+System.out.println(set.size());
+""",
+        steps: [
+            Step(index: 0, narration: "Keyは `equals(Object)` と `hashCode()` をidベースでオーバーライドしています。HashSetはこの2つを使って同値性を判定します。", highlightLines: [4, 7, 9], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "1つ目の `new Key(1)` はSetに追加されます。hashCodeは1です。", highlightLines: [10], variables: [Variable(name: "set.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "HashSet.add", line: 10)], heap: [HeapObject(id: "key1", type: "Key", fields: ["id": "1"])], predict: nil),
+            Step(index: 2, narration: "2つ目の `new Key(1)` も別インスタンスですが、hashCodeが同じでequalsもtrueになるため、重複として追加されません。", highlightLines: [5, 7, 11, 12], variables: [Variable(name: "set.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 12)], heap: [HeapObject(id: "key1", type: "Key", fields: ["id": "1"]), HeapObject(id: "key2", type: "Key", fields: ["id": "1"])], predict: PredictPrompt(question: "最終サイズは？", choices: ["1", "2"], answerIndex: 0, hint: "equals/hashCodeがidベースです。", afterExplanation: "正解です。同値な要素なのでSet内では1件です。")),
+        ]
+    )
+
+    static let goldObject004Explanation = Explanation(
+        id: "explain-gold-object-004",
+        initialCode: """
+class Key {
+    private final int id;
+    Key(int id) { this.id = id; }
+    public boolean equals(Key other) {
+        return other != null && other.id == id;
+    }
+}
+Object a = new Key(1);
+Object b = new Key(1);
+System.out.println(a.equals(b));
+""",
+        steps: [
+            Step(index: 0, narration: "Keyには `equals(Key)` がありますが、Objectクラスの `equals(Object)` とシグネチャが違います。これはオーバーライドではなくオーバーロードです。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "compile", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`a` と `b` の宣言型はどちらもObjectです。`a.equals(b)` の呼び出しで選ばれるシグネチャはObjectにある `equals(Object)` です。", highlightLines: [8, 9, 10], variables: [Variable(name: "a", type: "Object", value: "Key(1)", scope: "main"), Variable(name: "b", type: "Object", value: "Key(1)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 10)], heap: [HeapObject(id: "keyA", type: "Key", fields: ["id": "1"]), HeapObject(id: "keyB", type: "Key", fields: ["id": "1"])], predict: PredictPrompt(question: "Key.equals(Key)は呼ばれる？", choices: ["呼ばれる", "呼ばれない"], answerIndex: 1, hint: "選ばれた引数型はObjectです。", afterExplanation: "正解です。equals(Object)をオーバーライドしていないため呼ばれません。")),
+            Step(index: 2, narration: "Keyは `equals(Object)` をオーバーライドしていないので、Objectの参照比較が使われます。aとbは別インスタンスのため出力は `false` です。", highlightLines: [10], variables: [Variable(name: "a.equals(b)", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "Object.equals", line: 10)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations003Explanation = Explanation(
+        id: "explain-gold-annotations-003",
+        initialCode: """
+@FunctionalInterface
+interface Task {
+    void run();
+    default void log() {}
+    static Task of(Task task) { return task; }
+}
+Task task = Task.of(() -> System.out.print("R"));
+task.run();
+""",
+        steps: [
+            Step(index: 0, narration: "`Task` の抽象メソッドは `run()` だけです。`default` と `static` は実装を持つため、関数型インターフェースの抽象メソッド数には入りません。", highlightLines: [1, 2, 3, 4, 5], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "ラムダは `run()` の実装として扱われ、`Task.of` はそのTaskをそのまま返します。", highlightLines: [7], variables: [Variable(name: "task", type: "Task", value: "lambda", scope: "main")], callStack: [CallStackFrame(method: "of", line: 5)], heap: [], predict: PredictPrompt(question: "@FunctionalInterfaceは有効？", choices: ["有効", "コンパイルエラー"], answerIndex: 0, hint: "数えるのは抽象メソッドだけです。", afterExplanation: "正解です。run()だけなので有効です。")),
+            Step(index: 2, narration: "`task.run()` でラムダ本体が実行され、`R` が出力されます。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "run", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations004Explanation = Explanation(
+        id: "explain-gold-annotations-004",
+        initialCode: """
+@FunctionalInterface
+interface Parser {
+    String parse(String text);
+    int size();
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`parse` と `size` はどちらも本体を持たない抽象メソッドです。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "compile", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`@FunctionalInterface` は抽象メソッドが1つであることをコンパイラに検査させます。2つあるためParser宣言でコンパイルエラーです。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: PredictPrompt(question: "size()はdefault扱いになる？", choices: ["なる", "ならない"], answerIndex: 1, hint: "`default` キーワードがありません。", afterExplanation: "正解です。size()も抽象メソッドです。")),
+            Step(index: 2, narration: "実行時まで進まず、関数型インターフェースではないというコンパイルエラーで止まります。", highlightLines: [2, 4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations005Explanation = Explanation(
+        id: "explain-gold-annotations-005",
+        initialCode: """
+class Api {
+    @Deprecated
+    static String oldName() { return "old"; }
+}
+System.out.println(Api.oldName());
+""",
+        steps: [
+            Step(index: 0, narration: "`@Deprecated` は非推奨であることを表す組み込みアノテーションです。通常は使用箇所に警告を出しますが、呼び出しは禁止しません。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Api.oldName()` は通常通り呼び出され、戻り値は `old` です。", highlightLines: [3, 5], variables: [Variable(name: "Api.oldName()", type: "String", value: "\"old\"", scope: "main")], callStack: [CallStackFrame(method: "oldName", line: 3)], heap: [], predict: PredictPrompt(question: "実行結果を変える？", choices: ["変える", "変えない"], answerIndex: 1, hint: "メタデータです。", afterExplanation: "正解です。出力はoldです。")),
+            Step(index: 2, narration: "最終出力は `old` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations006Explanation = Explanation(
+        id: "explain-gold-annotations-006",
+        initialCode: """
+@interface Info { String value(); }
+@Info("service")
+class Service {}
+System.out.println(Service.class.isAnnotationPresent(Info.class));
+""",
+        steps: [
+            Step(index: 0, narration: "`Info` には `@Retention` が付いていません。省略時の保持方針は `CLASS` です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`CLASS` 保持のアノテーションはclassファイルには残りますが、実行時反射の対象にはなりません。", highlightLines: [2, 4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "isAnnotationPresentは？", choices: ["true", "false"], answerIndex: 1, hint: "RUNTIME保持ではありません。", afterExplanation: "正解です。反射では見えないためfalseです。")),
+            Step(index: 2, narration: "したがって出力は `false` です。", highlightLines: [4], variables: [Variable(name: "result", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations007Explanation = Explanation(
+        id: "explain-gold-annotations-007",
+        initialCode: """
+@Retention(RetentionPolicy.RUNTIME)
+@interface Info {
+    String value();
+    int version() default 1;
+}
+@Info(value = "service", version = 2)
+class Service {}
+Info info = Service.class.getAnnotation(Info.class);
+System.out.println(info.value() + ":" + info.version());
+""",
+        steps: [
+            Step(index: 0, narration: "`@Retention(RUNTIME)` により、Infoは実行時にも反射で取得できます。`version` にはdefaultがありますが、今回は2を明示しています。", highlightLines: [1, 3, 4, 6], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Service.class.getAnnotation(Info.class)` はInfoインスタンスを返します。valueはservice、versionは2です。", highlightLines: [8, 9], variables: [Variable(name: "info.value()", type: "String", value: "\"service\"", scope: "main"), Variable(name: "info.version()", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: PredictPrompt(question: "versionは？", choices: ["1", "2"], answerIndex: 1, hint: "明示指定がdefaultより優先です。", afterExplanation: "正解です。version=2です。")),
+            Step(index: 2, narration: "最終出力は `service:2` です。", highlightLines: [9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations008Explanation = Explanation(
+        id: "explain-gold-annotations-008",
+        initialCode: """
+@Target(ElementType.METHOD)
+@interface Run {}
+@Run
+class Job {}
+""",
+        steps: [
+            Step(index: 0, narration: "`@Target(ElementType.METHOD)` はRunをメソッド専用のアノテーションにします。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`@Run` を付けている対象は `class Job`、つまり型宣言です。METHOD対象ではないためコンパイルエラーです。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "compile", line: 3)], heap: [], predict: PredictPrompt(question: "エラーになる付与先は？", choices: ["Run宣言", "Jobクラス"], answerIndex: 1, hint: "Run自体は宣言できます。", afterExplanation: "正解です。Jobクラスへの付与がTarget違反です。")),
+            Step(index: 2, narration: "Target違反は実行時ではなくコンパイル時に検出されます。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations009Explanation = Explanation(
+        id: "explain-gold-annotations-009",
+        initialCode: """
+@Target(ElementType.ANNOTATION_TYPE)
+@interface Role {}
+@Role
+@interface Secured {}
+@Role
+class Service {}
+""",
+        steps: [
+            Step(index: 0, narration: "`ElementType.ANNOTATION_TYPE` は、アノテーション型宣言にだけ付けられるという意味です。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`@Role` を `@interface Secured` に付けるのは有効です。これはアノテーションをアノテーションで修飾するメタアノテーションの形です。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "compile", line: 4)], heap: [], predict: nil),
+            Step(index: 2, narration: "一方、`class Service` は通常クラスです。RoleのTarget外なのでここでコンパイルエラーになります。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "compile", line: 5)], heap: [], predict: PredictPrompt(question: "Roleを通常クラスに付けられる？", choices: ["付けられる", "付けられない"], answerIndex: 1, hint: "ANNOTATION_TYPEだけです。", afterExplanation: "正解です。Serviceへの付与がエラーです。")),
+        ]
+    )
+
+    static let goldAnnotations010Explanation = Explanation(
+        id: "explain-gold-annotations-010",
+        initialCode: """
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@interface Mark {}
+@Mark
+class Parent {}
+class Child extends Parent {}
+System.out.println(Child.class.isAnnotationPresent(Mark.class));
+""",
+        steps: [
+            Step(index: 0, narration: "`Mark` は `@Inherited` かつ `RUNTIME` 保持です。親クラスに付けたクラスアノテーションが、サブクラスの反射取得でも見える条件がそろっています。", highlightLines: [1, 2, 4], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Child` 自体には `@Mark` を書いていませんが、Parentを継承しているため `isAnnotationPresent` はtrueになります。", highlightLines: [5, 6, 7], variables: [Variable(name: "result", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "Childから見える？", choices: ["見える", "見えない"], answerIndex: 0, hint: "@Inherited + class annotationです。", afterExplanation: "正解です。trueです。")),
+            Step(index: 2, narration: "出力は `true` です。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations011Explanation = Explanation(
+        id: "explain-gold-annotations-011",
+        initialCode: """
+@Repeatable(Tags.class)
+@Retention(RetentionPolicy.RUNTIME)
+@interface Tag { String value(); }
+@Retention(RetentionPolicy.RUNTIME)
+@interface Tags { Tag[] value(); }
+@Tag("A")
+@Tag("B")
+class Service {}
+System.out.println(Service.class.getAnnotationsByType(Tag.class).length);
+""",
+        steps: [
+            Step(index: 0, narration: "`Tag` は `@Repeatable(Tags.class)` を持ち、コンテナアノテーション `Tags` は `Tag[] value()` を持っています。", highlightLines: [1, 3, 5], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Service` には `@Tag(\"A\")` と `@Tag(\"B\")` が2回付いています。どちらもRUNTIME保持なので反射で読めます。", highlightLines: [6, 7, 8], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: PredictPrompt(question: "Tagは何件取得される？", choices: ["1", "2"], answerIndex: 1, hint: "getAnnotationsByTypeは繰り返しを展開します。", afterExplanation: "正解です。2件です。")),
+            Step(index: 2, narration: "`getAnnotationsByType(Tag.class).length` は2なので、出力は `2` です。", highlightLines: [9], variables: [Variable(name: "length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations012Explanation = Explanation(
+        id: "explain-gold-annotations-012",
+        initialCode: """
+@interface Label {
+    String name();
+}
+@Label("service")
+class Service {}
+""",
+        steps: [
+            Step(index: 0, narration: "`Label` の必須要素名は `name` です。`default` がないため、使用時に値を指定する必要があります。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`@Label(\"service\")` の省略記法が使えるのは、要素名が `value` の場合だけです。今回は `name` なので省略できません。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "compile", line: 4)], heap: [], predict: PredictPrompt(question: "正しい指定は？", choices: ["@Label(name = \"service\")", "@Label(value = \"service\")"], answerIndex: 0, hint: "要素名はnameです。", afterExplanation: "正解です。name = ... と書く必要があります。")),
+            Step(index: 2, narration: "したがって `@Label(\"service\")` の行でコンパイルエラーです。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException007Explanation = Explanation(
+        id: "explain-gold-exception-007",
+        initialCode: """
+try {
+    throw new FileNotFoundException();
+} catch (IOException | FileNotFoundException e) {
+    System.out.println("caught");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`FileNotFoundException` は `IOException` のサブクラスです。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "compile", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "multi-catchの代替型同士に親子関係があると、片方がもう片方を含んでしまうためコンパイルエラーです。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "compile", line: 3)], heap: [], predict: PredictPrompt(question: "親子型をmulti-catchに並べられる？", choices: ["並べられる", "並べられない"], answerIndex: 1, hint: "冗長なcatchになります。", afterExplanation: "正解です。IOException | FileNotFoundException は不可です。")),
+            Step(index: 2, narration: "実行時の捕捉まで進まず、catch句の型指定でコンパイルが止まります。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException008Explanation = Explanation(
+        id: "explain-gold-exception-008",
+        initialCode: """
+try (R r = new R()) {
+    throw new RuntimeException("body");
+} catch (RuntimeException e) {
+    System.out.println(e.getMessage() + ":" + e.getSuppressed()[0].getMessage());
+}
+// R.close() throws new RuntimeException("close")
+""",
+        steps: [
+            Step(index: 0, narration: "try本体で `RuntimeException(\"body\")` が発生します。この例外が主例外になります。", highlightLines: [1, 2], variables: [Variable(name: "primary", type: "RuntimeException", value: "\"body\"", scope: "try")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "try-with-resourcesを抜けるために `close()` が呼ばれ、そこで `RuntimeException(\"close\")` が発生します。主例外が既にあるので、これはsuppressedに追加されます。", highlightLines: [1, 6], variables: [Variable(name: "suppressed[0]", type: "RuntimeException", value: "\"close\"", scope: "catch")], callStack: [CallStackFrame(method: "close", line: 6)], heap: [], predict: PredictPrompt(question: "catchで受け取る主例外は？", choices: ["body", "close"], answerIndex: 0, hint: "try本体の例外が先です。", afterExplanation: "正解です。closeは抑制例外です。")),
+            Step(index: 2, narration: "出力は主例外のメッセージbodyと、抑制例外closeを連結した `body:close` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException009Explanation = Explanation(
+        id: "explain-gold-exception-009",
+        initialCode: """
+try (R a = new R("A"); R b = new R("B")) {
+    throw new RuntimeException("T");
+} catch (RuntimeException e) {
+    System.out.println(e.getMessage() + ":" +
+        e.getSuppressed()[0].getMessage() +
+        e.getSuppressed()[1].getMessage());
+}
+""",
+        steps: [
+            Step(index: 0, narration: "try本体で `T` 例外が発生します。これが主例外です。", highlightLines: [1, 2], variables: [Variable(name: "primary", type: "RuntimeException", value: "\"T\"", scope: "try")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "リソースは宣言と逆順、つまりb→aでcloseされます。close例外はその順でsuppressedに追加されます。", highlightLines: [1, 5, 6], variables: [Variable(name: "suppressed[0]", type: "RuntimeException", value: "\"B\"", scope: "catch"), Variable(name: "suppressed[1]", type: "RuntimeException", value: "\"A\"", scope: "catch")], callStack: [CallStackFrame(method: "close", line: 1)], heap: [], predict: PredictPrompt(question: "suppressedの順は？", choices: ["A then B", "B then A"], answerIndex: 1, hint: "closeはLIFOです。", afterExplanation: "正解です。B、Aの順です。")),
+            Step(index: 2, narration: "出力は `T:BA` です。", highlightLines: [4, 5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException010Explanation = Explanation(
+        id: "explain-gold-exception-010",
+        initialCode: """
+static void run() {
+    try {
+        throw new RuntimeException("try");
+    } finally {
+        throw new RuntimeException("finally");
+    }
+}
+try { run(); } catch (RuntimeException e) { System.out.println(e.getMessage()); }
+""",
+        steps: [
+            Step(index: 0, narration: "`try` ブロックで `try` 例外が発生します。この時点では呼び出し元へ戻る準備に入ります。", highlightLines: [2, 3], variables: [Variable(name: "pending", type: "RuntimeException", value: "\"try\"", scope: "run")], callStack: [CallStackFrame(method: "run", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "戻る前にfinallyが実行され、今度は `finally` 例外を投げます。finallyが突然完了したため、try側の例外は上書きされます。", highlightLines: [4, 5], variables: [Variable(name: "outgoing", type: "RuntimeException", value: "\"finally\"", scope: "run")], callStack: [CallStackFrame(method: "run", line: 5)], heap: [], predict: PredictPrompt(question: "catchで見えるメッセージは？", choices: ["try", "finally"], answerIndex: 1, hint: "finallyのthrowが優先されます。", afterExplanation: "正解です。finallyです。")),
+            Step(index: 2, narration: "catchが受け取る例外のメッセージはfinallyなので、出力は `finally` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException011Explanation = Explanation(
+        id: "explain-gold-exception-011",
+        initialCode: """
+static void read() throws IOException { throw new IOException(); }
+static void run() throws IOException {
+    try { read(); }
+    catch (Exception e) { throw e; }
+}
+try { run(); } catch (IOException e) { System.out.println("IO"); }
+""",
+        steps: [
+            Step(index: 0, narration: "`read()` が投げ得る検査例外はIOExceptionです。run内ではcatch型をExceptionにしています。", highlightLines: [1, 3, 4], variables: [], callStack: [CallStackFrame(method: "compile", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "catchパラメータeは再代入されていません。Java 7以降のprecise rethrowにより、`throw e` は実際に投げ得るIOExceptionとして解析されます。", highlightLines: [4], variables: [Variable(name: "e", type: "Exception", value: "IOException", scope: "catch")], callStack: [CallStackFrame(method: "run", line: 4)], heap: [], predict: PredictPrompt(question: "runのthrowsはIOExceptionで足りる？", choices: ["足りる", "Exceptionが必要"], answerIndex: 0, hint: "precise rethrowです。", afterExplanation: "正解です。再代入していないため狭く解析されます。")),
+            Step(index: 2, narration: "main側の `catch(IOException)` が捕捉し、`IO` を出力します。", highlightLines: [6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException012Explanation = Explanation(
+        id: "explain-gold-exception-012",
+        initialCode: """
+static void run() throws IOException {
+    try { read(); }
+    catch (Exception e) {
+        e = new Exception();
+        throw e;
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "catchパラメータ `e` は単一catchなので再代入自体は可能です。", highlightLines: [3, 4], variables: [Variable(name: "e", type: "Exception", value: "new Exception()", scope: "catch")], callStack: [CallStackFrame(method: "compile", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "ただし再代入したためprecise rethrowの絞り込みが効きません。`throw e` はExceptionを投げる可能性として扱われます。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "compile", line: 5)], heap: [], predict: PredictPrompt(question: "throws IOExceptionだけで足りる？", choices: ["足りる", "足りない"], answerIndex: 1, hint: "eはExceptionとして再代入済みです。", afterExplanation: "正解です。throws Exceptionが必要になります。")),
+            Step(index: 2, narration: "runは `throws IOException` しか宣言していないため、`throw e;` でコンパイルエラーです。", highlightLines: [1, 5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException013Explanation = Explanation(
+        id: "explain-gold-exception-013",
+        initialCode: """
+R r = new R();
+try (r) {
+    System.out.print("T");
+}
+// close prints C
+""",
+        steps: [
+            Step(index: 0, narration: "Java 9以降、try-with-resourcesにはeffectively finalな既存変数を書けます。`r` は再代入されていないため条件を満たします。", highlightLines: [1, 2], variables: [Variable(name: "r", type: "R", value: "resource", scope: "main")], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "try本体で `T` が出力されます。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "try終了後にcloseされる？", choices: ["される", "されない"], answerIndex: 0, hint: "try-with-resourcesに指定しています。", afterExplanation: "正解です。既存変数でもclose対象です。")),
+            Step(index: 2, narration: "ブロック終了時に `r.close()` が呼ばれ、`C` が出力されます。全体は `TC` です。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "close", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException014Explanation = Explanation(
+        id: "explain-gold-exception-014",
+        initialCode: """
+class Bad {
+    static int value = init();
+    static int init() { throw new RuntimeException("boom"); }
+}
+try {
+    System.out.println(Bad.value);
+} catch (Throwable e) {
+    System.out.println(e.getClass().getSimpleName());
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`Bad.value` へ初めてアクセスすると、Badクラスの初期化が始まります。`value = init()` が評価されます。", highlightLines: [2, 6], variables: [], callStack: [CallStackFrame(method: "class init", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`init()` がRuntimeExceptionを投げます。クラス初期化中の例外は `ExceptionInInitializerError` にラップされます。", highlightLines: [3], variables: [Variable(name: "cause", type: "RuntimeException", value: "\"boom\"", scope: "Bad.init")], callStack: [CallStackFrame(method: "init", line: 3)], heap: [], predict: PredictPrompt(question: "catchで見える型名は？", choices: ["RuntimeException", "ExceptionInInitializerError"], answerIndex: 1, hint: "クラス初期化中です。", afterExplanation: "正解です。ExceptionInInitializerErrorです。")),
+            Step(index: 2, narration: "catch(Throwable)がそれを捕捉し、クラス名 `ExceptionInInitializerError` を出力します。", highlightLines: [7, 8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException015Explanation = Explanation(
+        id: "explain-gold-exception-015",
+        initialCode: """
+try {
+    Integer.parseInt("12x");
+} catch (NumberFormatException e) {
+    System.out.println("NFE");
+} catch (IllegalArgumentException e) {
+    System.out.println("IAE");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`Integer.parseInt(\"12x\")` は数値に変換できない文字を含むため、NumberFormatExceptionを投げます。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "parseInt", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "catchは上から順に判定されます。最初の `catch(NumberFormatException)` が一致するため、そこで `NFE` を出力します。", highlightLines: [3, 4], variables: [Variable(name: "e", type: "NumberFormatException", value: "parse failure", scope: "catch")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "後続のIllegalArgumentException catchへ進む？", choices: ["進む", "進まない"], answerIndex: 1, hint: "最初に一致したcatchだけです。", afterExplanation: "正解です。NFEだけです。")),
+            Step(index: 2, narration: "NumberFormatExceptionはIllegalArgumentExceptionのサブクラスですが、サブクラスcatchを先に置いているためこの順序は有効です。", highlightLines: [3, 5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException016Explanation = Explanation(
+        id: "explain-gold-exception-016",
+        initialCode: """
+try {
+    String s = null;
+    System.out.print(s.length());
+} catch (NullPointerException e) {
+    System.out.print("NPE");
+} finally {
+    System.out.print("F");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`s` はnullです。`s.length()` でnull参照に対するインスタンスメソッド呼び出しになり、NullPointerExceptionが発生します。", highlightLines: [2, 3], variables: [Variable(name: "s", type: "String", value: "null", scope: "try")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "例外型が `catch(NullPointerException)` に一致し、`NPE` が出力されます。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "finallyはこの後動く？", choices: ["動く", "動かない"], answerIndex: 0, hint: "catch後にもfinallyです。", afterExplanation: "正解です。finallyは必ず実行されます。")),
+            Step(index: 2, narration: "finallyで `F` が出力され、全体は `NPEF` です。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException017Explanation = Explanation(
+        id: "explain-gold-exception-017",
+        initialCode: """
+try {
+    int[] values = {1};
+    System.out.print(values[1]);
+} catch (IndexOutOfBoundsException e) {
+    System.out.println(e.getClass().getSimpleName());
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`values` の有効な添字は0だけです。`values[1]` で配列範囲外アクセスになります。", highlightLines: [2, 3], variables: [Variable(name: "values.length", type: "int", value: "1", scope: "try")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "発生する具体例外は `ArrayIndexOutOfBoundsException` です。これは `IndexOutOfBoundsException` のサブクラスなのでcatchできます。", highlightLines: [4], variables: [Variable(name: "e", type: "IndexOutOfBoundsException", value: "ArrayIndexOutOfBoundsException", scope: "catch")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "getClass().getSimpleName()は？", choices: ["IndexOutOfBoundsException", "ArrayIndexOutOfBoundsException"], answerIndex: 1, hint: "実体の例外クラス名です。", afterExplanation: "正解です。ArrayIndexOutOfBoundsExceptionです。")),
+            Step(index: 2, narration: "catch変数の宣言型ではなく実体クラス名を出すため、出力は `ArrayIndexOutOfBoundsException` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException018Explanation = Explanation(
+        id: "explain-gold-exception-018",
+        initialCode: """
+static void run() throws IOException {
+    new IOException("created");
+}
+run();
+System.out.println("OK");
+""",
+        steps: [
+            Step(index: 0, narration: "`throws IOException` は、このメソッドがIOExceptionを投げる可能性を宣言するものです。必ず投げるという意味ではありません。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`new IOException(\"created\")` は例外オブジェクトを作るだけです。`throw` がないため例外は送出されません。", highlightLines: [2], variables: [Variable(name: "created", type: "IOException", value: "\"created\"", scope: "run")], callStack: [CallStackFrame(method: "run", line: 2)], heap: [], predict: PredictPrompt(question: "例外処理が始まる？", choices: ["始まる", "始まらない"], answerIndex: 1, hint: "throwしていません。", afterExplanation: "正解です。生成だけでは投げません。")),
+            Step(index: 2, narration: "runは普通に終了し、main側で `OK` が出力されます。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException019Explanation = Explanation(
+        id: "explain-gold-exception-019",
+        initialCode: """
+static void run() {
+    throw null;
+}
+try {
+    run();
+} catch (NullPointerException e) {
+    System.out.println("NPE");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`throw null;` はコンパイル自体は通ります。nullはThrowable参照として扱われます。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "実行時にthrow対象がnullだと、JVMはNullPointerExceptionを発生させます。", highlightLines: [2, 5], variables: [], callStack: [CallStackFrame(method: "run", line: 2)], heap: [], predict: PredictPrompt(question: "catchされる型は？", choices: ["NullPointerException", "RuntimeException"], answerIndex: 0, hint: "throw null専用の挙動です。", afterExplanation: "正解です。NPEです。")),
+            Step(index: 2, narration: "`catch(NullPointerException)` が一致し、`NPE` を出力します。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldException020Explanation = Explanation(
+        id: "explain-gold-exception-020",
+        initialCode: """
+try {
+    String s = null;
+    s.length();
+} catch (RuntimeException e) {
+    System.out.println("R");
+} catch (NullPointerException e) {
+    System.out.println("N");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`NullPointerException` は `RuntimeException` のサブクラスです。", highlightLines: [4, 6], variables: [], callStack: [CallStackFrame(method: "compile", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "先に `catch(RuntimeException)` があるため、その後ろの `catch(NullPointerException)` に到達する例外は残りません。", highlightLines: [4, 6], variables: [], callStack: [CallStackFrame(method: "compile", line: 6)], heap: [], predict: PredictPrompt(question: "サブクラスcatchを後ろに置ける？", choices: ["置ける", "置けない"], answerIndex: 1, hint: "すでに親型で捕捉済みです。", afterExplanation: "正解です。到達不能catchです。")),
+            Step(index: 2, narration: "したがって `catch(NullPointerException e)` の行でコンパイルエラーになります。", highlightLines: [6], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding001Explanation = Explanation(
+        id: "explain-gold-secure-coding-001",
+        initialCode: """
+class R implements AutoCloseable {
+    public void close() { System.out.print("C"); }
+}
+try (final R r = new R()) {
+    System.out.print("T");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "try-with-resourcesのリソース宣言では、ローカル変数に `final` を明示できます。`r` はtryブロック終了時に自動クローズされる対象です。", highlightLines: [4], variables: [Variable(name: "r", type: "R", value: "open", scope: "try")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "try本体で `System.out.print(\"T\")` が実行され、まず `T` が出力されます。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "ブロックを抜ける時に呼ばれるのは？", choices: ["r.close()", "何も呼ばれない"], answerIndex: 0, hint: "AutoCloseableです。", afterExplanation: "正解です。try-with-resourcesなのでcloseされます。")),
+            Step(index: 2, narration: "ブロック終了時に `r.close()` が呼ばれ、`C` が続きます。出力は `TC` です。", highlightLines: [2, 6], variables: [Variable(name: "r", type: "R", value: "closed", scope: "try")], callStack: [CallStackFrame(method: "close", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding002Explanation = Explanation(
+        id: "explain-gold-secure-coding-002",
+        initialCode: """
+final R r = new R();
+try (r) {
+    System.out.print("T");
+}
+// close prints C
+""",
+        steps: [
+            Step(index: 0, narration: "Java 9以降、try-with-resourcesには既に宣言済みの `final` 変数をそのまま指定できます。", highlightLines: [1, 2], variables: [Variable(name: "r", type: "R", value: "open", scope: "main")], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "try本体で `T` が出力されます。既存変数を書いた場合でも、try-with-resourcesに指定した以上はクローズ対象です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "`try (r)` の後にcloseされる？", choices: ["される", "されない"], answerIndex: 0, hint: "宣言済み変数でもリソース指定です。", afterExplanation: "正解です。r.close()が呼ばれます。")),
+            Step(index: 2, narration: "ブロック終了時に `close()` が実行され、`C` が出力されます。全体は `TC` です。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "close", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding003Explanation = Explanation(
+        id: "explain-gold-secure-coding-003",
+        initialCode: """
+R r = new R();
+r = new R();
+try (r) {
+    System.out.print("T");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "既存変数を `try (r)` に指定するには、その変数が `final` またはeffectively finalである必要があります。", highlightLines: [1, 3], variables: [Variable(name: "r", type: "R", value: "first resource", scope: "main")], callStack: [CallStackFrame(method: "compile", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "このコードでは2行目で `r` に再代入しています。再代入されたローカル変数はeffectively finalではありません。", highlightLines: [2], variables: [Variable(name: "r", type: "R", value: "second resource", scope: "main")], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: PredictPrompt(question: "この `r` はeffectively final？", choices: ["はい", "いいえ"], answerIndex: 1, hint: "再代入があるかを見ます。", afterExplanation: "正解です。再代入があるので条件を満たしません。")),
+            Step(index: 2, narration: "したがって `try (r)` の行でコンパイルエラーです。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding004Explanation = Explanation(
+        id: "explain-gold-secure-coding-004",
+        initialCode: """
+assert false : "bad";
+System.out.println("OK");
+""",
+        steps: [
+            Step(index: 0, narration: "assert文は、通常の起動では無効です。`-ea` などで明示的に有効化しない限り、assert条件は評価されません。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`assert false : \"bad\";` は一見失敗しそうですが、assert無効時は丸ごとスキップされます。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: PredictPrompt(question: "このassertは実行される？", choices: ["実行される", "スキップされる"], answerIndex: 1, hint: "-eaがありません。", afterExplanation: "正解です。デフォルトではassertは無効です。")),
+            Step(index: 2, narration: "次の行に進んで `OK` が出力されます。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding005Explanation = Explanation(
+        id: "explain-gold-secure-coding-005",
+        initialCode: """
+// java -ea Test
+int n = -1;
+try {
+    assert n > 0 : "positive";
+    System.out.println("OK");
+} catch (AssertionError e) {
+    System.out.println(e.getMessage());
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`-ea` でassertが有効です。`n` は `-1` なので、条件 `n > 0` はfalseになります。", highlightLines: [1, 2, 4], variables: [Variable(name: "n", type: "int", value: "-1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "assert条件がfalseのため、右側の詳細式 `\"positive\"` を持つ `AssertionError` が投げられます。", highlightLines: [4, 6], variables: [Variable(name: "e.message", type: "String", value: "\"positive\"", scope: "catch")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "catchされる例外型は？", choices: ["AssertionError", "RuntimeException"], answerIndex: 0, hint: "assertが投げるのはError系です。", afterExplanation: "正解です。AssertionErrorです。")),
+            Step(index: 2, narration: "`catch (AssertionError e)` が捕捉し、メッセージ `positive` を出力します。`OK` の行には進みません。", highlightLines: [5, 6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding006Explanation = Explanation(
+        id: "explain-gold-secure-coding-006",
+        initialCode: """
+// java -ea -da Test
+assert false;
+System.out.println("OK");
+""",
+        steps: [
+            Step(index: 0, narration: "assertの有効・無効オプションは左から処理されます。`-ea` で有効化した後、`-da` で無効化しています。", highlightLines: [1], variables: [Variable(name: "assertions", type: "boolean", value: "disabled", scope: "class")], callStack: [CallStackFrame(method: "launcher", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "最終状態が無効なので、`assert false;` は評価されません。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "この起動条件でAssertionErrorは出る？", choices: ["出る", "出ない"], answerIndex: 1, hint: "最後に -da が指定されています。", afterExplanation: "正解です。assertは無効です。")),
+            Step(index: 2, narration: "次の行が実行され、`OK` が出力されます。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding007Explanation = Explanation(
+        id: "explain-gold-secure-coding-007",
+        initialCode: """
+static int count;
+public static void main(String[] args) {
+    assert ++count > 0;
+    System.out.println(count);
+}
+""",
+        steps: [
+            Step(index: 0, narration: "assertが無効な通常起動では、assert条件式そのものが評価されません。", highlightLines: [3], variables: [Variable(name: "count", type: "int", value: "0", scope: "class")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`++count` は副作用を持ちますが、assert無効時はこのインクリメントも起きません。", highlightLines: [3], variables: [Variable(name: "count", type: "int", value: "0", scope: "class")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "assert無効時にcountは増える？", choices: ["増える", "増えない"], answerIndex: 1, hint: "条件式が評価されるかを考えます。", afterExplanation: "正解です。副作用も実行されません。")),
+            Step(index: 2, narration: "そのまま `System.out.println(count)` に進むため、出力は `0` です。", highlightLines: [4], variables: [Variable(name: "count", type: "int", value: "0", scope: "class")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding008Explanation = Explanation(
+        id: "explain-gold-secure-coding-008",
+        initialCode: """
+static int divide(int x) {
+    assert x > 0;
+    return 100 / x;
+}
+System.out.println(divide(-10));
+""",
+        steps: [
+            Step(index: 0, narration: "assertはデバッグ用の内部不変条件チェック向けです。公開メソッドの引数検証をassertだけに任せると、無効時に検証されません。", highlightLines: [1, 2], variables: [Variable(name: "x", type: "int", value: "-10", scope: "divide")], callStack: [CallStackFrame(method: "divide", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "通常起動では `assert x > 0;` がスキップされます。`x` が負数でも例外は発生しません。", highlightLines: [2], variables: [Variable(name: "x", type: "int", value: "-10", scope: "divide")], callStack: [CallStackFrame(method: "divide", line: 2)], heap: [], predict: PredictPrompt(question: "この引数チェックは常に効く？", choices: ["効く", "効かない"], answerIndex: 1, hint: "assertは無効化できます。", afterExplanation: "正解です。外部入力の検証には通常のifと例外を使います。")),
+            Step(index: 2, narration: "`100 / -10` が計算され、戻り値は `-10` です。したがって出力も `-10` です。", highlightLines: [3, 5], variables: [Variable(name: "return", type: "int", value: "-10", scope: "divide")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding009Explanation = Explanation(
+        id: "explain-gold-secure-coding-009",
+        initialCode: """
+Path base = Path.of("/app/data");
+Path target = base.resolve("../secret.txt").normalize();
+System.out.println(target.startsWith(base));
+""",
+        steps: [
+            Step(index: 0, narration: "`resolve` は基準パスに相対パスを結合します。まず `/app/data/../secret.txt` という形になります。", highlightLines: [1, 2], variables: [Variable(name: "base", type: "Path", value: "/app/data", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`normalize()` が `..` を整理し、結果は `/app/secret.txt` になります。これは `/app/data` の外側です。", highlightLines: [2], variables: [Variable(name: "target", type: "Path", value: "/app/secret.txt", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "正規化後もbase配下？", choices: ["配下", "配下ではない"], answerIndex: 1, hint: "`..` で1階層上がっています。", afterExplanation: "正解です。パストラバーサルの典型です。")),
+            Step(index: 2, narration: "`target.startsWith(base)` はfalseです。FIOでは正規化後に許可ディレクトリ配下か検証する必要があります。", highlightLines: [3], variables: [Variable(name: "startsWith", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding010Explanation = Explanation(
+        id: "explain-gold-secure-coding-010",
+        initialCode: """
+Path base = Path.of("/safe/base");
+Path target = base.resolve("/etc/passwd").normalize();
+System.out.println(target);
+""",
+        steps: [
+            Step(index: 0, narration: "`Path.resolve` は右辺が相対パスならbase配下へ結合しますが、右辺が絶対パスの場合は右辺が優先されます。", highlightLines: [1, 2], variables: [Variable(name: "base", type: "Path", value: "/safe/base", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "引数 `\"/etc/passwd\"` は絶対パスなので、`/safe/base` は結果に含まれません。", highlightLines: [2], variables: [Variable(name: "target", type: "Path", value: "/etc/passwd", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "resolve結果はbase配下に固定される？", choices: ["固定される", "固定されない"], answerIndex: 1, hint: "絶対パスの右辺が優先です。", afterExplanation: "正解です。入力値の絶対パスも検証対象です。")),
+            Step(index: 2, narration: "`normalize()` してもパスは `/etc/passwd` のままなので、その文字列が出力されます。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding011Explanation = Explanation(
+        id: "explain-gold-secure-coding-011",
+        initialCode: """
+class Account implements Serializable {
+    String name = "alice";
+    transient String password = "secret";
+}
+// serialize and deserialize new Account()
+System.out.println(a.name + ":" + a.password);
+""",
+        steps: [
+            Step(index: 0, narration: "`Account` は `Serializable` を実装しているため、通常フィールドはシリアライズ対象になります。", highlightLines: [1, 2], variables: [Variable(name: "name", type: "String", value: "\"alice\"", scope: "Account")], callStack: [CallStackFrame(method: "writeObject", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "`password` は `transient` なので、オブジェクトストリームには保存されません。機密値をそのまま永続化しないための基本です。", highlightLines: [3], variables: [Variable(name: "password", type: "String", value: "not serialized", scope: "Account")], callStack: [CallStackFrame(method: "writeObject", line: 5)], heap: [], predict: PredictPrompt(question: "復元後のpasswordは？", choices: ["secret", "null"], answerIndex: 1, hint: "参照型のデフォルト値です。", afterExplanation: "正解です。transientフィールドはnullに戻ります。")),
+            Step(index: 2, narration: "復元後、`name` は `alice`、`password` は参照型デフォルトのnullです。出力は `alice:null` です。", highlightLines: [6], variables: [Variable(name: "a.password", type: "String", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding012Explanation = Explanation(
+        id: "explain-gold-secure-coding-012",
+        initialCode: """
+class User implements Serializable {
+    int age;
+    private void readObject(ObjectInputStream in)
+        throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (age < 0) throw new InvalidObjectException("age");
+    }
+}
+// deserialize new User(-1)
+""",
+        steps: [
+            Step(index: 0, narration: "デシリアライズ時、クラスにprivateな `readObject` があればフックとして呼ばれます。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "readObject", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`defaultReadObject()` により、ストリーム内の `age = -1` が復元されます。コンストラクタの通常チェックだけに頼ると、この経路を見落とします。", highlightLines: [5], variables: [Variable(name: "age", type: "int", value: "-1", scope: "User")], callStack: [CallStackFrame(method: "readObject", line: 5)], heap: [], predict: PredictPrompt(question: "復元後の不変条件チェックは必要？", choices: ["必要", "不要"], answerIndex: 0, hint: "ストリームは外部入力です。", afterExplanation: "正解です。readObject内で検証します。")),
+            Step(index: 2, narration: "`age < 0` がtrueなので `InvalidObjectException(\"age\")` を投げます。catch側でメッセージ `age` が出力されます。", highlightLines: [6], variables: [Variable(name: "e.message", type: "String", value: "\"age\"", scope: "catch")], callStack: [CallStackFrame(method: "readObject", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding013Explanation = Explanation(
+        id: "explain-gold-secure-coding-013",
+        initialCode: """
+ObjectInputStream in = new ObjectInputStream(bytes);
+in.setObjectInputFilter(info ->
+    info.serialClass() == String.class
+        ? ObjectInputFilter.Status.REJECTED
+        : ObjectInputFilter.Status.UNDECIDED);
+try {
+    in.readObject();
+} catch (InvalidClassException e) {
+    System.out.println("rejected");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`ObjectInputFilter` はデシリアライズされるクラスや深さなどを見て、許可・拒否・未決定を返せます。", highlightLines: [2, 3, 4, 5], variables: [], callStack: [CallStackFrame(method: "readObject", line: 7)], heap: [], predict: nil),
+            Step(index: 1, narration: "ストリーム内のオブジェクトは `String` です。フィルタは `String.class` に対して `REJECTED` を返します。", highlightLines: [3, 4], variables: [Variable(name: "serialClass", type: "Class<?>", value: "String.class", scope: "filter")], callStack: [CallStackFrame(method: "filter", line: 3)], heap: [], predict: PredictPrompt(question: "`REJECTED` の結果は？", choices: ["読み込み拒否", "そのまま読み込み"], answerIndex: 0, hint: "名前通り拒否です。", afterExplanation: "正解です。InvalidClassExceptionにつながります。")),
+            Step(index: 2, narration: "`readObject()` は `InvalidClassException` を投げ、catchで `rejected` が出力されます。", highlightLines: [7, 8, 9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding014Explanation = Explanation(
+        id: "explain-gold-secure-coding-014",
+        initialCode: """
+String value = AccessController.doPrivileged(
+    (PrivilegedAction<String>) () -> System.getProperty("user.home"));
+return sanitize(value);
+""",
+        steps: [
+            Step(index: 0, narration: "`doPrivileged` は、渡した `PrivilegedAction` の中だけを特権境界として実行します。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "load", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "この例で特権化されるのは `System.getProperty(\"user.home\")` のラムダ本体だけです。", highlightLines: [2], variables: [Variable(name: "value", type: "String", value: "user.home", scope: "load")], callStack: [CallStackFrame(method: "doPrivileged", line: 2)], heap: [], predict: PredictPrompt(question: "sanitizeも特権内？", choices: ["特権内", "特権外"], answerIndex: 1, hint: "doPrivilegedの引数の中だけです。", afterExplanation: "正解です。sanitizeは戻った後に実行されます。")),
+            Step(index: 2, narration: "`sanitize(value)` は特権ブロックの外です。セキュアコーディングでは、特権範囲を必要最小限にします。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "load", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding015Explanation = Explanation(
+        id: "explain-gold-secure-coding-015",
+        initialCode: """
+static void check() {
+    throw new SecurityException("deny");
+}
+try {
+    check();
+} catch (RuntimeException e) {
+    System.out.println(e.getClass().getSimpleName());
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`SecurityException` はプラットフォームセキュリティ関連で現れることがある非検査例外です。`RuntimeException` のサブクラスです。", highlightLines: [2, 6], variables: [], callStack: [CallStackFrame(method: "check", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`check()` が `SecurityException` を投げると、`catch (RuntimeException e)` で捕捉できます。", highlightLines: [5, 6], variables: [Variable(name: "e", type: "RuntimeException", value: "SecurityException", scope: "catch")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "catch変数eの実体型は？", choices: ["RuntimeException", "SecurityException"], answerIndex: 1, hint: "宣言型と実体型を分けます。", afterExplanation: "正解です。実体はSecurityExceptionです。")),
+            Step(index: 2, narration: "`getClass().getSimpleName()` は実体クラス名を返すため、出力は `SecurityException` です。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding016Explanation = Explanation(
+        id: "explain-gold-secure-coding-016",
+        initialCode: """
+List<String> base = new ArrayList<>();
+base.add("A");
+List<String> view = Collections.unmodifiableList(base);
+List<String> copy = List.copyOf(base);
+base.add("B");
+System.out.println(view.size() + ":" + copy.size());
+""",
+        steps: [
+            Step(index: 0, narration: "`Collections.unmodifiableList(base)` は変更不可ビューを作ります。ビューなので、元の `base` を見続けます。", highlightLines: [1, 2, 3], variables: [Variable(name: "base", type: "List<String>", value: "[A]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`List.copyOf(base)` はその時点の要素から独立した変更不可リストを作ります。", highlightLines: [4], variables: [Variable(name: "copy", type: "List<String>", value: "[A]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "`base.add(\"B\")` はcopyに反映される？", choices: ["反映される", "反映されない"], answerIndex: 1, hint: "copyOfはコピーです。", afterExplanation: "正解です。copyは[A]のままです。")),
+            Step(index: 2, narration: "`base.add(\"B\")` 後、viewは元リストの変化を見てサイズ2、copyはサイズ1です。出力は `2:1` です。", highlightLines: [5, 6], variables: [Variable(name: "view.size()", type: "int", value: "2", scope: "main"), Variable(name: "copy.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding017Explanation = Explanation(
+        id: "explain-gold-secure-coding-017",
+        initialCode: """
+List<String> list = Collections.checkedList(new ArrayList<>(), String.class);
+List raw = list;
+try {
+    raw.add(10);
+} catch (ClassCastException e) {
+    System.out.println("CCE");
+}
+System.out.println(list.size());
+""",
+        steps: [
+            Step(index: 0, narration: "`checkedList` は、コレクションへ要素を追加するときに実行時型チェックを行うラッパーです。", highlightLines: [1], variables: [Variable(name: "list", type: "List<String>", value: "checked empty list", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "raw型へ代入しても、実体はcheckedListのラッパーです。`raw.add(10)` はIntegerを追加しようとして検査に失敗します。", highlightLines: [2, 4], variables: [Variable(name: "element", type: "Integer", value: "10", scope: "main")], callStack: [CallStackFrame(method: "add", line: 4)], heap: [], predict: PredictPrompt(question: "追加は成功する？", choices: ["成功する", "ClassCastException"], answerIndex: 1, hint: "ラッパーが実行時に検査します。", afterExplanation: "正解です。String以外なので拒否されます。")),
+            Step(index: 2, narration: "`CCE` が出力され、要素は追加されません。続くサイズ出力は `0` です。", highlightLines: [5, 6, 8], variables: [Variable(name: "list.size()", type: "int", value: "0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding018Explanation = Explanation(
+        id: "explain-gold-secure-coding-018",
+        initialCode: """
+List<String>[] array = new List[1];
+Object[] objects = array;
+objects[0] = List.of(10);
+try {
+    String s = array[0].get(0);
+} catch (ClassCastException e) {
+    System.out.println("CCE");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`new List[1]` から `List<String>[]` への代入はunchecked警告ですが、通常はコンパイルできます。実行時の配列要素型は生の `List` です。", highlightLines: [1], variables: [Variable(name: "array", type: "List<String>[]", value: "List[]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "配列は共変なので `Object[]` として扱えます。`List.of(10)` は実行時には `List` なので代入自体は通ります。", highlightLines: [2, 3], variables: [Variable(name: "array[0]", type: "List", value: "[10]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "3行目でArrayStoreExceptionになる？", choices: ["なる", "ならない"], answerIndex: 1, hint: "実行時の配列要素型はListです。", afterExplanation: "正解です。代入は通って後で壊れます。")),
+            Step(index: 2, narration: "`array[0].get(0)` の結果はIntegerですが、代入先がStringなので暗黙キャストが入り、`ClassCastException` になります。出力は `CCE` です。", highlightLines: [5, 6, 7], variables: [Variable(name: "value", type: "Integer", value: "10", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding019Explanation = Explanation(
+        id: "explain-gold-secure-coding-019",
+        initialCode: """
+List<?> values = new ArrayList<String>();
+values.add(null);
+System.out.println(values.size());
+""",
+        steps: [
+            Step(index: 0, narration: "`List<?>` は要素型が不明なリストです。具体的な非null値は安全に追加できません。", highlightLines: [1], variables: [Variable(name: "values", type: "List<?>", value: "empty ArrayList<String>", scope: "main")], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "ただし `null` はすべての参照型に代入可能なので、`values.add(null)` はコンパイルできます。", highlightLines: [2], variables: [Variable(name: "added", type: "null", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "`List<?>` に追加できる値は？", choices: ["任意のObject", "nullだけ"], answerIndex: 1, hint: "実際の要素型が不明です。", afterExplanation: "正解です。nullだけは例外的に追加できます。")),
+            Step(index: 2, narration: "ArrayListはnull要素を許容するため、サイズは1になります。出力は `1` です。", highlightLines: [3], variables: [Variable(name: "values.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldSecureCoding020Explanation = Explanation(
+        id: "explain-gold-secure-coding-020",
+        initialCode: """
+try {
+    List<String> list = List.of("A", null);
+    System.out.println(list.size());
+} catch (NullPointerException e) {
+    System.out.println("NPE");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`List.of` で作る変更不可リストは、null要素を許容しません。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "2つ目の要素がnullなので、リスト生成時点で `NullPointerException` が発生します。`list.size()` には進みません。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "List.of", line: 2)], heap: [], predict: PredictPrompt(question: "例外が出るタイミングは？", choices: ["生成時", "add時"], answerIndex: 0, hint: "addは呼んでいません。", afterExplanation: "正解です。List.ofの引数検査です。")),
+            Step(index: 2, narration: "`catch (NullPointerException e)` が捕捉し、`NPE` を出力します。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
         ]
     )
 }

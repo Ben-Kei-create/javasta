@@ -2,6 +2,7 @@ import SwiftUI
 
 struct QuizView: View {
     @State var vm: QuizViewModel
+    @State private var activeIssueReport: QuizIssueReport?
     var codeZoom: Double = 1.0
     var onShowExplanation: () -> Void
     var onNextQuiz: (() -> Void)? = nil
@@ -20,6 +21,11 @@ struct QuizView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .sheet(item: $activeIssueReport) { report in
+            QuizIssueReportSheet(report: report)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     @ViewBuilder
@@ -174,6 +180,8 @@ struct QuizView: View {
                 )
 
             actionButtons
+
+            issueReportButton
         }
         .padding(Spacing.md)
         .background(
@@ -224,6 +232,28 @@ struct QuizView: View {
         }
     }
 
+    private var issueReportButton: some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            activeIssueReport = QuizIssueReport(
+                quiz: vm.quiz,
+                selectedChoice: vm.selectedChoice
+            )
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "flag")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("問題の不備を報告")
+                    .font(.system(size: 11, weight: .medium))
+            }
+            .foregroundStyle(Color.jbSubtext)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.top, 2)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("問題の不備を報告")
+    }
+
     private var explanationTraceStatus: ExplanationTraceStatus {
         Explanation.traceStatus(for: vm.quiz.explanationRef)
     }
@@ -247,6 +277,144 @@ struct QuizView: View {
                 .padding(.horizontal, 5)
                 .padding(.vertical, 2)
                 .background(Capsule().fill(Color.jbError.opacity(0.14)))
+        }
+    }
+}
+
+// MARK: - QuizIssueReport
+
+private struct QuizIssueReport: Identifiable {
+    let id = UUID()
+    let quiz: Quiz
+    let selectedChoice: Quiz.Choice?
+}
+
+private enum QuizIssueType: String, CaseIterable, Identifiable {
+    case wrongAnswer = "正答が違う"
+    case explanation = "解説が不自然"
+    case code = "コード不備"
+    case typo = "誤字・表記"
+    case other = "その他"
+
+    var id: String { rawValue }
+}
+
+private struct QuizIssueReportSheet: View {
+    let report: QuizIssueReport
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    @State private var issueType: QuizIssueType = .wrongAnswer
+    @State private var detail = ""
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.jbBackground.ignoresSafeArea()
+
+                VStack(alignment: .leading, spacing: Spacing.lg) {
+                    Picker("種類", selection: $issueType) {
+                        ForEach(QuizIssueType.allCases) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(Color.jbAccent)
+
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text("対象")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.jbSubtext)
+                        Text(report.quiz.id)
+                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Color.jbText)
+                    }
+
+                    TextEditor(text: $detail)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.jbText)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 130)
+                        .padding(Spacing.sm)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.sm)
+                                .fill(Color.jbCard)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.sm)
+                                        .stroke(Color.jbBorder, lineWidth: 1)
+                                )
+                        )
+                        .overlay(alignment: .topLeading) {
+                            if detail.isEmpty {
+                                Text("気づいた点を書いてください")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(Color.jbSubtext.opacity(0.7))
+                                    .padding(Spacing.md)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+
+                    Button {
+                        sendReport()
+                    } label: {
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: "paperplane.fill")
+                            Text("問い合わせを作成")
+                        }
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .fill(Color.jbAccent)
+                        )
+                    }
+
+                    Spacer(minLength: 0)
+                }
+                .padding(Spacing.lg)
+            }
+            .navigationTitle("問題を報告")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("閉じる") { dismiss() }
+                        .foregroundStyle(Color.jbSubtext)
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+
+    private func sendReport() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        let subject = "Javasta 問題報告: \(report.quiz.id)"
+        var body = """
+問題ID: \(report.quiz.id)
+級: \(report.quiz.level.displayName)
+カテゴリ: \(report.quiz.categoryDisplayName)
+報告種別: \(issueType.rawValue)
+選択肢: \(report.selectedChoice?.id ?? "未選択")
+
+詳細:
+\(detail)
+"""
+        body += "\n\n---\n問題文:\n\(report.quiz.question)\n"
+        openMail(subject: subject, body: body)
+    }
+
+    private func openMail(subject: String, body: String) {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = "fsmall.worldm@gmail.com"
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: subject),
+            URLQueryItem(name: "body", value: body),
+        ]
+        if let url = components.url {
+            openURL(url)
+            dismiss()
         }
     }
 }

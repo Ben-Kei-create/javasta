@@ -67,6 +67,68 @@ extension QuizExpansion {
         goldDateTime005,
         goldIo006,
         goldClasses007,
+        silverFinal001,
+        silverFinal002,
+        silverFinal003,
+        silverStatic001,
+        silverStatic002,
+        silverStatic003,
+        silverStatic004,
+        goldStatic005,
+        goldStatic006,
+        silverEnum001,
+        silverEnum002,
+        silverEnum003,
+        goldEnum004,
+        goldEnum005,
+        silverObject001,
+        silverObject002,
+        goldObject003,
+        goldObject004,
+        goldAnnotations003,
+        goldAnnotations004,
+        goldAnnotations005,
+        goldAnnotations006,
+        goldAnnotations007,
+        goldAnnotations008,
+        goldAnnotations009,
+        goldAnnotations010,
+        goldAnnotations011,
+        goldAnnotations012,
+        goldException007,
+        goldException008,
+        goldException009,
+        goldException010,
+        goldException011,
+        goldException012,
+        goldException013,
+        goldException014,
+        goldException015,
+        goldException016,
+        goldException017,
+        goldException018,
+        goldException019,
+        goldException020,
+        goldSecureCoding001,
+        goldSecureCoding002,
+        goldSecureCoding003,
+        goldSecureCoding004,
+        goldSecureCoding005,
+        goldSecureCoding006,
+        goldSecureCoding007,
+        goldSecureCoding008,
+        goldSecureCoding009,
+        goldSecureCoding010,
+        goldSecureCoding011,
+        goldSecureCoding012,
+        goldSecureCoding013,
+        goldSecureCoding014,
+        goldSecureCoding015,
+        goldSecureCoding016,
+        goldSecureCoding017,
+        goldSecureCoding018,
+        goldSecureCoding019,
+        goldSecureCoding020,
     ]
 
     // MARK: - Gold: Generics (extends wildcard)
@@ -2340,5 +2402,1975 @@ public class Test {
         ],
         explanationRef: "explain-gold-classes-007",
         designIntent: "recordのコンパクトコンストラクタでパラメータを検証・補正し、その後コンポーネントへ代入される流れを追わせる。"
+    )
+
+    // MARK: - Modifier / Static / Enum / Object Batch
+
+    static let silverFinal001 = Quiz(
+        id: "silver-final-001",
+        level: .silver,
+        category: "classes",
+        tags: ["final", "ローカル変数", "再代入"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        final int x = 10;
+        x++;
+        System.out.println(x);
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "11と出力される", correct: false, misconception: "finalが値の変更を許すと誤解", explanation: "`final` ローカル変数は一度代入すると再代入できません。`x++` も再代入を含みます。"),
+            Choice(id: "b", text: "x++でコンパイルエラー", correct: true, misconception: nil, explanation: "`x++` は `x = x + 1` 相当なので、final変数への再代入としてコンパイルエラーになります。"),
+            Choice(id: "c", text: "10と出力される", correct: false, misconception: "x++が無視されると誤解", explanation: "不正な変更は無視されるのではなく、コンパイル時に拒否されます。"),
+            Choice(id: "d", text: "実行時にUnsupportedOperationException", correct: false, misconception: "finalを実行時制約と誤解", explanation: "final変数への再代入はコンパイル時のエラーです。"),
+        ],
+        explanationRef: "explain-silver-final-001",
+        designIntent: "finalローカル変数に対するインクリメントも再代入であることを確認する。"
+    )
+
+    static let silverFinal002 = Quiz(
+        id: "silver-final-002",
+        level: .silver,
+        category: "classes",
+        tags: ["final", "フィールド", "コンストラクタ"],
+        code: """
+class Card {
+    final String rank;
+    static final String SUIT = "S";
+
+    Card(String rank) {
+        this.rank = rank;
+    }
+
+    String label() {
+        return rank + SUIT;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Card card = new Card("A");
+        System.out.println(card.label());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "AS", correct: true, misconception: nil, explanation: "finalフィールドrankはコンストラクタで一度だけ代入され、static finalのSUITと連結されます。"),
+            Choice(id: "b", text: "A", correct: false, misconception: "static finalフィールドが参照できないと誤解", explanation: "同じクラス内のインスタンスメソッドからstaticフィールドを参照できます。"),
+            Choice(id: "c", text: "nullS", correct: false, misconception: "finalフィールドが初期化されないと誤解", explanation: "Card(\"A\") のコンストラクタでrankにAが代入されます。"),
+            Choice(id: "d", text: "this.rank = rank; でコンパイルエラー", correct: false, misconception: "finalフィールドはコンストラクタでも代入できないと誤解", explanation: "blank finalフィールドはコンストラクタで確実に一度代入できます。"),
+        ],
+        explanationRef: "explain-silver-final-002",
+        designIntent: "finalフィールドは宣言時だけでなくコンストラクタでも初期化できることを追わせる。"
+    )
+
+    static let silverFinal003 = Quiz(
+        id: "silver-final-003",
+        level: .silver,
+        category: "inheritance",
+        tags: ["final", "継承", "オーバーライド"],
+        code: """
+class Parent {
+    final void show() {
+        System.out.print("P");
+    }
+}
+
+class Child extends Parent {
+    void show() {
+        System.out.print("C");
+    }
+}
+
+public class Test {}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる", correct: false, misconception: "finalメソッドも通常通りオーバーライドできると誤解", explanation: "finalメソッドはサブクラスでオーバーライドできません。"),
+            Choice(id: "b", text: "Childのshow()宣言でコンパイルエラー", correct: true, misconception: nil, explanation: "Parent.show()がfinalなので、同じシグネチャで再定義しようとするとコンパイルエラーです。"),
+            Choice(id: "c", text: "実行するとCと出力される", correct: false, misconception: "実行時の動的ディスパッチまで進むと誤解", explanation: "コンパイルできないため実行されません。"),
+            Choice(id: "d", text: "Parentクラスを継承する行でコンパイルエラー", correct: false, misconception: "finalメソッドを持つクラスは継承できないと誤解", explanation: "finalなのはメソッドであり、Parentクラス自体は継承できます。"),
+        ],
+        explanationRef: "explain-silver-final-003",
+        designIntent: "finalメソッドとfinalクラスの違いを、オーバーライド禁止として確認する。"
+    )
+
+    static let silverStatic001 = Quiz(
+        id: "silver-static-001",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "クラス変数", "共有状態"],
+        code: """
+class Counter {
+    static int total = 0;
+    int id = ++total;
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Counter a = new Counter();
+        Counter b = new Counter();
+        System.out.println(a.id + ":" + b.id + ":" + Counter.total);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1:1:0", correct: false, misconception: "staticフィールドもインスタンスごとに別物と誤解", explanation: "totalはCounterクラスに1つだけ存在し、全インスタンスで共有されます。"),
+            Choice(id: "b", text: "1:2:2", correct: true, misconception: nil, explanation: "1個目の生成でtotalは1、2個目の生成でtotalは2になります。"),
+            Choice(id: "c", text: "0:1:2", correct: false, misconception: "++totalの前置インクリメント順を誤解", explanation: "前置インクリメントなので、増えた後の値がidに入ります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "インスタンスフィールド初期化でstaticを使えないと誤解", explanation: "インスタンスフィールド初期化式からstaticフィールドを参照・更新できます。"),
+        ],
+        explanationRef: "explain-silver-static-001",
+        designIntent: "staticフィールドがインスタンス間で共有されることを、生成順と値の変化で追わせる。"
+    )
+
+    static let silverStatic002 = Quiz(
+        id: "silver-static-002",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "インスタンスメンバ", "this"],
+        code: """
+class Tool {
+    int size = 3;
+
+    static int twice() {
+        return size * 2;
+    }
+}
+
+public class Test {}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "6を返すメソッドとして正常にコンパイルできる", correct: false, misconception: "staticメソッドが暗黙のthisを持つと誤解", explanation: "staticメソッドには特定のインスタンスがないため、sizeを直接参照できません。"),
+            Choice(id: "b", text: "return size * 2; でコンパイルエラー", correct: true, misconception: nil, explanation: "非staticフィールドsizeはインスタンスに属するため、staticメソッドからはオブジェクト経由で参照する必要があります。"),
+            Choice(id: "c", text: "実行時にNullPointerException", correct: false, misconception: "thisがnullになると誤解", explanation: "this以前に、static文脈から非staticメンバを直接参照できずコンパイルエラーです。"),
+            Choice(id: "d", text: "sizeが0として扱われる", correct: false, misconception: "インスタンスなしではデフォルト値になると誤解", explanation: "どのインスタンスのsizeか決まらないため、値は読み出されません。"),
+        ],
+        explanationRef: "explain-silver-static-002",
+        designIntent: "staticメソッドから非staticフィールドを直接参照できない理由を確認する。"
+    )
+
+    static let silverStatic003 = Quiz(
+        id: "silver-static-003",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "インスタンスメソッド", "クラス内アクセス"],
+        code: """
+class Item {
+    static int rate = 2;
+    int price;
+
+    Item(int price) {
+        this.price = price;
+    }
+
+    int total() {
+        return price * rate;
+    }
+
+    static void change(int newRate) {
+        rate = newRate;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Item item = new Item(5);
+        System.out.print(item.total() + " ");
+        Item.change(3);
+        System.out.println(item.total());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "10 15", correct: true, misconception: nil, explanation: "インスタンスメソッドtotal()はpriceとstaticなrateの両方にアクセスでき、rate変更後は15になります。"),
+            Choice(id: "b", text: "10 10", correct: false, misconception: "staticフィールド変更が既存インスタンスに影響しないと誤解", explanation: "rateはクラス共有なので、既存のitem.total()にも新しい値が使われます。"),
+            Choice(id: "c", text: "5 15", correct: false, misconception: "初回のrateを掛け忘れている", explanation: "最初のrateは2なので、5 * 2で10です。"),
+            Choice(id: "d", text: "total()内のrate参照でコンパイルエラー", correct: false, misconception: "インスタンスメソッドからstaticへ直接アクセスできないと誤解", explanation: "インスタンスメソッドからstaticメンバを参照することは可能です。"),
+        ],
+        explanationRef: "explain-silver-static-003",
+        designIntent: "クラス内でインスタンスメソッドがインスタンスメンバとstaticメンバの両方へアクセスできることを追わせる。"
+    )
+
+    static let silverStatic004 = Quiz(
+        id: "silver-static-004",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "null", "メンバ呼び出し"],
+        code: """
+class Config {
+    static int value = 7;
+    static String name() {
+        return "OK";
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Config config = null;
+        System.out.println(config.name() + ":" + config.value);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "OK:7", correct: true, misconception: nil, explanation: "staticメンバはクラスに属するため、null参照を通して書いても実際にはConfigのstaticメンバが解決されます。"),
+            Choice(id: "b", text: "NullPointerException", correct: false, misconception: "static呼び出しもインスタンス参照を逆参照すると誤解", explanation: "この式ではstaticメンバ解決なので、通常のインスタンスメンバ呼び出しとは違いNPEになりません。"),
+            Choice(id: "c", text: "null:0", correct: false, misconception: "configがnullなのでstatic値も初期化されないと誤解", explanation: "Config.valueはクラス側のフィールドとして7に初期化されています。"),
+            Choice(id: "d", text: "config.name()でコンパイルエラー", correct: false, misconception: "参照変数経由のstaticアクセスが構文的に禁止と誤解", explanation: "推奨はConfig.name()ですが、参照変数経由でもコンパイルはできます。"),
+        ],
+        explanationRef: "explain-silver-static-004",
+        designIntent: "nullに対するstaticメンバ呼び出しはインスタンスメンバ呼び出しと異なりNPEにならないことを確認する。"
+    )
+
+    static let goldStatic005 = Quiz(
+        id: "gold-static-005",
+        level: .gold,
+        category: "inheritance",
+        tags: ["static", "メソッド隠蔽", "動的ディスパッチ"],
+        code: """
+class Parent {
+    static String name() { return "P"; }
+    String label() { return "PI"; }
+}
+
+class Child extends Parent {
+    static String name() { return "C"; }
+    String label() { return "CI"; }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Parent p = new Child();
+        System.out.println(p.name() + ":" + p.label());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "C:CI", correct: false, misconception: "staticメソッドもオーバーライドされると誤解", explanation: "staticメソッドは参照変数の型Parentで解決されます。"),
+            Choice(id: "b", text: "P:CI", correct: true, misconception: nil, explanation: "name()はstaticなのでParent版、label()はインスタンスメソッドなのでChild版が呼ばれます。"),
+            Choice(id: "c", text: "P:PI", correct: false, misconception: "インスタンスメソッドも参照型だけで決まると誤解", explanation: "label()はオーバーライドされており、実体Childに基づいて動的に呼ばれます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "staticメソッドを同名で宣言できないと誤解", explanation: "これはオーバーライドではなくメソッド隠蔽として扱われます。"),
+        ],
+        explanationRef: "explain-gold-static-005",
+        designIntent: "staticメソッド隠蔽とインスタンスメソッドのオーバーライドを同じ式で比較させる。"
+    )
+
+    static let goldStatic006 = Quiz(
+        id: "gold-static-006",
+        level: .gold,
+        category: "classes",
+        tags: ["static", "初期化順序", "static初期化ブロック"],
+        code: """
+class Logger {
+    static int n = init();
+
+    static {
+        System.out.print("B" + n + " ");
+        n++;
+    }
+
+    Logger() {
+        System.out.print("C" + n + " ");
+    }
+
+    static int init() {
+        System.out.print("A ");
+        return 1;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        new Logger();
+        new Logger();
+        System.out.println(Logger.n);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A B1 C2 C2 2", correct: true, misconception: nil, explanation: "static初期化は最初のLogger利用時に一度だけ走り、その後コンストラクタが2回実行されます。"),
+            Choice(id: "b", text: "A B1 C2 A B1 C2 2", correct: false, misconception: "static初期化がインスタンス生成ごとに走ると誤解", explanation: "staticフィールド初期化とstaticブロックはクラス初期化時に一度だけです。"),
+            Choice(id: "c", text: "C0 C0 0", correct: false, misconception: "static初期化よりコンストラクタが先と誤解", explanation: "インスタンス生成前にクラス初期化が完了します。"),
+            Choice(id: "d", text: "B0 A C1 C1 1", correct: false, misconception: "staticフィールド初期化とstaticブロックの順序を逆に理解", explanation: "宣言順に実行されるため、まずn = init()、次にstaticブロックです。"),
+        ],
+        explanationRef: "explain-gold-static-006",
+        designIntent: "static初期化が宣言順かつ一度だけ実行され、コンストラクタは生成ごとに実行されることを追わせる。"
+    )
+
+    static let silverEnum001 = Quiz(
+        id: "silver-enum-001",
+        level: .silver,
+        category: "classes",
+        tags: ["enum", "name", "ordinal"],
+        code: """
+enum Level {
+    LOW, MEDIUM, HIGH
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Level level = Level.MEDIUM;
+        System.out.println(level.name() + ":" + level.ordinal());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "MEDIUM:1", correct: true, misconception: nil, explanation: "name()は定数名、ordinal()は宣言順の0始まり番号を返します。MEDIUMは2番目なので1です。"),
+            Choice(id: "b", text: "MEDIUM:2", correct: false, misconception: "ordinalが1始まりだと誤解", explanation: "ordinal()は0始まりです。"),
+            Choice(id: "c", text: "Level.MEDIUM:1", correct: false, misconception: "name()が型名付き文字列を返すと誤解", explanation: "name()は定数名だけを返します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "enumでメソッドを呼べないと誤解", explanation: "すべてのenum定数はjava.lang.Enum由来のname()やordinal()を持ちます。"),
+        ],
+        explanationRef: "explain-silver-enum-001",
+        designIntent: "enumのnameとordinalを、宣言順に沿って確認する。"
+    )
+
+    static let silverEnum002 = Quiz(
+        id: "silver-enum-002",
+        level: .silver,
+        category: "classes",
+        tags: ["enum", "コンストラクタ", "フィールド"],
+        code: """
+enum Size {
+    SMALL(1), LARGE(3);
+
+    private final int code;
+
+    Size(int code) {
+        this.code = code;
+    }
+
+    int code() {
+        return code;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(Size.LARGE.code());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "3", correct: true, misconception: nil, explanation: "LARGE(3)でenumコンストラクタに3が渡され、codeフィールドに保存されます。"),
+            Choice(id: "b", text: "1", correct: false, misconception: "最初の定数SMALLの値を参照すると誤解", explanation: "呼び出しているのはSize.LARGE.code()です。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "enumフィールドが初期化されないと誤解", explanation: "各enum定数の生成時にコンストラクタでcodeが初期化されます。"),
+            Choice(id: "d", text: "enumにコンストラクタを書けないためコンパイルエラー", correct: false, misconception: "enumを単なる定数リストと誤解", explanation: "enumはフィールド・コンストラクタ・メソッドを持てます。"),
+        ],
+        explanationRef: "explain-silver-enum-002",
+        designIntent: "enum定数がコンストラクタ引数と状態を持てることを確認する。"
+    )
+
+    static let silverEnum003 = Quiz(
+        id: "silver-enum-003",
+        level: .silver,
+        category: "classes",
+        tags: ["enum", "values", "valueOf"],
+        code: """
+enum Day {
+    MON, TUE
+}
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.print(Day.values().length + " ");
+        System.out.println(Day.valueOf("MON") == Day.MON);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2 true", correct: true, misconception: nil, explanation: "values()は2つの定数を返し、valueOf(\"MON\")は既存のDay.MON定数そのものを返します。"),
+            Choice(id: "b", text: "2 false", correct: false, misconception: "valueOfが新しいenumインスタンスを作ると誤解", explanation: "enum定数は固定の単一インスタンスなので、==で比較できます。"),
+            Choice(id: "c", text: "1 true", correct: false, misconception: "現在参照している定数だけがvaluesに入ると誤解", explanation: "values()は宣言済みの全定数を配列で返します。"),
+            Choice(id: "d", text: "IllegalArgumentException", correct: false, misconception: "valueOf(\"MON\")が名前を見つけられないと誤解", explanation: "MONは宣言済みの定数名なので有効です。"),
+        ],
+        explanationRef: "explain-silver-enum-003",
+        designIntent: "enumのvaluesとvalueOf、定数の同一性比較を押さえる。"
+    )
+
+    static let goldEnum004 = Quiz(
+        id: "gold-enum-004",
+        level: .gold,
+        category: "classes",
+        tags: ["enum", "定数固有クラス本体", "抽象メソッド"],
+        code: """
+enum Op {
+    PLUS {
+        int apply(int a, int b) { return a + b; }
+    },
+    TIMES {
+        int apply(int a, int b) { return a * b; }
+    };
+
+    abstract int apply(int a, int b);
+}
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(Op.PLUS.apply(2, 3) + ":" + Op.TIMES.apply(2, 3));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "5:6", correct: true, misconception: nil, explanation: "PLUSは加算、TIMESは乗算としてそれぞれ定数固有のapplyを実行します。"),
+            Choice(id: "b", text: "6:5", correct: false, misconception: "各定数の実装を逆に読んでいる", explanation: "PLUSがa + b、TIMESがa * bです。"),
+            Choice(id: "c", text: "5:5", correct: false, misconception: "全定数が同じ実装を共有すると誤解", explanation: "定数ごとに異なるクラス本体を持てます。"),
+            Choice(id: "d", text: "enumに抽象メソッドを書けないためコンパイルエラー", correct: false, misconception: "enumのクラス的性質を見落としている", explanation: "全定数が実装するならenumに抽象メソッドを宣言できます。"),
+        ],
+        explanationRef: "explain-gold-enum-004",
+        designIntent: "enum定数固有クラス本体により、定数ごとに振る舞いを変えられることを確認する。"
+    )
+
+    static let goldEnum005 = Quiz(
+        id: "gold-enum-005",
+        level: .gold,
+        category: "control-flow",
+        tags: ["enum", "switch式", "網羅"],
+        code: """
+enum Color {
+    RED, BLUE
+}
+
+public class Test {
+    static String label(Color color) {
+        return switch (color) {
+            case RED -> "R";
+            case BLUE -> "B";
+        };
+    }
+
+    public static void main(String[] args) {
+        System.out.println(label(Color.BLUE));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "B", correct: true, misconception: nil, explanation: "Color.BLUEはswitch式のBLUEケースに一致し、\"B\"を返します。"),
+            Choice(id: "b", text: "R", correct: false, misconception: "最初のcaseが常に選ばれると誤解", explanation: "switchは値に一致するcaseを選びます。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "defaultがないとnullになると誤解", explanation: "enumの全定数をcaseで網羅しているためdefaultなしで値を返せます。"),
+            Choice(id: "d", text: "defaultがないためコンパイルエラー", correct: false, misconception: "enum switch式の網羅性を見落としている", explanation: "REDとBLUEをすべて扱っているため、このswitch式は網羅的です。"),
+        ],
+        explanationRef: "explain-gold-enum-005",
+        designIntent: "enumを対象にしたswitch式では全定数を網羅すればdefaultなしで値を返せることを確認する。"
+    )
+
+    static let silverObject001 = Quiz(
+        id: "silver-object-001",
+        level: .silver,
+        category: "classes",
+        tags: ["Object", "equals", "参照同一性"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        Object a = new Object();
+        Object b = a;
+        Object c = new Object();
+        System.out.println(a.equals(b) + ":" + a.equals(c));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true:false", correct: true, misconception: nil, explanation: "Objectのequalsはデフォルトでは参照同一性を比較します。bはaと同じ参照、cは別オブジェクトです。"),
+            Choice(id: "b", text: "true:true", correct: false, misconception: "Object同士なら内容が同じとみなされると誤解", explanation: "new Object()には内容比較のオーバーライドがないため、別インスタンスはfalseです。"),
+            Choice(id: "c", text: "false:false", correct: false, misconception: "equalsが常にfalseを返すと誤解", explanation: "同じ参照を比較すればtrueです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Object変数でequalsを呼べないと誤解", explanation: "equalsはObjectクラスのメソッドなので呼び出せます。"),
+        ],
+        explanationRef: "explain-silver-object-001",
+        designIntent: "Object.equalsのデフォルト実装が参照同一性であることを確認する。"
+    )
+
+    static let silverObject002 = Quiz(
+        id: "silver-object-002",
+        level: .silver,
+        category: "classes",
+        tags: ["Object", "toString", "getClass"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        Object value = "Java";
+        System.out.println(value.getClass().getSimpleName() + ":" + value.toString());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "String:Java", correct: true, misconception: nil, explanation: "変数型はObjectでも実体はStringです。getClass()は実行時クラス、toString()はStringの実装が呼ばれます。"),
+            Choice(id: "b", text: "Object:Java", correct: false, misconception: "getClassが変数の宣言型を返すと誤解", explanation: "getClass()は実行時の実体クラスを返します。"),
+            Choice(id: "c", text: "String:java.lang.String", correct: false, misconception: "String.toStringがクラス名を返すと誤解", explanation: "StringのtoString()は文字列自身を返します。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "Object型に入れたStringを戻せないと誤解", explanation: "キャストは行っておらず、Objectのメソッドを呼んでいるだけです。"),
+        ],
+        explanationRef: "explain-silver-object-002",
+        designIntent: "Object参照でも実体クラスのメソッド実装が使われることを、getClassとtoStringで追わせる。"
+    )
+
+    static let goldObject003 = Quiz(
+        id: "gold-object-003",
+        level: .gold,
+        category: "classes",
+        tags: ["Object", "equals", "hashCode", "HashSet"],
+        code: """
+import java.util.*;
+
+class Key {
+    private final int id;
+
+    Key(int id) {
+        this.id = id;
+    }
+
+    public boolean equals(Object obj) {
+        return obj instanceof Key other && other.id == id;
+    }
+
+    public int hashCode() {
+        return id;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Set<Key> set = new HashSet<>();
+        set.add(new Key(1));
+        set.add(new Key(1));
+        System.out.println(set.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "equalsとhashCodeがidベースで一致するため、HashSetは2つのKey(1)を同値として扱います。"),
+            Choice(id: "b", text: "2", correct: false, misconception: "newしたオブジェクトは常に別要素になると誤解", explanation: "HashSetはequals/hashCodeの契約に基づいて重複判定します。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "重複判定で両方消えると誤解", explanation: "1つ目は保持され、2つ目の追加だけが重複として無視されます。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "instanceofパターンがキャスト例外を投げると誤解", explanation: "instanceofは型が合わなければfalseになるだけです。"),
+        ],
+        explanationRef: "explain-gold-object-003",
+        designIntent: "Object.equals/hashCodeを正しくオーバーライドすると、コレクションの重複判定が値ベースになることを確認する。"
+    )
+
+    static let goldObject004 = Quiz(
+        id: "gold-object-004",
+        level: .gold,
+        category: "classes",
+        tags: ["Object", "equals", "オーバーロード"],
+        code: """
+class Key {
+    private final int id;
+
+    Key(int id) {
+        this.id = id;
+    }
+
+    public boolean equals(Key other) {
+        return other != null && other.id == id;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Object a = new Key(1);
+        Object b = new Key(1);
+        System.out.println(a.equals(b));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: false, misconception: "equals(Key)がObject.equalsをオーバーライドしていると誤解", explanation: "equals(Key)はオーバーロードであり、equals(Object)のオーバーライドではありません。"),
+            Choice(id: "b", text: "false", correct: true, misconception: nil, explanation: "aの宣言型はObjectなのでequals(Object)が呼び出し対象です。Keyはequals(Object)をオーバーライドしていないため参照比較になります。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "Object変数同士でequalsを呼べないと誤解", explanation: "Objectにはequals(Object)が定義されています。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "otherがnullになると誤解", explanation: "bはKeyインスタンスを参照しています。そもそもこの呼び出しではequals(Key)は使われません。"),
+        ],
+        explanationRef: "explain-gold-object-004",
+        designIntent: "equals(Object)を正しくオーバーライドせずequals(Key)を追加してしまう典型的な落とし穴を確認する。"
+    )
+
+    // MARK: - Gold: Annotations / Exceptions Batch
+
+    static let goldAnnotations003 = Quiz(
+        id: "gold-annotations-003",
+        level: .gold,
+        category: "annotations",
+        tags: ["@FunctionalInterface", "defaultメソッド", "staticメソッド"],
+        code: """
+@FunctionalInterface
+interface Task {
+    void run();
+    default void log() {}
+    static Task of(Task task) {
+        return task;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Task task = Task.of(() -> System.out.print("R"));
+        task.run();
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "R", correct: true, misconception: nil, explanation: "抽象メソッドはrun()だけです。default/staticメソッドは関数型インターフェースの抽象メソッド数に数えません。"),
+            Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "default/staticメソッドも抽象メソッド数に数えると誤解", explanation: "@FunctionalInterfaceは抽象メソッドが1つなら有効です。"),
+            Choice(id: "c", text: "何も出力されない", correct: false, misconception: "ラムダが実行されないと誤解", explanation: "task.run()でラムダ本体が実行されます。"),
+            Choice(id: "d", text: "RuntimeException", correct: false, misconception: "Task.ofが例外を投げると誤解", explanation: "Task.ofは受け取ったtaskをそのまま返すだけです。"),
+        ],
+        explanationRef: "explain-gold-annotations-003",
+        designIntent: "@FunctionalInterfaceの抽象メソッド数判定で、default/staticメソッドを除外することを確認する。"
+    )
+
+    static let goldAnnotations004 = Quiz(
+        id: "gold-annotations-004",
+        level: .gold,
+        category: "annotations",
+        tags: ["@FunctionalInterface", "抽象メソッド", "コンパイルエラー"],
+        code: """
+@FunctionalInterface
+interface Parser {
+    String parse(String text);
+    int size();
+}
+
+public class Test {}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる", correct: false, misconception: "戻り値が違えば1つの関数型として扱えると誤解", explanation: "parseとsizeはどちらも抽象メソッドです。"),
+            Choice(id: "b", text: "@FunctionalInterfaceの付いたParserでコンパイルエラー", correct: true, misconception: nil, explanation: "抽象メソッドが2つあるため、関数型インターフェースではありません。"),
+            Choice(id: "c", text: "size()だけがdefault扱いになる", correct: false, misconception: "実装がないメソッドが自動的にdefaultになると誤解", explanation: "defaultを明示しないメソッドは抽象メソッドです。"),
+            Choice(id: "d", text: "実行時にIllegalStateException", correct: false, misconception: "アノテーション検査が実行時まで遅れると誤解", explanation: "@FunctionalInterfaceの不一致はコンパイル時に検出されます。"),
+        ],
+        explanationRef: "explain-gold-annotations-004",
+        designIntent: "@FunctionalInterfaceが抽象メソッド2つのインターフェースをコンパイル時に拒否することを確認する。"
+    )
+
+    static let goldAnnotations005 = Quiz(
+        id: "gold-annotations-005",
+        level: .gold,
+        category: "annotations",
+        tags: ["@Deprecated", "組み込みアノテーション", "警告"],
+        code: """
+class Api {
+    @Deprecated
+    static String oldName() {
+        return "old";
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(Api.oldName());
+    }
+}
+""",
+        question: "このコードを実行したとき、結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "oldと出力される", correct: true, misconception: nil, explanation: "@Deprecatedは使用時に警告を出すためのメタデータで、メソッド呼び出し自体を禁止しません。"),
+            Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "非推奨APIは使用不可になると誤解", explanation: "通常は警告であり、コンパイルは可能です。"),
+            Choice(id: "c", text: "実行時にDeprecatedException", correct: false, misconception: "@Deprecatedが実行時例外を投げると誤解", explanation: "Java標準にDeprecatedExceptionという挙動はありません。"),
+            Choice(id: "d", text: "nullと出力される", correct: false, misconception: "非推奨メソッドの戻り値が無効になると誤解", explanation: "メソッド本体は通常通り実行され、oldを返します。"),
+        ],
+        explanationRef: "explain-gold-annotations-005",
+        designIntent: "@Deprecatedはコンパイル警告用であり、実行結果を変えないことを確認する。"
+    )
+
+    static let goldAnnotations006 = Quiz(
+        id: "gold-annotations-006",
+        level: .gold,
+        category: "annotations",
+        tags: ["カスタムアノテーション", "Retention", "Reflection"],
+        code: """
+@interface Info {
+    String value();
+}
+
+@Info("service")
+class Service {}
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(Service.class.isAnnotationPresent(Info.class));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: false, misconception: "全アノテーションが実行時に反射で読めると誤解", explanation: "Retentionを指定しない場合、実行時反射では取得できません。"),
+            Choice(id: "b", text: "false", correct: true, misconception: nil, explanation: "デフォルトのRetentionPolicyはCLASSです。RUNTIMEを指定していないため、isAnnotationPresentはfalseになります。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "カスタムアノテーションにはRetentionが必須と誤解", explanation: "Retention指定は任意です。省略時はCLASSです。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "Info.classがnullになると誤解", explanation: "クラスリテラルはnullではありません。反射で見えないだけです。"),
+        ],
+        explanationRef: "explain-gold-annotations-006",
+        designIntent: "カスタムアノテーションのデフォルトRetentionがCLASSであり、実行時反射には残らないことを確認する。"
+    )
+
+    static let goldAnnotations007 = Quiz(
+        id: "gold-annotations-007",
+        level: .gold,
+        category: "annotations",
+        tags: ["@Retention", "RetentionPolicy.RUNTIME", "Reflection"],
+        code: """
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface Info {
+    String value();
+    int version() default 1;
+}
+
+@Info(value = "service", version = 2)
+class Service {}
+
+public class Test {
+    public static void main(String[] args) {
+        Info info = Service.class.getAnnotation(Info.class);
+        System.out.println(info.value() + ":" + info.version());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "service:2", correct: true, misconception: nil, explanation: "RUNTIME保持なので反射でInfoを取得でき、指定したvalueとversionを読めます。"),
+            Choice(id: "b", text: "service:1", correct: false, misconception: "明示指定したversionが無視されると誤解", explanation: "version = 2を指定しているため、デフォルト値1ではありません。"),
+            Choice(id: "c", text: "NullPointerException", correct: false, misconception: "getAnnotationがnullを返すと誤解", explanation: "RUNTIME保持のため、Infoは実行時に取得できます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "アノテーションにdefault要素を書けないと誤解", explanation: "アノテーション要素にはdefault値を指定できます。"),
+        ],
+        explanationRef: "explain-gold-annotations-007",
+        designIntent: "@Retention(RUNTIME)を付けたカスタムアノテーションを反射で取得し、要素値を読む流れを確認する。"
+    )
+
+    static let goldAnnotations008 = Quiz(
+        id: "gold-annotations-008",
+        level: .gold,
+        category: "annotations",
+        tags: ["@Target", "ElementType", "コンパイルエラー"],
+        code: """
+import java.lang.annotation.*;
+
+@Target(ElementType.METHOD)
+@interface Run {}
+
+@Run
+class Job {}
+
+public class Test {}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる", correct: false, misconception: "@Targetはドキュメント用途だけだと誤解", explanation: "@Targetはアノテーションを付けられる場所をコンパイラに制限させます。"),
+            Choice(id: "b", text: "@Runをclass Jobに付けている行でコンパイルエラー", correct: true, misconception: nil, explanation: "@RunはMETHOD専用です。クラス宣言には付けられません。"),
+            Choice(id: "c", text: "@interface Run {} の宣言でコンパイルエラー", correct: false, misconception: "空のアノテーションを宣言できないと誤解", explanation: "要素を持たないマーカーアノテーションは有効です。"),
+            Choice(id: "d", text: "実行時にAnnotationFormatError", correct: false, misconception: "Target違反が実行時まで遅れると誤解", explanation: "不正な付与位置はコンパイル時に検出されます。"),
+        ],
+        explanationRef: "explain-gold-annotations-008",
+        designIntent: "@Targetがカスタムアノテーションの使用可能位置を制限することを確認する。"
+    )
+
+    static let goldAnnotations009 = Quiz(
+        id: "gold-annotations-009",
+        level: .gold,
+        category: "annotations",
+        tags: ["メタアノテーション", "ANNOTATION_TYPE", "@Target"],
+        code: """
+import java.lang.annotation.*;
+
+@Target(ElementType.ANNOTATION_TYPE)
+@interface Role {}
+
+@Role
+@interface Secured {}
+
+@Role
+class Service {}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる", correct: false, misconception: "ANNOTATION_TYPEが通常クラスも含むと誤解", explanation: "ANNOTATION_TYPEはアノテーション型宣言にだけ付けられるという意味です。"),
+            Choice(id: "b", text: "@Roleを@interface Securedに付けた行でコンパイルエラー", correct: false, misconception: "アノテーションにアノテーションを付けられないと誤解", explanation: "RoleはANNOTATION_TYPE対象なので、Securedへの付与は有効です。"),
+            Choice(id: "c", text: "@Roleをclass Serviceに付けた行でコンパイルエラー", correct: true, misconception: nil, explanation: "Roleはアノテーション型専用です。通常クラスServiceには付けられません。"),
+            Choice(id: "d", text: "実行時にfalseが出力される", correct: false, misconception: "コンパイルエラーのコードが実行されると誤解", explanation: "このコードには出力処理もなく、Target違反でコンパイルできません。"),
+        ],
+        explanationRef: "explain-gold-annotations-009",
+        designIntent: "アノテーションをアノテートするメタアノテーションと、ElementType.ANNOTATION_TYPEの意味を確認する。"
+    )
+
+    static let goldAnnotations010 = Quiz(
+        id: "gold-annotations-010",
+        level: .gold,
+        category: "annotations",
+        tags: ["@Inherited", "RetentionPolicy.RUNTIME", "Reflection"],
+        code: """
+import java.lang.annotation.*;
+
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@interface Mark {}
+
+@Mark
+class Parent {}
+
+class Child extends Parent {}
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(Child.class.isAnnotationPresent(Mark.class));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "@Inheritedが付いたクラスアノテーションは、サブクラス側の反射取得でも継承されたものとして見えます。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "アノテーションは絶対に継承されないと誤解", explanation: "@InheritedとRUNTIME保持があるため、Childからも見えます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "@Inheritedをカスタムアノテーションに付けられないと誤解", explanation: "@Inheritedはアノテーション型に付けるメタアノテーションです。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "Child.classがnullになると誤解", explanation: "クラスリテラルは常にClassオブジェクトを表します。"),
+        ],
+        explanationRef: "explain-gold-annotations-010",
+        designIntent: "@Inheritedがクラスアノテーションをサブクラス反射から見えるようにすることを確認する。"
+    )
+
+    static let goldAnnotations011 = Quiz(
+        id: "gold-annotations-011",
+        level: .gold,
+        category: "annotations",
+        tags: ["@Repeatable", "コンテナアノテーション", "Reflection"],
+        code: """
+import java.lang.annotation.*;
+
+@Repeatable(Tags.class)
+@Retention(RetentionPolicy.RUNTIME)
+@interface Tag {
+    String value();
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface Tags {
+    Tag[] value();
+}
+
+@Tag("A")
+@Tag("B")
+class Service {}
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(Service.class.getAnnotationsByType(Tag.class).length);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: false, misconception: "同じアノテーションは1つにまとめられて数えられると誤解", explanation: "getAnnotationsByType(Tag.class)は繰り返し付与されたTagを展開して返します。"),
+            Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "@RepeatableとコンテナTagsにより、Tagを2回付けられ、反射でも2件取得できます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "同じアノテーションを複数回付けられないと誤解", explanation: "@Repeatableを正しく宣言しているため有効です。"),
+            Choice(id: "d", text: "0", correct: false, misconception: "RUNTIME保持がないと誤解", explanation: "TagとTagsの両方にRUNTIME保持があります。"),
+        ],
+        explanationRef: "explain-gold-annotations-011",
+        designIntent: "@Repeatableのコンテナアノテーションと、getAnnotationsByTypeでの展開取得を確認する。"
+    )
+
+    static let goldAnnotations012 = Quiz(
+        id: "gold-annotations-012",
+        level: .gold,
+        category: "annotations",
+        tags: ["カスタムアノテーション", "value要素", "省略記法"],
+        code: """
+@interface Label {
+    String name();
+}
+
+@Label("service")
+class Service {}
+
+public class Test {}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる", correct: false, misconception: "どの要素名でも単一値なら省略できると誤解", explanation: "省略記法 `@X(\"...\")` が使えるのは要素名がvalueの場合です。"),
+            Choice(id: "b", text: "@Label(\"service\")でコンパイルエラー", correct: true, misconception: nil, explanation: "Labelの必須要素はnameです。`@Label(name = \"service\")` と書く必要があります。"),
+            Choice(id: "c", text: "nameには空文字が入る", correct: false, misconception: "未指定要素に自動デフォルトが入ると誤解", explanation: "defaultを指定していない要素は必須です。"),
+            Choice(id: "d", text: "実行時にAnnotationTypeMismatchException", correct: false, misconception: "要素名間違いが実行時まで遅れると誤解", explanation: "この構文エラーはコンパイル時に検出されます。"),
+        ],
+        explanationRef: "explain-gold-annotations-012",
+        designIntent: "単一要素アノテーションの省略記法はvalue要素にだけ使えることを確認する。"
+    )
+
+    static let goldException007 = Quiz(
+        id: "gold-exception-007",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["multi-catch", "IOException", "到達不能"],
+        code: """
+import java.io.*;
+
+public class Test {
+    public static void main(String[] args) {
+        try {
+            throw new FileNotFoundException();
+        } catch (IOException | FileNotFoundException e) {
+            System.out.println("caught");
+        }
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "caughtと出力される", correct: false, misconception: "multi-catchなら親子型を並べてもよいと誤解", explanation: "IOExceptionはFileNotFoundExceptionの親型なので、同じmulti-catchに並べられません。"),
+            Choice(id: "b", text: "catch (IOException | FileNotFoundException e)でコンパイルエラー", correct: true, misconception: nil, explanation: "multi-catchの代替型同士にサブタイプ関係があるとコンパイルエラーです。"),
+            Choice(id: "c", text: "throw new FileNotFoundException();でコンパイルエラー", correct: false, misconception: "catchしていてもチェック例外をthrowできないと誤解", explanation: "問題はthrowではなく、multi-catchの型の組み合わせです。"),
+            Choice(id: "d", text: "実行時にFileNotFoundExceptionで異常終了", correct: false, misconception: "コンパイルエラーを見落としている", explanation: "このコードは実行前にコンパイルで止まります。"),
+        ],
+        explanationRef: "explain-gold-exception-007",
+        designIntent: "multi-catchでは親子関係にある例外型を同時に並べられないことを確認する。"
+    )
+
+    static let goldException008 = Quiz(
+        id: "gold-exception-008",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["try-with-resources", "suppressed", "AutoCloseable"],
+        code: """
+class R implements AutoCloseable {
+    public void close() {
+        throw new RuntimeException("close");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        try (R r = new R()) {
+            throw new RuntimeException("body");
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage() + ":" + e.getSuppressed()[0].getMessage());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "body:close", correct: true, misconception: nil, explanation: "try本体の例外が主例外になり、close中の例外はsuppressedとして追加されます。"),
+            Choice(id: "b", text: "close:body", correct: false, misconception: "close例外が主例外になると誤解", explanation: "try本体ですでに例外がある場合、closeの例外は抑制例外になります。"),
+            Choice(id: "c", text: "bodyだけ出力される", correct: false, misconception: "close例外が消えると誤解", explanation: "close例外はgetSuppressed()から取得できます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "AutoCloseable.closeは必ずthrows Exceptionを書く必要があると誤解", explanation: "closeはthrowsを狭めて、宣言なしにできます。"),
+        ],
+        explanationRef: "explain-gold-exception-008",
+        designIntent: "try-with-resourcesで本体例外とclose例外が同時に起きたとき、close例外がsuppressedになることを確認する。"
+    )
+
+    static let goldException009 = Quiz(
+        id: "gold-exception-009",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["try-with-resources", "close順序", "suppressed"],
+        code: """
+class R implements AutoCloseable {
+    private final String name;
+    R(String name) { this.name = name; }
+    public void close() {
+        throw new RuntimeException(name);
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        try (R a = new R("A"); R b = new R("B")) {
+            throw new RuntimeException("T");
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage() + ":" +
+                e.getSuppressed()[0].getMessage() +
+                e.getSuppressed()[1].getMessage());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "T:AB", correct: false, misconception: "リソースが宣言順にcloseされると誤解", explanation: "try-with-resourcesは宣言と逆順にcloseします。"),
+            Choice(id: "b", text: "T:BA", correct: true, misconception: nil, explanation: "主例外はTで、closeはb、aの順に実行されるためsuppressedはB、Aの順です。"),
+            Choice(id: "c", text: "B:A", correct: false, misconception: "close例外が主例外になると誤解", explanation: "try本体のTが主例外です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "複数リソースを宣言できないと誤解", explanation: "try-with-resourcesではセミコロン区切りで複数リソースを宣言できます。"),
+        ],
+        explanationRef: "explain-gold-exception-009",
+        designIntent: "複数リソースのclose順序と、suppressed例外の並びを確認する。"
+    )
+
+    static let goldException010 = Quiz(
+        id: "gold-exception-010",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["finally", "throw", "例外上書き"],
+        code: """
+public class Test {
+    static void run() {
+        try {
+            throw new RuntimeException("try");
+        } finally {
+            throw new RuntimeException("finally");
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            run();
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "try", correct: false, misconception: "try側の例外が常に優先されると誤解", explanation: "finallyがthrowで突然完了すると、try側の例外は上書きされます。"),
+            Choice(id: "b", text: "finally", correct: true, misconception: nil, explanation: "tryでtry例外が発生した後、finallyがさらにfinally例外を投げるため、呼び出し元に届くのはfinallyです。"),
+            Choice(id: "c", text: "try finally", correct: false, misconception: "2つの例外メッセージが連結されると誤解", explanation: "catchで受け取る主例外は1つです。この場合はfinally側です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "try/finally両方でthrowできないと誤解", explanation: "unchecked例外なので構文としては有効です。"),
+        ],
+        explanationRef: "explain-gold-exception-010",
+        designIntent: "finally内のthrowがtry側の例外を上書きする危険な挙動を確認する。"
+    )
+
+    static let goldException011 = Quiz(
+        id: "gold-exception-011",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["precise rethrow", "checked exception", "throws"],
+        code: """
+import java.io.*;
+
+public class Test {
+    static void read() throws IOException {
+        throw new IOException();
+    }
+
+    static void run() throws IOException {
+        try {
+            read();
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            run();
+        } catch (IOException e) {
+            System.out.println("IO");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "IO", correct: true, misconception: nil, explanation: "catch型はExceptionですが、try内で投げ得る検査例外はIOExceptionだけで、eを再代入していないためprecise rethrowが働きます。"),
+            Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "catch(Exception)からthrow eすると必ずthrows Exceptionが必要と誤解", explanation: "Java 7以降のprecise rethrowにより、このケースではthrows IOExceptionで足ります。"),
+            Choice(id: "c", text: "Exception", correct: false, misconception: "catch型の名前が出力されると誤解", explanation: "catch(IOException)でIOを出力しています。"),
+            Choice(id: "d", text: "何も出力されない", correct: false, misconception: "readの例外が握りつぶされると誤解", explanation: "catch内でthrow eしているため、run呼び出し元へ再送出されます。"),
+        ],
+        explanationRef: "explain-gold-exception-011",
+        designIntent: "precise rethrowにより、catch(Exception)でも実際に投げ得る検査例外型へ狭められることを確認する。"
+    )
+
+    static let goldException012 = Quiz(
+        id: "gold-exception-012",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["precise rethrow", "catchパラメータ", "再代入"],
+        code: """
+import java.io.*;
+
+public class Test {
+    static void read() throws IOException {
+        throw new IOException();
+    }
+
+    static void run() throws IOException {
+        try {
+            read();
+        } catch (Exception e) {
+            e = new Exception();
+            throw e;
+        }
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルできる", correct: false, misconception: "再代入してもprecise rethrowが働くと誤解", explanation: "catchパラメータを再代入すると、正確な再スロー解析の対象外になります。"),
+            Choice(id: "b", text: "throw e; でコンパイルエラー", correct: true, misconception: nil, explanation: "eはExceptionとして扱われます。runはthrows IOExceptionだけなので、より広いExceptionを投げられません。"),
+            Choice(id: "c", text: "e = new Exception(); でコンパイルエラー", correct: false, misconception: "catchパラメータは常にfinalだと誤解", explanation: "単一catchのパラメータ自体は再代入できます。問題はその後のthrowです。"),
+            Choice(id: "d", text: "実行時にIOExceptionが出力される", correct: false, misconception: "コンパイルエラーを見落としている", explanation: "このコードは実行前にコンパイルで止まります。"),
+        ],
+        explanationRef: "explain-gold-exception-012",
+        designIntent: "catchパラメータを再代入するとprecise rethrowによる型の絞り込みが効かなくなることを確認する。"
+    )
+
+    static let goldException013 = Quiz(
+        id: "gold-exception-013",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["try-with-resources", "effectively final", "Java 9"],
+        code: """
+class R implements AutoCloseable {
+    public void close() {
+        System.out.print("C");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        R r = new R();
+        try (r) {
+            System.out.print("T");
+        }
+    }
+}
+""",
+        question: "Java 17でこのコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "TC", correct: true, misconception: nil, explanation: "Java 9以降、effectively finalな既存変数をtry-with-resourcesに書けます。本体Tの後にcloseでCです。"),
+            Choice(id: "b", text: "CT", correct: false, misconception: "closeがtry本体前に走ると誤解", explanation: "closeはtryブロック終了時に実行されます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "try-with-resourcesには必ず新規変数宣言が必要と誤解", explanation: "Java 9以降はeffectively finalな既存変数も使えます。"),
+            Choice(id: "d", text: "T", correct: false, misconception: "既存変数を使うと自動closeされないと誤解", explanation: "try-with-resourcesに指定したため、終了時にcloseされます。"),
+        ],
+        explanationRef: "explain-gold-exception-013",
+        designIntent: "Java 9以降のtry-with-resourcesでeffectively finalな既存変数を使えることとclose順を確認する。"
+    )
+
+    static let goldException014 = Quiz(
+        id: "gold-exception-014",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["static初期化", "ExceptionInInitializerError", "Throwable"],
+        code: """
+class Bad {
+    static int value = init();
+
+    static int init() {
+        throw new RuntimeException("boom");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        try {
+            System.out.println(Bad.value);
+        } catch (Throwable e) {
+            System.out.println(e.getClass().getSimpleName());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "RuntimeException", correct: false, misconception: "static初期化中の例外がそのまま届くと誤解", explanation: "クラス初期化中の例外はExceptionInInitializerErrorにラップされます。"),
+            Choice(id: "b", text: "ExceptionInInitializerError", correct: true, misconception: nil, explanation: "Bad.valueの初回アクセスでクラス初期化が走り、init()のRuntimeExceptionがExceptionInInitializerErrorとして送出されます。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "初期化失敗時にデフォルト値が使われると誤解", explanation: "初期化失敗で値は出力されず、例外が送出されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "staticフィールド初期化でメソッドを呼べないと誤解", explanation: "メソッド呼び出しは可能です。実行時のクラス初期化で例外になります。"),
+        ],
+        explanationRef: "explain-gold-exception-014",
+        designIntent: "static初期化中のRuntimeExceptionがExceptionInInitializerErrorとして見えることを確認する。"
+    )
+
+    static let goldException015 = Quiz(
+        id: "gold-exception-015",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["NumberFormatException", "IllegalArgumentException", "複数catch"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        try {
+            Integer.parseInt("12x");
+        } catch (NumberFormatException e) {
+            System.out.println("NFE");
+        } catch (IllegalArgumentException e) {
+            System.out.println("IAE");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "NFE", correct: true, misconception: nil, explanation: "parseIntの失敗でNumberFormatExceptionが発生し、最初のcatchに一致します。"),
+            Choice(id: "b", text: "IAE", correct: false, misconception: "親型catchが常に優先されると誤解", explanation: "catchは上から順に判定されます。先にNumberFormatExceptionがあるため、そこで捕捉されます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "親型catchを後ろに置けないと誤解", explanation: "サブクラスを先、親クラスを後ろに置く順序は有効です。"),
+            Choice(id: "d", text: "NumberFormatExceptionで異常終了", correct: false, misconception: "catchされないと誤解", explanation: "NumberFormatException用のcatchがあるため捕捉されます。"),
+        ],
+        explanationRef: "explain-gold-exception-015",
+        designIntent: "NumberFormatExceptionがIllegalArgumentExceptionのサブクラスであり、複数catchは上から順に一致することを確認する。"
+    )
+
+    static let goldException016 = Quiz(
+        id: "gold-exception-016",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["NullPointerException", "try-catch-finally", "実行順序"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        try {
+            String s = null;
+            System.out.print(s.length());
+        } catch (NullPointerException e) {
+            System.out.print("NPE");
+        } finally {
+            System.out.print("F");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "NPEF", correct: true, misconception: nil, explanation: "null参照でNullPointerExceptionが発生し、catch後にfinallyが必ず実行されます。"),
+            Choice(id: "b", text: "F", correct: false, misconception: "catchが実行されないと誤解", explanation: "NullPointerExceptionに一致するcatchがあります。"),
+            Choice(id: "c", text: "NPE", correct: false, misconception: "catch後はfinallyが省略されると誤解", explanation: "finallyはcatchの後にも実行されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "null変数の宣言がコンパイルエラーと誤解", explanation: "参照型変数にnullを代入すること自体は有効です。"),
+        ],
+        explanationRef: "explain-gold-exception-016",
+        designIntent: "NullPointerExceptionの発生、catch、finallyの実行順序を出力で追わせる。"
+    )
+
+    static let goldException017 = Quiz(
+        id: "gold-exception-017",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["ArrayIndexOutOfBoundsException", "IndexOutOfBoundsException", "例外クラス"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        try {
+            int[] values = {1};
+            System.out.print(values[1]);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println(e.getClass().getSimpleName());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "IndexOutOfBoundsException", correct: false, misconception: "catch型がそのまま実体クラスになると誤解", explanation: "catch変数の実体は発生した具体例外です。"),
+            Choice(id: "b", text: "ArrayIndexOutOfBoundsException", correct: true, misconception: nil, explanation: "配列の範囲外アクセスではArrayIndexOutOfBoundsExceptionが発生し、親型IndexOutOfBoundsExceptionで捕捉できます。"),
+            Choice(id: "c", text: "NullPointerException", correct: false, misconception: "配列参照がnullだと誤解", explanation: "valuesは実体配列を参照しています。範囲外アクセスです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "範囲外添字がコンパイル時に検出されると誤解", explanation: "配列添字の範囲は実行時にチェックされます。"),
+        ],
+        explanationRef: "explain-gold-exception-017",
+        designIntent: "主要例外クラスの継承関係と、catchされた例外の実体クラスを確認する。"
+    )
+
+    static let goldException018 = Quiz(
+        id: "gold-exception-018",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["throws", "throw", "IOException"],
+        code: """
+import java.io.*;
+
+public class Test {
+    static void run() throws IOException {
+        new IOException("created");
+    }
+
+    public static void main(String[] args) throws IOException {
+        run();
+        System.out.println("OK");
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "OK", correct: true, misconception: nil, explanation: "IOExceptionオブジェクトを生成しているだけで、throwしていません。throws宣言だけでも例外は発生しません。"),
+            Choice(id: "b", text: "IOExceptionがスローされる", correct: false, misconception: "newした例外は自動的にthrowされると誤解", explanation: "例外を送出するには `throw` が必要です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "throws宣言があるメソッドは必ずthrowしなければならないと誤解", explanation: "throwsは投げる可能性の宣言であり、必ず投げる義務ではありません。"),
+            Choice(id: "d", text: "created", correct: false, misconception: "例外メッセージが自動出力されると誤解", explanation: "例外をthrowしていないためメッセージも出力されません。"),
+        ],
+        explanationRef: "explain-gold-exception-018",
+        designIntent: "throwsは宣言、throwは送出であり、例外オブジェクト生成だけでは例外処理が始まらないことを確認する。"
+    )
+
+    static let goldException019 = Quiz(
+        id: "gold-exception-019",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["throw", "null", "NullPointerException"],
+        code: """
+public class Test {
+    static void run() {
+        throw null;
+    }
+
+    public static void main(String[] args) {
+        try {
+            run();
+        } catch (NullPointerException e) {
+            System.out.println("NPE");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "NPE", correct: true, misconception: nil, explanation: "`throw null;` は実行時にNullPointerExceptionを発生させます。"),
+            Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "throw nullが文法的に禁止だと誤解", explanation: "nullはThrowable参照として型チェックを通りますが、実行時にNPEになります。"),
+            Choice(id: "c", text: "何も出力されない", correct: false, misconception: "throw nullが無視されると誤解", explanation: "例外送出処理として評価され、NPEがcatchされます。"),
+            Choice(id: "d", text: "RuntimeException", correct: false, misconception: "throw nullがRuntimeExceptionに変換されると誤解", explanation: "発生する具体例外はNullPointerExceptionです。"),
+        ],
+        explanationRef: "explain-gold-exception-019",
+        designIntent: "throw式にnullを指定した場合、実行時にNullPointerExceptionが発生することを確認する。"
+    )
+
+    static let goldException020 = Quiz(
+        id: "gold-exception-020",
+        level: .gold,
+        category: "exception-handling",
+        tags: ["複数catch", "到達不能", "RuntimeException"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        try {
+            String s = null;
+            s.length();
+        } catch (RuntimeException e) {
+            System.out.println("R");
+        } catch (NullPointerException e) {
+            System.out.println("N");
+        }
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "Rと出力される", correct: false, misconception: "実行時の捕捉だけを見てコンパイル規則を見落としている", explanation: "後続のNullPointerException catchが到達不能なのでコンパイルできません。"),
+            Choice(id: "b", text: "Nと出力される", correct: false, misconception: "より具体的なcatchが後ろでも優先されると誤解", explanation: "catchは上から順です。ただしこの並びはコンパイル時点で拒否されます。"),
+            Choice(id: "c", text: "catch (NullPointerException e)でコンパイルエラー", correct: true, misconception: nil, explanation: "NullPointerExceptionはRuntimeExceptionのサブクラスなので、先のcatch(RuntimeException)で捕捉済みとなり到達不能です。"),
+            Choice(id: "d", text: "NullPointerExceptionで異常終了", correct: false, misconception: "catchが存在しないと誤解", explanation: "catch以前に、catch順序の問題でコンパイルエラーです。"),
+        ],
+        explanationRef: "explain-gold-exception-020",
+        designIntent: "複数catchブロックはサブクラスを先、親クラスを後に置かないと到達不能になることを確認する。"
+    )
+
+    // MARK: - Gold: Secure Coding
+
+    static let goldSecureCoding001 = Quiz(
+        id: "gold-secure-coding-001",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["try-with-resources", "final", "FIO"],
+        code: """
+class R implements AutoCloseable {
+    public void close() {
+        System.out.print("C");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        try (final R r = new R()) {
+            System.out.print("T");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "TC", correct: true, misconception: nil, explanation: "try-with-resources内のリソース変数は明示的にfinalにできます。本体Tの後、closeでCが出ます。"),
+            Choice(id: "b", text: "CT", correct: false, misconception: "closeがtry本体前に実行されると誤解", explanation: "closeはtryブロックを抜けるときに実行されます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "try内のリソース変数にfinalを付けられないと誤解", explanation: "リソース宣言にfinal修飾子を付けることは可能です。"),
+            Choice(id: "d", text: "T", correct: false, misconception: "明示finalにするとcloseされないと誤解", explanation: "finalかどうかに関係なく、try-with-resourcesに指定したリソースは自動closeされます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-001",
+        designIntent: "try-with-resources内で明示的にfinalなリソース変数を宣言でき、自動closeされることを確認する。"
+    )
+
+    static let goldSecureCoding002 = Quiz(
+        id: "gold-secure-coding-002",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["try-with-resources", "effectively final", "Java 9"],
+        code: """
+class R implements AutoCloseable {
+    public void close() {
+        System.out.print("C");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        final R r = new R();
+        try (r) {
+            System.out.print("T");
+        }
+    }
+}
+""",
+        question: "Java 17でこのコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "TC", correct: true, misconception: nil, explanation: "Java 9以降、finalまたは実質finalな既存変数をtry-with-resourcesに指定できます。"),
+            Choice(id: "b", text: "T", correct: false, misconception: "既存変数は自動closeされないと誤解", explanation: "try (r) に指定しているため、ブロック終了時にcloseされます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "try-with-resourcesには必ず新規宣言が必要と誤解", explanation: "Java 9以降は既存のfinalまたは実質final変数も使えます。"),
+            Choice(id: "d", text: "CT", correct: false, misconception: "close順を逆に読んでいる", explanation: "まずtry本体、その後closeです。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-002",
+        designIntent: "Java 9以降のtry-with-resourcesで既存final変数をリソースとして使えることを確認する。"
+    )
+
+    static let goldSecureCoding003 = Quiz(
+        id: "gold-secure-coding-003",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["try-with-resources", "effectively final", "コンパイルエラー"],
+        code: """
+class R implements AutoCloseable {
+    public void close() {}
+}
+
+public class Test {
+    public static void main(String[] args) {
+        R r = new R();
+        r = new R();
+        try (r) {
+            System.out.println("T");
+        }
+    }
+}
+""",
+        question: "Java 17でこのコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "Tと出力される", correct: false, misconception: "再代入済みでもtry (r)に使えると誤解", explanation: "既存変数をリソースに使うにはfinalまたは実質finalである必要があります。"),
+            Choice(id: "b", text: "try (r) でコンパイルエラー", correct: true, misconception: nil, explanation: "rは再代入されているため実質finalではなく、try-with-resourcesの既存リソース変数として使えません。"),
+            Choice(id: "c", text: "r = new R(); でコンパイルエラー", correct: false, misconception: "通常ローカル変数の再代入も禁止と誤解", explanation: "r自体はfinalではないため再代入は可能です。問題はその後try (r)に使う点です。"),
+            Choice(id: "d", text: "実行時にIllegalStateException", correct: false, misconception: "リソース指定違反が実行時に判定されると誤解", explanation: "この制約はコンパイル時に検出されます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-003",
+        designIntent: "try-with-resourcesに既存変数を指定する場合、finalまたは実質finalでなければならないことを確認する。"
+    )
+
+    static let goldSecureCoding004 = Quiz(
+        id: "gold-secure-coding-004",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["assert", "-ea", "MSC"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        assert false : "bad";
+        System.out.println("OK");
+    }
+}
+""",
+        question: "assertionを有効化せずに `java Test` として実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "OK", correct: true, misconception: nil, explanation: "assertionはデフォルトでは無効です。assert文は評価されず、OKが出力されます。"),
+            Choice(id: "b", text: "AssertionError", correct: false, misconception: "assertは常に実行されると誤解", explanation: "assertionは通常、-eaで有効化したときだけ評価されます。"),
+            Choice(id: "c", text: "bad", correct: false, misconception: "メッセージだけが出力されると誤解", explanation: "assertion無効時はメッセージ式も評価されません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "assert文を使えないと誤解", explanation: "assertはJavaの有効な文です。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-004",
+        designIntent: "assertionはデフォルト無効であり、入力検証など必須処理に使ってはいけないことを確認する。"
+    )
+
+    static let goldSecureCoding005 = Quiz(
+        id: "gold-secure-coding-005",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["assert", "AssertionError", "-ea"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        try {
+            int value = -1;
+            assert value > 0 : "positive";
+            System.out.println("OK");
+        } catch (AssertionError e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+""",
+        question: "`java -ea Test` として実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "positive", correct: true, misconception: nil, explanation: "-eaでassertionが有効なため条件が評価され、falseなのでAssertionErrorが発生します。メッセージはpositiveです。"),
+            Choice(id: "b", text: "OK", correct: false, misconception: "-ea指定を見落としている", explanation: "assertion有効時はassertが評価され、OKの行には到達しません。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "assertの詳細メッセージが使われないと誤解", explanation: "`: \"positive\"` がAssertionErrorのメッセージになります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "AssertionErrorをcatchできないと誤解", explanation: "AssertionErrorはErrorですが、catchすること自体は可能です。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-005",
+        designIntent: "-eaでassertionが有効になったとき、AssertionErrorと詳細メッセージがどう扱われるか確認する。"
+    )
+
+    static let goldSecureCoding006 = Quiz(
+        id: "gold-secure-coding-006",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["assert", "-ea", "-da"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        assert false;
+        System.out.println("OK");
+    }
+}
+""",
+        question: "`java -ea -da Test` として実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "OK", correct: true, misconception: nil, explanation: "-eaで一度有効化しても、後続の-daでassertionが無効化されます。assertは評価されません。"),
+            Choice(id: "b", text: "AssertionError", correct: false, misconception: "-eaだけを見て-daを見落としている", explanation: "assertion制御オプションは順に処理され、後ろの-daが効きます。"),
+            Choice(id: "c", text: "false", correct: false, misconception: "assert式の値が出力されると誤解", explanation: "assert文はboolean値を出力する文ではありません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "-eaと-daを同時指定できないと誤解", explanation: "同時指定は可能で、順に適用されます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-006",
+        designIntent: "-eaと-daの指定順によりassertionの有効/無効が決まることを確認する。"
+    )
+
+    static let goldSecureCoding007 = Quiz(
+        id: "gold-secure-coding-007",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["assert", "副作用", "MSC"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int count = 0;
+        assert ++count > 0;
+        System.out.println(count);
+    }
+}
+""",
+        question: "assertionを有効化せずに `java Test` として実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "0", correct: true, misconception: nil, explanation: "assertion無効時はassert式自体が評価されないため、++countも実行されません。"),
+            Choice(id: "b", text: "1", correct: false, misconception: "assert式の副作用は常に実行されると誤解", explanation: "assert式に副作用を書くと、-eaの有無で挙動が変わります。"),
+            Choice(id: "c", text: "AssertionError", correct: false, misconception: "assertionが有効だと思い込んでいる", explanation: "問題ではassertionを有効化していません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "assert式に++を書けないと誤解", explanation: "構文上は書けますが、セキュアコーディング上は副作用を避けるべきです。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-007",
+        designIntent: "assert式に副作用を書くと実行オプションで状態が変わるため危険であることを確認する。"
+    )
+
+    static let goldSecureCoding008 = Quiz(
+        id: "gold-secure-coding-008",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["assert", "引数検証", "MSC"],
+        code: """
+public class Test {
+    static int divide(int value) {
+        assert value > 0 : "positive";
+        return 100 / value;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(divide(-10));
+    }
+}
+""",
+        question: "assertionを有効化せずに `java Test` として実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "-10", correct: true, misconception: nil, explanation: "assertion無効時は引数チェックが実行されず、100 / -10 の結果である-10が出力されます。"),
+            Choice(id: "b", text: "AssertionError", correct: false, misconception: "assertを通常の入力検証として扱っている", explanation: "assertionは無効化され得るため、公開メソッドの引数検証に使うべきではありません。"),
+            Choice(id: "c", text: "ArithmeticException", correct: false, misconception: "負数除算が例外になると誤解", explanation: "整数の負数除算自体は有効です。0除算ではありません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "assert文をメソッド内に書けないと誤解", explanation: "assert文は構文的には有効です。問題は安全性です。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-008",
+        designIntent: "assertionは無効化できるため、必須の引数検証に使うと安全性が崩れることを確認する。"
+    )
+
+    static let goldSecureCoding009 = Quiz(
+        id: "gold-secure-coding-009",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["FIO", "Path", "パストラバーサル"],
+        code: """
+import java.nio.file.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Path base = Path.of("/app/data").normalize();
+        Path target = base.resolve("../secret.txt").normalize();
+        System.out.println(target.startsWith(base));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "false", correct: true, misconception: nil, explanation: "base.resolve(\"../secret.txt\").normalize() は /app/secret.txt になり、/app/data 配下ではありません。"),
+            Choice(id: "b", text: "true", correct: false, misconception: "resolveした時点でbase配下に固定されると誤解", explanation: "`..` をnormalizeすると親ディレクトリへ抜けられます。startsWithで検証が必要です。"),
+            Choice(id: "c", text: "InvalidPathException", correct: false, misconception: "`..` を含むPathが不正だと誤解", explanation: "`..` はPathの名前要素として有効です。"),
+            Choice(id: "d", text: "SecurityException", correct: false, misconception: "Path操作だけで権限チェックが走ると誤解", explanation: "このコードはパス文字列を操作しているだけで、ファイルアクセスはしていません。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-009",
+        designIntent: "FIOの基本として、ユーザー入力をresolve/normalizeした後に基準ディレクトリ配下か検証する必要があることを確認する。"
+    )
+
+    static let goldSecureCoding010 = Quiz(
+        id: "gold-secure-coding-010",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["FIO", "Path.resolve", "absolute path"],
+        code: """
+import java.nio.file.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Path base = Path.of("/safe/base");
+        Path target = base.resolve("/etc/passwd").normalize();
+        System.out.println(target);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "/etc/passwd", correct: true, misconception: nil, explanation: "resolveの引数が絶対パスの場合、baseは無視され、引数の絶対パスが結果になります。"),
+            Choice(id: "b", text: "/safe/base/etc/passwd", correct: false, misconception: "絶対パスも子パスとして連結されると誤解", explanation: "絶対パスをresolveすると右辺が優先されます。"),
+            Choice(id: "c", text: "/safe/base", correct: false, misconception: "不正入力がbaseに丸められると誤解", explanation: "Path APIは自動的に安全な場所へ丸めません。"),
+            Choice(id: "d", text: "InvalidPathException", correct: false, misconception: "絶対パスをresolveできないと誤解", explanation: "絶対パスを渡すこと自体は有効です。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-010",
+        designIntent: "FIOで絶対パス入力をそのままresolveすると基準ディレクトリを抜けるため、検証が必要であることを確認する。"
+    )
+
+    static let goldSecureCoding011 = Quiz(
+        id: "gold-secure-coding-011",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["シリアライズ", "transient", "Serializable"],
+        code: """
+import java.io.*;
+
+class Account implements Serializable {
+    String name = "alice";
+    transient String password = "secret";
+}
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        new ObjectOutputStream(out).writeObject(new Account());
+
+        ObjectInputStream in = new ObjectInputStream(
+            new ByteArrayInputStream(out.toByteArray()));
+        Account a = (Account) in.readObject();
+        System.out.println(a.name + ":" + a.password);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "alice:null", correct: true, misconception: nil, explanation: "transientフィールドpasswordはシリアライズ対象外なので、復元後は参照型のデフォルト値nullです。"),
+            Choice(id: "b", text: "alice:secret", correct: false, misconception: "transientでも通常通り保存されると誤解", explanation: "transientは機密値などを永続化対象から外すために使えます。"),
+            Choice(id: "c", text: "null:null", correct: false, misconception: "すべてのフィールドが初期化され直すと誤解", explanation: "非transientのnameはシリアライズされた値aliceとして復元されます。"),
+            Choice(id: "d", text: "NotSerializableException", correct: false, misconception: "transientフィールドがあるとシリアライズできないと誤解", explanation: "AccountはSerializableを実装しているためシリアライズできます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-011",
+        designIntent: "シリアライズ時にtransientフィールドが保存されず、復元後にデフォルト値になることを確認する。"
+    )
+
+    static let goldSecureCoding012 = Quiz(
+        id: "gold-secure-coding-012",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["シリアライズ", "readObject", "InvalidObjectException"],
+        code: """
+import java.io.*;
+
+class User implements Serializable {
+    int age;
+    User(int age) { this.age = age; }
+
+    private void readObject(ObjectInputStream in)
+        throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (age < 0) throw new InvalidObjectException("age");
+    }
+}
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        new ObjectOutputStream(out).writeObject(new User(-1));
+        try {
+            new ObjectInputStream(
+                new ByteArrayInputStream(out.toByteArray())).readObject();
+        } catch (InvalidObjectException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "age", correct: true, misconception: nil, explanation: "readObject内でdefaultReadObject後にageを検証し、負数なのでInvalidObjectException(\"age\")を投げます。"),
+            Choice(id: "b", text: "-1", correct: false, misconception: "検証が実行されないと誤解", explanation: "デシリアライズ時にはprivate readObjectが呼ばれます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "readObjectをprivateで宣言できないと誤解", explanation: "シリアライズのreadObjectフックはprivateで定義します。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "readObjectの戻り値キャストが原因と誤解", explanation: "このコードは戻り値をキャストしていません。検証例外をcatchしています。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-012",
+        designIntent: "デシリアライズ時にはreadObjectで不変条件を検証し、不正な状態を拒否できることを確認する。"
+    )
+
+    static let goldSecureCoding013 = Quiz(
+        id: "gold-secure-coding-013",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["シリアライズ", "ObjectInputFilter", "JEP 290"],
+        code: """
+import java.io.*;
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        new ObjectOutputStream(out).writeObject("data");
+
+        ObjectInputStream in = new ObjectInputStream(
+            new ByteArrayInputStream(out.toByteArray()));
+        in.setObjectInputFilter(info ->
+            info.serialClass() == String.class
+                ? ObjectInputFilter.Status.REJECTED
+                : ObjectInputFilter.Status.UNDECIDED);
+        try {
+            in.readObject();
+        } catch (InvalidClassException e) {
+            System.out.println("rejected");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "rejected", correct: true, misconception: nil, explanation: "ObjectInputFilterがStringクラスをREJECTEDにするため、readObject時にInvalidClassExceptionとして拒否されます。"),
+            Choice(id: "b", text: "data", correct: false, misconception: "フィルタがログ用途だけだと誤解", explanation: "REJECTEDを返すとデシリアライズは拒否されます。"),
+            Choice(id: "c", text: "ClassCastException", correct: false, misconception: "型キャスト失敗と混同", explanation: "キャスト前に入力フィルタで拒否されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "ObjectInputFilterをラムダで指定できないと誤解", explanation: "ObjectInputFilterは関数型インターフェースとしてラムダで指定できます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-013",
+        designIntent: "デシリアライズ入力にObjectInputFilterを設定して、想定外の型を拒否できることを確認する。"
+    )
+
+    static let goldSecureCoding014 = Quiz(
+        id: "gold-secure-coding-014",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["プラットフォームセキュリティ", "doPrivileged", "最小権限"],
+        code: """
+import java.security.*;
+
+class Service {
+    String load() {
+        String value = AccessController.doPrivileged(
+            (PrivilegedAction<String>) () -> System.getProperty("user.home"));
+        return sanitize(value);
+    }
+
+    String sanitize(String value) {
+        return value == null ? "" : value.trim();
+    }
+}
+""",
+        question: "このコードのセキュアコーディング上の読み方として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "特権で実行されるのはSystem.getPropertyのラムダ内だけ", correct: true, misconception: nil, explanation: "doPrivilegedに渡したPrivilegedActionの中だけが特権境界です。sanitizeは外側で実行されます。"),
+            Choice(id: "b", text: "load()全体が特権で実行される", correct: false, misconception: "doPrivileged以降の処理もすべて特権化されると誤解", explanation: "特権化されるのはdoPrivilegedに渡した処理の範囲だけです。"),
+            Choice(id: "c", text: "sanitizeも特権ブロックに入れるほど安全", correct: false, misconception: "特権範囲は広いほど安全と誤解", explanation: "特権範囲は必要最小限にするのが原則です。"),
+            Choice(id: "d", text: "doPrivilegedは戻り値を返せない", correct: false, misconception: "PrivilegedActionの戻り値を使えないと誤解", explanation: "PrivilegedAction<T>の戻り値をdoPrivilegedの戻り値として受け取れます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-014",
+        designIntent: "プラットフォームセキュリティで特権ブロックは必要最小限に限定する、という読み方を確認する。"
+    )
+
+    static let goldSecureCoding015 = Quiz(
+        id: "gold-secure-coding-015",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["プラットフォームセキュリティ", "SecurityException", "unchecked"],
+        code: """
+public class Test {
+    static void check() {
+        throw new SecurityException("deny");
+    }
+
+    public static void main(String[] args) {
+        try {
+            check();
+        } catch (RuntimeException e) {
+            System.out.println(e.getClass().getSimpleName());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "SecurityException", correct: true, misconception: nil, explanation: "SecurityExceptionはRuntimeExceptionのサブクラスなのでcatch(RuntimeException)で捕捉され、実体クラス名が出力されます。"),
+            Choice(id: "b", text: "RuntimeException", correct: false, misconception: "catch型が実体クラスになると誤解", explanation: "getClass().getSimpleName()は発生した具体例外のクラス名を返します。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "SecurityExceptionにはthrows宣言が必要と誤解", explanation: "SecurityExceptionはunchecked例外なのでthrows宣言は必須ではありません。"),
+            Choice(id: "d", text: "deny", correct: false, misconception: "クラス名ではなくメッセージが出ると誤解", explanation: "出力しているのはgetClass().getSimpleName()です。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-015",
+        designIntent: "SecurityExceptionはプラットフォームセキュリティで現れるunchecked例外であり、RuntimeExceptionとして捕捉できることを確認する。"
+    )
+
+    static let goldSecureCoding016 = Quiz(
+        id: "gold-secure-coding-016",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["コレクション", "防御的コピー", "unmodifiableList"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> base = new ArrayList<>();
+        base.add("A");
+        List<String> view = Collections.unmodifiableList(base);
+        List<String> copy = List.copyOf(base);
+        base.add("B");
+        System.out.println(view.size() + ":" + copy.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2:1", correct: true, misconception: nil, explanation: "unmodifiableListは変更不可ビューなので元リストの追加が反映されます。List.copyOfは独立したコピーです。"),
+            Choice(id: "b", text: "1:1", correct: false, misconception: "unmodifiableListが防御的コピーを作ると誤解", explanation: "unmodifiableListはラップしたビューであり、元リストの変更は見えます。"),
+            Choice(id: "c", text: "2:2", correct: false, misconception: "List.copyOfも元リストを参照し続けると誤解", explanation: "List.copyOfはその時点の要素から変更不可リストを作ります。"),
+            Choice(id: "d", text: "UnsupportedOperationException", correct: false, misconception: "base.addも禁止されると誤解", explanation: "禁止されるのはview経由の変更です。base自体はArrayListなので追加できます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-016",
+        designIntent: "コレクションを外部公開するとき、変更不可ビューと防御的コピーの違いが安全性に影響することを確認する。"
+    )
+
+    static let goldSecureCoding017 = Quiz(
+        id: "gold-secure-coding-017",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["コレクション", "checkedList", "raw type"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = Collections.checkedList(new ArrayList<>(), String.class);
+        List raw = list;
+        try {
+            raw.add(10);
+        } catch (ClassCastException e) {
+            System.out.println("CCE");
+        }
+        System.out.println(list.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "CCE の後に 0", correct: true, misconception: nil, explanation: "checkedListは実行時に要素型を検査します。raw経由でIntegerを追加しようとしてClassCastExceptionになり、追加されません。"),
+            Choice(id: "b", text: "1", correct: false, misconception: "raw型経由なら検査をすり抜けると誤解", explanation: "checkedListのラッパーが実行時検査を行います。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "raw型代入が完全に禁止されると誤解", explanation: "raw型使用は警告になりますが、通常はコンパイル自体は通ります。"),
+            Choice(id: "d", text: "ArrayStoreException", correct: false, misconception: "配列の実行時型検査と混同", explanation: "コレクションのcheckedListではClassCastExceptionです。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-017",
+        designIntent: "Collections.checkedListがraw型経由のヒープ汚染を実行時に検出できることを確認する。"
+    )
+
+    static let goldSecureCoding018 = Quiz(
+        id: "gold-secure-coding-018",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["ジェネリクス", "heap pollution", "ClassCastException"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String>[] array = new List[1];
+        Object[] objects = array;
+        objects[0] = List.of(10);
+        try {
+            String s = array[0].get(0);
+            System.out.println(s);
+        } catch (ClassCastException e) {
+            System.out.println("CCE");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "CCE", correct: true, misconception: nil, explanation: "配列経由でList<Integer>をList<String>[]に入れ、取得時にIntegerからStringへのキャストが発生してClassCastExceptionになります。"),
+            Choice(id: "b", text: "10", correct: false, misconception: "ジェネリクス型が実行時にも完全に保持されると誤解", explanation: "型消去によりList<String>の要素型は実行時配列型では守られません。"),
+            Choice(id: "c", text: "ArrayStoreException", correct: false, misconception: "List<Integer>とList<String>が実行時配列型で区別されると誤解", explanation: "実行時の配列要素型はListなので、List.of(10)の代入自体は通ります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "unchecked警告をコンパイルエラーと誤解", explanation: "`new List[1]` からList<String>[]への代入はunchecked警告ですが、通常はコンパイルできます。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-018",
+        designIntent: "ジェネリクス配列とraw/配列共変性によるヒープ汚染が、後でClassCastExceptionにつながることを確認する。"
+    )
+
+    static let goldSecureCoding019 = Quiz(
+        id: "gold-secure-coding-019",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["ジェネリクス", "List<?>", "null"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<?> values = new ArrayList<String>();
+        values.add(null);
+        System.out.println(values.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "List<?>には具体的な非null値を追加できませんが、nullだけはどの参照型にも代入可能なので追加できます。"),
+            Choice(id: "b", text: "0", correct: false, misconception: "add(null)が無視されると誤解", explanation: "add(null)は実行され、サイズは1になります。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "List<?>にはnullも追加できないと誤解", explanation: "nullは例外的に追加できます。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "null追加が常に例外になると誤解", explanation: "ArrayListはnull要素を許容します。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-019",
+        designIntent: "非境界ワイルドカードList<?>では非null要素は追加不可だが、nullは追加できることを確認する。"
+    )
+
+    static let goldSecureCoding020 = Quiz(
+        id: "gold-secure-coding-020",
+        level: .gold,
+        category: "secure-coding",
+        tags: ["コレクション", "List.of", "null"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        try {
+            List<String> list = List.of("A", null);
+            System.out.println(list.size());
+        } catch (NullPointerException e) {
+            System.out.println("NPE");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "NPE", correct: true, misconception: nil, explanation: "List.ofで作る変更不可リストはnull要素を許容しません。生成時にNullPointerExceptionが発生します。"),
+            Choice(id: "b", text: "2", correct: false, misconception: "ArrayListと同じようにnullを許容すると誤解", explanation: "List.ofはnullを拒否します。"),
+            Choice(id: "c", text: "1", correct: false, misconception: "nullだけが無視されると誤解", explanation: "null要素は無視されず、例外になります。"),
+            Choice(id: "d", text: "UnsupportedOperationException", correct: false, misconception: "変更不可リストへの変更失敗と混同", explanation: "今回は生成時のnull拒否なのでNullPointerExceptionです。"),
+        ],
+        explanationRef: "explain-gold-secure-coding-020",
+        designIntent: "List.ofなどのファクトリメソッドはnullを拒否するため、入力値の扱いに注意が必要であることを確認する。"
     )
 }
