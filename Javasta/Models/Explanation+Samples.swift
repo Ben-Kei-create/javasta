@@ -2669,6 +2669,12 @@ public class Test {
         goldModule001Explanation.id: goldModule001Explanation,
         goldModule002Explanation.id: goldModule002Explanation,
         goldPathNormalize001Explanation.id: goldPathNormalize001Explanation,
+        silverClasses006Explanation.id: silverClasses006Explanation,
+        silverControlFlow007Explanation.id: silverControlFlow007Explanation,
+        silverDataTypes006Explanation.id: silverDataTypes006Explanation,
+        silverException007Explanation.id: silverException007Explanation,
+        goldStream010Explanation.id: goldStream010Explanation,
+        goldConcurrency006Explanation.id: goldConcurrency006Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3776,6 +3782,116 @@ System.out.println(p.getNameCount());
             Step(index: 0, narration: "normalizeで `a/..` は相殺、`./` は除去されます。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
             Step(index: 1, narration: "残る相対パスは `b/c.txt` で要素数2です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "getNameCountは？", choices: ["1", "2", "4"], answerIndex: 1, hint: "正規化後で数える", afterExplanation: "正解です。2です。")),
             Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - New quiz batch
+
+    static let silverClasses006Explanation = Explanation(
+        id: "explain-silver-classes-006",
+        initialCode: """
+public class Test {
+    static { System.out.print("S "); }
+    { System.out.print("I "); }
+    Test() { System.out.print("C "); }
+    public static void main(String[] args) {
+        new Test();
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "最初のクラス使用時に static 初期化子 `S` が実行されます。", highlightLines: [2, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "new Test() でインスタンス初期化子 `I`、続いてコンストラクタ本体 `C` が実行されます。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "Test()", line: 4)], heap: [], predict: PredictPrompt(question: "出力順は？", choices: ["S I C", "S C I", "I C S"], answerIndex: 0, hint: "static→instance init→ctor", afterExplanation: "正解です。S I Cです。")),
+            Step(index: 2, narration: "最終出力は `S I C` です。", highlightLines: [2, 3, 4], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverControlFlow007Explanation = Explanation(
+        id: "explain-silver-control-flow-007",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int n = 1;
+        switch (n) {
+            case 1: System.out.print("A ");
+            case 2: System.out.print("B "); break;
+            default: System.out.print("D ");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "n=1でcase1に入り `A` を出力します。", highlightLines: [3, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "case1にbreakがないためcase2へフォールスルーし `B` を出力、breakで終了します。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "defaultに到達する？", choices: ["する", "しない"], answerIndex: 1, hint: "case2でbreak", afterExplanation: "正解です。defaultには落ちません。")),
+            Step(index: 2, narration: "最終出力は `A B` です。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverDataTypes006Explanation = Explanation(
+        id: "explain-silver-data-types-006",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        double d = 9.8;
+        int x = (int) d;
+        System.out.println(x);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "dは9.8。`(int)d` でdoubleからintへ明示キャストします。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "このキャストは小数部を切り捨てるため x=9 になります。", highlightLines: [4], variables: [Variable(name: "x", type: "int", value: "9", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "丸め？切り捨て？", choices: ["丸め", "切り捨て"], answerIndex: 1, hint: "primitive narrowing conversion", afterExplanation: "正解です。切り捨てです。")),
+            Step(index: 2, narration: "最終出力は `9` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverException007Explanation = Explanation(
+        id: "explain-silver-exception-007",
+        initialCode: """
+public class Test {
+    static void run() {
+        throw new IllegalStateException();
+    }
+    public static void main(String[] args) {
+        try { run(); }
+        catch (RuntimeException e) { System.out.println("R"); }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "run() は IllegalStateException を送出します（RuntimeException系）。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "run", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "catch(RuntimeException) が一致し、例外は捕捉されます。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["R", "異常終了", "コンパイルエラー"], answerIndex: 0, hint: "IllegalStateException ⊂ RuntimeException", afterExplanation: "正解です。Rです。")),
+            Step(index: 2, narration: "最終出力は `R` です。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream010Explanation = Explanation(
+        id: "explain-gold-stream-010",
+        initialCode: """
+List<String> list = Arrays.asList("b", "aa", "c");
+list.stream()
+    .sorted(Comparator.comparingInt(String::length))
+    .forEach(System.out::print);
+""",
+        steps: [
+            Step(index: 0, narration: "Comparatorは文字列長基準。要素長は b=1, aa=2, c=1。", highlightLines: [1, 3], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "長さ昇順で同長要素は元順を保ち、並びは b, c, aa です。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "連結出力は？", choices: ["bcaa", "aabc", "cbaa"], answerIndex: 0, hint: "長さ順 + 安定順序", afterExplanation: "正解です。bcaaです。")),
+            Step(index: 2, narration: "最終出力は `bcaa` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldConcurrency006Explanation = Explanation(
+        id: "explain-gold-concurrency-006",
+        initialCode: """
+Thread t = new Thread(() -> System.out.print("T"));
+t.start();
+t.join();
+System.out.print("M");
+""",
+        steps: [
+            Step(index: 0, narration: "start() で別スレッドtが `T` を出力します。", highlightLines: [1, 2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "join() によりmainはt完了まで待機するため、`M` は必ず後に出力されます。", highlightLines: [3, 4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "順序は？", choices: ["TM", "MT"], answerIndex: 0, hint: "joinは完了待ち", afterExplanation: "正解です。TMです。")),
+            Step(index: 2, narration: "最終出力は `TM` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
         ]
     )
 }

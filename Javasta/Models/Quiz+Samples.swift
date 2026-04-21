@@ -3376,6 +3376,10 @@ public class Test {
         silverOverload006,
         silverString005,
         silverCollections005,
+        silverClasses006,
+        silverControlFlow007,
+        silverDataTypes006,
+        silverException007,
     ]
 
     static let generatedGoldQueue: [Quiz] = [
@@ -3386,6 +3390,8 @@ public class Test {
         goldOptional006,
         goldStream009,
         goldGenerics007,
+        goldStream010,
+        goldConcurrency006,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3889,5 +3895,168 @@ public class Test {
         ],
         explanationRef: "explain-gold-generics-007",
         designIntent: "List<?> への追加制約（nullのみ可）を明確にする。"
+    )
+
+    static let silverClasses006 = Quiz(
+        id: "silver-classes-006",
+        level: .silver,
+        category: "classes",
+        tags: ["static初期化", "インスタンス初期化", "実行順序"],
+        code: """
+public class Test {
+    static { System.out.print("S "); }
+    { System.out.print("I "); }
+    Test() { System.out.print("C "); }
+    public static void main(String[] args) {
+        new Test();
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "S I C", correct: true, misconception: nil, explanation: "クラス初期化(static)→インスタンス初期化子→コンストラクタ本体の順です。"),
+            Choice(id: "b", text: "I C S", correct: false, misconception: "staticは後で走ると誤解", explanation: "static初期化は最初のクラス使用時に先に実行されます。"),
+            Choice(id: "c", text: "S C I", correct: false, misconception: "初期化子とコンストラクタ順序を誤解", explanation: "インスタンス初期化子はコンストラクタ本体より先です。"),
+            Choice(id: "d", text: "C I S", correct: false, misconception: nil, explanation: "この順序にはなりません。"),
+        ],
+        explanationRef: "explain-silver-classes-006",
+        designIntent: "static/instance initializer/constructor の順序を定着させる。"
+    )
+
+    static let silverControlFlow007 = Quiz(
+        id: "silver-control-flow-007",
+        level: .silver,
+        category: "control-flow",
+        tags: ["switch", "fall-through", "break"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int n = 1;
+        switch (n) {
+            case 1: System.out.print("A ");
+            case 2: System.out.print("B "); break;
+            default: System.out.print("D ");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A", correct: false, misconception: "case一致だけ実行と誤解", explanation: "breakがないため次caseへフォールスルーします。"),
+            Choice(id: "b", text: "A B", correct: true, misconception: nil, explanation: "case1実行後、case2へフォールスルーしてBを出力しbreakで終了します。"),
+            Choice(id: "c", text: "A B D", correct: false, misconception: "break位置を見落とし", explanation: "case2のbreakでdefaultには落ちません。"),
+            Choice(id: "d", text: "D", correct: false, misconception: nil, explanation: "n=1なのでdefault単独にはなりません。"),
+        ],
+        explanationRef: "explain-silver-control-flow-007",
+        designIntent: "旧switch文のフォールスルー挙動を確認する。"
+    )
+
+    static let silverDataTypes006 = Quiz(
+        id: "silver-data-types-006",
+        level: .silver,
+        category: "data-types",
+        tags: ["double", "int", "キャスト", "ひっかけ"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        double d = 9.8;
+        int x = (int) d;
+        System.out.println(x);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "9", correct: true, misconception: nil, explanation: "double→intのキャストは小数部切り捨てです。"),
+            Choice(id: "b", text: "10", correct: false, misconception: "四捨五入と誤解", explanation: "キャストは丸めではなく切り捨てです。"),
+            Choice(id: "c", text: "9.8", correct: false, misconception: nil, explanation: "xはint型なので整数表示です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "明示キャストがあるので有効です。"),
+        ],
+        explanationRef: "explain-silver-data-types-006",
+        designIntent: "浮動小数→整数キャストの切り捨て規則を確認する。"
+    )
+
+    static let silverException007 = Quiz(
+        id: "silver-exception-007",
+        level: .silver,
+        category: "exception-handling",
+        tags: ["throw", "unchecked", "try-catch"],
+        code: """
+public class Test {
+    static void run() {
+        throw new IllegalStateException();
+    }
+    public static void main(String[] args) {
+        try {
+            run();
+        } catch (RuntimeException e) {
+            System.out.println("R");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "R", correct: true, misconception: nil, explanation: "IllegalStateExceptionはRuntimeExceptionのサブクラスなのでcatchされます。"),
+            Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "uncheckedもthrows必須と誤解", explanation: "RuntimeException系はthrows宣言不要です。"),
+            Choice(id: "c", text: "何も出力されない", correct: false, misconception: nil, explanation: "catchでRが出力されます。"),
+            Choice(id: "d", text: "実行時に異常終了", correct: false, misconception: nil, explanation: "このコードではcatchで処理済みです。"),
+        ],
+        explanationRef: "explain-silver-exception-007",
+        designIntent: "unchecked例外のcatch階層と処理フローを確認する。"
+    )
+
+    static let goldStream010 = Quiz(
+        id: "gold-stream-010",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "sorted", "Comparator", "標準API"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("b", "aa", "c");
+        list.stream()
+            .sorted(Comparator.comparingInt(String::length))
+            .forEach(System.out::print);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "baac", correct: false, misconception: nil, explanation: "その並びにはなりません。"),
+            Choice(id: "b", text: "bcaa", correct: true, misconception: nil, explanation: "長さ順で b(1), c(1), aa(2) となります。"),
+            Choice(id: "c", text: "aabc", correct: false, misconception: "辞書順と誤解", explanation: "Comparatorは長さ基準です。"),
+            Choice(id: "d", text: "cbaa", correct: false, misconception: nil, explanation: "安定ソートで同長要素の順は元順(b,c)です。"),
+        ],
+        explanationRef: "explain-gold-stream-010",
+        designIntent: "sortedに渡すComparator基準で順序が決まることを確認する。"
+    )
+
+    static let goldConcurrency006 = Quiz(
+        id: "gold-concurrency-006",
+        level: .gold,
+        category: "concurrency",
+        tags: ["Thread", "join", "実行順序"],
+        code: """
+public class Test {
+    public static void main(String[] args) throws Exception {
+        Thread t = new Thread(() -> System.out.print("T"));
+        t.start();
+        t.join();
+        System.out.print("M");
+    }
+}
+""",
+        question: "このコードの出力として最も適切なのはどれか？",
+        choices: [
+            Choice(id: "a", text: "TM", correct: true, misconception: nil, explanation: "joinでt終了待ちをするため、T出力後にMです。"),
+            Choice(id: "b", text: "MT", correct: false, misconception: "joinの意味を誤解", explanation: "mainはjoin中待機するため先にMは出ません。"),
+            Choice(id: "c", text: "TまたはM", correct: false, misconception: nil, explanation: "joinで順序が確定します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "文法・APIとも正しいです。"),
+        ],
+        explanationRef: "explain-gold-concurrency-006",
+        designIntent: "joinによる順序保証を理解させる。"
     )
 }
