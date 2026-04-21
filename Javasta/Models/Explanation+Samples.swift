@@ -2636,6 +2636,13 @@ public class Test {
         silverException002Explanation.id: silverException002Explanation,
         silverJavaBasics001Explanation.id: silverJavaBasics001Explanation,
         silverOverload002Explanation.id: silverOverload002Explanation,
+        silverArrayDefaults001Explanation.id: silverArrayDefaults001Explanation,
+        silverConstructor001Explanation.id: silverConstructor001Explanation,
+        silverControlFlow002Explanation.id: silverControlFlow002Explanation,
+        silverJavaBasics002Explanation.id: silverJavaBasics002Explanation,
+        silverLambda001Explanation.id: silverLambda001Explanation,
+        silverMultiFileOverride001Explanation.id: silverMultiFileOverride001Explanation,
+        silverStringBuilder001Explanation.id: silverStringBuilder001Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3187,6 +3194,133 @@ public class Test {
             Step(index: 0, narration: "`10` はintリテラルで、call(long)とcall(Integer)の両候補を検討します。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
             Step(index: 1, narration: "オーバーロード解決では型昇格（int→long）がボクシング（int→Integer）より優先されます。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "選ばれるメソッドは？", choices: ["call(long)", "call(Integer)", "曖昧エラー"], answerIndex: 0, hint: "widening優先", afterExplanation: "正解です。call(long)です。")),
             Step(index: 2, narration: "最終出力は `long` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "call(long)", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverArrayDefaults001Explanation = Explanation(
+        id: "explain-silver-array-defaults-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int[] nums = new int[3];
+        System.out.println(nums[1]);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`new int[3]` で要素はすべて0に初期化されます。", highlightLines: [3], variables: [Variable(name: "nums", type: "int[]", value: "[0,0,0]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`nums[1]` は2番目の要素で値は0です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["0", "null", "コンパイルエラー"], answerIndex: 0, hint: "int配列のデフォルト値", afterExplanation: "正解です。0です。")),
+            Step(index: 2, narration: "最終出力は `0` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverConstructor001Explanation = Explanation(
+        id: "explain-silver-constructor-001",
+        initialCode: """
+class Test {
+    Test() { this(10); }
+    Test(int x) { System.out.print(x); }
+    public static void main(String[] args) {
+        new Test();
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`new Test()` で引数なしコンストラクタが呼ばれ、先頭の `this(10)` で引数ありへ移動します。", highlightLines: [2, 5], variables: [], callStack: [CallStackFrame(method: "Test()", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Test(int x)` で `10` が出力されます。", highlightLines: [3], variables: [Variable(name: "x", type: "int", value: "10", scope: "Test(int)")], callStack: [CallStackFrame(method: "Test(int)", line: 3)], heap: [], predict: PredictPrompt(question: "最終出力は？", choices: ["10", "0", "コンパイルエラー"], answerIndex: 0, hint: "this(10) の遷移先", afterExplanation: "正解です。10です。")),
+            Step(index: 2, narration: "最終出力は `10` です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverControlFlow002Explanation = Explanation(
+        id: "explain-silver-control-flow-002",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int i = 0;
+        while (i < 3) {
+            i++;
+            if (i == 2) continue;
+            System.out.print(i + " ");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "i=1でcontinue条件に当たらず `1` を出力します。", highlightLines: [4, 7], variables: [Variable(name: "i", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+            Step(index: 1, narration: "i=2ではcontinueによりprintをスキップ、i=3ではprintされます。", highlightLines: [5, 6, 7], variables: [Variable(name: "i", type: "int", value: "2 -> 3", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["1 2 3", "1 3", "2 3"], answerIndex: 1, hint: "i==2はskip", afterExplanation: "正解です。1 3です。")),
+            Step(index: 2, narration: "最終出力は `1 3` です。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverJavaBasics002Explanation = Explanation(
+        id: "explain-silver-java-basics-002",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int x = 1;
+        x = x++ + ++x;
+        System.out.println(x);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "初期値は x=1。`x++` は評価値1を返し、その後xを2にします。", highlightLines: [3, 4], variables: [Variable(name: "x", type: "int", value: "2(途中)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`++x` でxは3になり評価値3。式全体は `1 + 3 = 4` となりxに代入されます。", highlightLines: [4], variables: [Variable(name: "x", type: "int", value: "4", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "最終出力は？", choices: ["3", "4", "2"], answerIndex: 1, hint: "後置と前置の評価値", afterExplanation: "正解です。4です。")),
+            Step(index: 2, narration: "最終出力は `4` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverLambda001Explanation = Explanation(
+        id: "explain-silver-lambda-001",
+        initialCode: """
+import java.util.function.Predicate;
+public class Test {
+    public static void main(String[] args) {
+        Predicate<String> p = s -> s.length() > 2;
+        System.out.println(p.test("Hi"));
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "ラムダ `s -> s.length() > 2` は文字列長が3以上ならtrueを返します。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`p.test(\"Hi\")` では長さ2なので条件はfalseです。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["true", "false", "コンパイルエラー"], answerIndex: 1, hint: "2 > 2 はfalse", afterExplanation: "正解です。falseです。")),
+            Step(index: 2, narration: "最終出力は `false` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverMultiFileOverride001Explanation = Explanation(
+        id: "explain-silver-multifile-override-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        Parent p = new Child();
+        System.out.println(p.name());
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`Parent p = new Child()` で参照型Parent・実体Childになります。", highlightLines: [3], variables: [Variable(name: "p", type: "Parent", value: "ref->Child", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`p.name()` はインスタンスメソッド呼び出しなので実体型Childで動的束縛されます。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["Parent", "Child", "コンパイルエラー"], answerIndex: 1, hint: "動的束縛", afterExplanation: "正解です。Childです。")),
+            Step(index: 2, narration: "最終出力は `Child` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverStringBuilder001Explanation = Explanation(
+        id: "explain-silver-stringbuilder-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder("A");
+        sb.append("B").reverse();
+        System.out.println(sb);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "初期値は `A`。`append(\"B\")` で `AB` になります。", highlightLines: [3, 4], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"AB\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "続く `reverse()` で `BA` に反転されます。", highlightLines: [4], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"BA\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["AB", "BA", "A"], answerIndex: 1, hint: "append後にreverse", afterExplanation: "正解です。BAです。")),
+            Step(index: 2, narration: "最終出力は `BA` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
         ]
     )
 }
