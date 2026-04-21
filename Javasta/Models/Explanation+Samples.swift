@@ -2628,6 +2628,14 @@ public class Test {
         goldOptional006Explanation.id: goldOptional006Explanation,
         goldStream009Explanation.id: goldStream009Explanation,
         goldGenerics007Explanation.id: goldGenerics007Explanation,
+        silverArray002Explanation.id: silverArray002Explanation,
+        silverClasses002Explanation.id: silverClasses002Explanation,
+        silverCollections001Explanation.id: silverCollections001Explanation,
+        silverControlFlow001Explanation.id: silverControlFlow001Explanation,
+        silverDataTypes002Explanation.id: silverDataTypes002Explanation,
+        silverException002Explanation.id: silverException002Explanation,
+        silverJavaBasics001Explanation.id: silverJavaBasics001Explanation,
+        silverOverload002Explanation.id: silverOverload002Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3004,6 +3012,181 @@ public class Test {
             Step(index: 0, narration: "`List<?>` は要素型不明のため、型安全に追加できる値は基本的にnullのみです。", highlightLines: [5, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
             Step(index: 1, narration: "コメント行 `list.add(\"A\")` を有効化するとコンパイルエラーですが、`list.add(null)` は有効です。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "現在のコードのsizeは？", choices: ["0", "1", "コンパイルエラー"], answerIndex: 1, hint: "nullを1件追加", afterExplanation: "その通りです。1です。")),
             Step(index: 2, narration: "最終出力は `1` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - Backfill authored explanations for existing placeholder quizzes
+
+    static let silverArray002Explanation = Explanation(
+        id: "explain-silver-array-002",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int[][] array = new int[2][];
+        array[0] = new int[2];
+        array[0][1] = 5;
+        System.out.println(array[0][1] + " " + array[1][0]);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`new int[2][]` では2次元目は未初期化で、`array[0]` と `array[1]` は最初nullです。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`array[0]` のみ配列を割り当てて値5を設定します。`array[1]` は依然nullです。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "`array[1][0]` アクセス時の結果は？", choices: ["0が返る", "NullPointerException", "コンパイルエラー"], answerIndex: 1, hint: "array[1] の参照先がない", afterExplanation: "正解です。null参照の要素アクセスでNPEです。")),
+            Step(index: 2, narration: "`array[1][0]` で `NullPointerException` が発生します。", highlightLines: [6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverClasses002Explanation = Explanation(
+        id: "explain-silver-classes-002",
+        initialCode: """
+public class Test {
+    static int count = 0;
+    Test() { count++; }
+    public static void main(String[] args) {
+        Test t1 = new Test();
+        Test t2 = new Test();
+        t1.count = 5;
+        System.out.println(t2.count);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`count` はstaticなのでクラスで1つだけ共有されます。2回のnewでcountは2になります。", highlightLines: [2, 3, 5, 6], variables: [Variable(name: "Test.count", type: "int", value: "2", scope: "class")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "`t1.count = 5` は実体として `Test.count = 5` と同じです。", highlightLines: [7], variables: [Variable(name: "Test.count", type: "int", value: "5", scope: "class")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "`t2.count` はいくつ？", choices: ["2", "5", "コンパイルエラー"], answerIndex: 1, hint: "t1/t2経由でも同じstatic変数", afterExplanation: "正解です。共有値5です。")),
+            Step(index: 2, narration: "出力は `5` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverCollections001Explanation = Explanation(
+        id: "explain-silver-collections-001",
+        initialCode: """
+import java.util.List;
+public class Test {
+    public static void main(String[] args) {
+        try {
+            var list = List.of("Apple", null, "Banana");
+            System.out.println(list.size());
+        } catch (NullPointerException e) {
+            System.out.println("NPE");
+        } catch (UnsupportedOperationException e) {
+            System.out.println("UOE");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`List.of(...)` はnull要素を許可しません。生成時に即チェックされます。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "nullを含むため `NullPointerException` が投げられ、NPE用catchに入ります。", highlightLines: [7, 8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: PredictPrompt(question: "UOE catchに入る？", choices: ["入る", "入らない"], answerIndex: 1, hint: "今回は生成時nullチェック", afterExplanation: "正解です。UOEではなくNPEです。")),
+            Step(index: 2, narration: "最終出力は `NPE` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverControlFlow001Explanation = Explanation(
+        id: "explain-silver-control-flow-001",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int val = 2;
+        String res = switch (val) {
+            case 1 -> "One";
+            case 2 -> { yield "Two"; }
+            default -> "Other";
+        };
+        System.out.println(res);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`val` は2なので switch式は `case 2` を選択します。", highlightLines: [3, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "ブロック形式のcaseでは `yield \"Two\"` で式の値を返します。", highlightLines: [6], variables: [Variable(name: "res", type: "String", value: "\"Two\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "resの値は？", choices: ["Two", "Other", "コンパイルエラー"], answerIndex: 0, hint: "switch式 + yield", afterExplanation: "正解です。Twoです。")),
+            Step(index: 2, narration: "`println(res)` で `Two` が出力されます。", highlightLines: [9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverDataTypes002Explanation = Explanation(
+        id: "explain-silver-data-types-002",
+        initialCode: """
+public class Test {
+    static void modify(String s, StringBuilder sb) {
+        s = s.concat("World");
+        sb.append("World");
+    }
+    public static void main(String[] args) {
+        String str = "Hello";
+        StringBuilder builder = new StringBuilder("Hello");
+        modify(str, builder);
+        System.out.println(str + " " + builder);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`str` は不変String、`builder` は可変StringBuilderです。", highlightLines: [7, 8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+            Step(index: 1, narration: "`modify` 内で `s = s.concat(...)` はローカル参照の付け替えだけ。一方 `sb.append(...)` は同じオブジェクトを変更します。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "modify", line: 4)], heap: [], predict: PredictPrompt(question: "呼び出し後の出力は？", choices: ["HelloWorld HelloWorld", "Hello HelloWorld", "Hello Hello"], answerIndex: 1, hint: "String不変 / StringBuilder可変", afterExplanation: "正解です。Hello HelloWorldです。")),
+            Step(index: 2, narration: "最終出力は `Hello HelloWorld` です。", highlightLines: [10], variables: [], callStack: [CallStackFrame(method: "main", line: 10)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverException002Explanation = Explanation(
+        id: "explain-silver-exception-002",
+        initialCode: """
+public class Test {
+    static class Resource implements AutoCloseable {
+        String name;
+        Resource(String name) { this.name = name; }
+        public void close() { System.out.print(name + " "); }
+    }
+    public static void main(String[] args) {
+        try (Resource r1 = new Resource("A");
+             Resource r2 = new Resource("B")) {
+            System.out.print("Run ");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "try-with-resources本体で `Run` が先に出力されます。", highlightLines: [10], variables: [], callStack: [CallStackFrame(method: "main", line: 10)], heap: [], predict: nil),
+            Step(index: 1, narration: "ブロック終了時、リソースは宣言の逆順（r2→r1）で close されます。", highlightLines: [8, 9], variables: [], callStack: [CallStackFrame(method: "main", line: 11)], heap: [], predict: PredictPrompt(question: "close順は？", choices: ["A→B", "B→A"], answerIndex: 1, hint: "LIFOで解放", afterExplanation: "正解です。B→Aです。")),
+            Step(index: 2, narration: "最終出力は `Run B A` です。", highlightLines: [5, 10], variables: [], callStack: [CallStackFrame(method: "main", line: 11)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverJavaBasics001Explanation = Explanation(
+        id: "explain-silver-java-basics-001",
+        initialCode: """
+public class Test {
+    int instanceVar;
+    public static void main(String[] args) {
+        int localVar;
+        Test t = new Test();
+        if (t.instanceVar == 0) {
+            localVar = 10;
+        }
+        System.out.println(localVar);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "instanceVarはフィールドなのでデフォルト0ですが、localVarはローカル変数で未初期化です。", highlightLines: [2, 4], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "コンパイラはif条件の実行時真偽を前提にせず、`localVar` が未代入の経路ありと判断します。", highlightLines: [6, 9], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "結果は？", choices: ["10が出力", "0が出力", "コンパイルエラー"], answerIndex: 2, hint: "ローカル変数の確実代入規則", afterExplanation: "正解です。確実代入違反でコンパイルエラーです。")),
+            Step(index: 2, narration: "このコードはコンパイルエラーです。", highlightLines: [9], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverOverload002Explanation = Explanation(
+        id: "explain-silver-overload-002",
+        initialCode: """
+public class Test {
+    static void call(long x) { System.out.println("long"); }
+    static void call(Integer x) { System.out.println("Integer"); }
+    public static void main(String[] args) {
+        call(10);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`10` はintリテラルで、call(long)とcall(Integer)の両候補を検討します。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "オーバーロード解決では型昇格（int→long）がボクシング（int→Integer）より優先されます。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "選ばれるメソッドは？", choices: ["call(long)", "call(Integer)", "曖昧エラー"], answerIndex: 0, hint: "widening優先", afterExplanation: "正解です。call(long)です。")),
+            Step(index: 2, narration: "最終出力は `long` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "call(long)", line: 2)], heap: [], predict: nil),
         ]
     )
 }
