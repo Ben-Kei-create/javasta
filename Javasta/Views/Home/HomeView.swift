@@ -54,12 +54,6 @@ struct HomeView: View {
                     .onPreferenceChange(HomeSectionFramePreferenceKey.self) { frames in
                         sectionFrames = frames
                     }
-                    .background(
-                        Color.jbAccent
-                            .opacity(isReordering ? 0.06 : 0)
-                            .ignoresSafeArea()
-                            .animation(.easeInOut(duration: 0.25), value: isReordering)
-                    )
                 }
                 .coordinateSpace(name: HomeSectionDragSpace.name)
                 .scrollDisabled(isReordering)
@@ -332,12 +326,6 @@ struct HomeView: View {
         content
             .padding(.vertical, 2)
             .background(sectionFrameReader(for: id))
-            .background(
-                RoundedRectangle(cornerRadius: Radius.md)
-                    .fill(Color.jbAccent.opacity(draggingSection == id ? 0.14 : (isReordering ? 0.05 : 0)))
-                    .padding(.horizontal, Spacing.sm)
-                    .animation(.easeInOut(duration: 0.22), value: draggingSection)
-            )
             .scaleEffect(draggingSection == id ? 1.02 : 1.0)
             .offset(y: dragOffsetY(for: id))
             .zIndex(draggingSection == id ? 10 : 0)
