@@ -1,6 +1,8 @@
 import Foundation
 
-extension Quiz {
+enum QuizExpansion {
+    typealias Choice = Quiz.Choice
+
     static let goldExpansion: [Quiz] = [
         goldCollections002,
         goldGenerics004,

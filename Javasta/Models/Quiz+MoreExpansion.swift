@@ -1,6 +1,6 @@
 import Foundation
 
-extension Quiz {
+extension QuizExpansion {
     static let mixedExpansion: [Quiz] = [
         goldGenerics005,
         goldGenerics006,

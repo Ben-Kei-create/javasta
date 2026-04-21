@@ -3578,7 +3578,7 @@ System.out.println(set.size());
 """,
         steps: [
             Step(index: 0, narration: "比較基準が長さのみなので、\"aa\" と \"bb\" は比較結果0で同値扱いです。", highlightLines: [1, 2, 3], variables: [], callStack: [], heap: [], predict: nil),
-            Step(index: 1, narration: "\"c\" は長さ1で別要素。最終的に長さ1と長さ2の2要素が残ります。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "sizeは？", choices: ["1", "2", "3"], answerIndex: 1, hint: "TreeSetの重複判定はComparator"), afterExplanation: "正解です。2です。")),
+            Step(index: 1, narration: "\"c\" は長さ1で別要素。最終的に長さ1と長さ2の2要素が残ります。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "sizeは？", choices: ["1", "2", "3"], answerIndex: 1, hint: "TreeSetの重複判定はComparator", afterExplanation: "正解です。2です。")),
             Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
         ]
     )

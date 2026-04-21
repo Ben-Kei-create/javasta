@@ -1,6 +1,6 @@
 import Foundation
 
-extension Quiz {
+extension QuizExpansion {
     static let silverExpansion: [Quiz] = [
         silverJavaBasics003,
         silverJavaBasics004,

@@ -1,7 +1,8 @@
 import Foundation
 
 extension Quiz {
-    static let samples: [Quiz] = [
+    static let samples: [Quiz] = {
+        let all: [Quiz] = [
         silverOverload001,
         silverException001,
         silverExceptionFinally001,
@@ -87,7 +88,17 @@ extension Quiz {
         goldStream006,
         goldOptional004,
         goldConcurrency005,
-    ] + generatedSilverQueue + generatedGoldQueue + goldExpansion + silverExpansion + mixedExpansion
+        ] + generatedSilverQueue
+            + generatedGoldQueue
+            + QuizExpansion.goldExpansion
+            + QuizExpansion.silverExpansion
+            + QuizExpansion.mixedExpansion
+
+        var seenIds = Set<String>()
+        return all.filter { quiz in
+            seenIds.insert(quiz.id).inserted
+        }
+    }()
     
     
     
