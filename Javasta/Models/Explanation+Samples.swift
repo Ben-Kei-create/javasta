@@ -2666,6 +2666,28 @@ public class Test {
         goldJdbc002Explanation.id: goldJdbc002Explanation,
         goldLocalization001Explanation.id: goldLocalization001Explanation,
         goldLocalization002Explanation.id: goldLocalization002Explanation,
+        goldLocalization003Explanation.id: goldLocalization003Explanation,
+        goldLocalization004Explanation.id: goldLocalization004Explanation,
+        goldLocalization005Explanation.id: goldLocalization005Explanation,
+        goldLocalization006Explanation.id: goldLocalization006Explanation,
+        goldLocalization007Explanation.id: goldLocalization007Explanation,
+        goldLocalization008Explanation.id: goldLocalization008Explanation,
+        goldLocalization009Explanation.id: goldLocalization009Explanation,
+        goldLocalization010Explanation.id: goldLocalization010Explanation,
+        goldLocalization011Explanation.id: goldLocalization011Explanation,
+        goldLocalization012Explanation.id: goldLocalization012Explanation,
+        goldLocalization013Explanation.id: goldLocalization013Explanation,
+        goldLocalization014Explanation.id: goldLocalization014Explanation,
+        goldLocalization015Explanation.id: goldLocalization015Explanation,
+        goldLocalization016Explanation.id: goldLocalization016Explanation,
+        goldLocalization017Explanation.id: goldLocalization017Explanation,
+        goldLocalization018Explanation.id: goldLocalization018Explanation,
+        goldLocalization019Explanation.id: goldLocalization019Explanation,
+        goldLocalization020Explanation.id: goldLocalization020Explanation,
+        goldLocalization021Explanation.id: goldLocalization021Explanation,
+        goldLocalization022Explanation.id: goldLocalization022Explanation,
+        goldLocalization023Explanation.id: goldLocalization023Explanation,
+        goldLocalization024Explanation.id: goldLocalization024Explanation,
         goldModule001Explanation.id: goldModule001Explanation,
         goldModule002Explanation.id: goldModule002Explanation,
         goldPathNormalize001Explanation.id: goldPathNormalize001Explanation,
@@ -3815,6 +3837,313 @@ System.out.println(rb.getString("greeting"));
             Step(index: 0, narration: "Locale.JAPAN は ja_JP。`Messages_ja_JP` が無ければ `Messages_ja` を探します。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
             Step(index: 1, narration: "`Messages_ja` があるため greeting は `ja` になります。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["ja", "base"], answerIndex: 0, hint: "言語バンドル優先", afterExplanation: "正解です。jaです。")),
             Step(index: 2, narration: "最終出力は `ja` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization003Explanation = Explanation(
+        id: "explain-gold-localization-003",
+        initialCode: """
+Locale.setDefault(Locale.US);
+LocalDate date = LocalDate.of(2026, Month.APRIL, 20);
+DateTimeFormatter f = DateTimeFormatter.ofPattern("MMM", Locale.JAPAN);
+System.out.println(date.format(f));
+""",
+        steps: [
+            Step(index: 0, narration: "デフォルトLocaleはUSに設定されていますが、Formatter作成時にLocale.JAPANを明示しています。", highlightLines: [1, 3], variables: [Variable(name: "defaultLocale", type: "Locale", value: "US", scope: "JVM"), Variable(name: "formatterLocale", type: "Locale", value: "JAPAN", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`MMM` は短い月名です。Locale.JAPANでは4月の短い表記は `4月` になります。", highlightLines: [2, 3], variables: [Variable(name: "date.month", type: "Month", value: "APRIL", scope: "main")], callStack: [CallStackFrame(method: "format", line: 4)], heap: [], predict: PredictPrompt(question: "使われるLocaleは？", choices: ["Locale.JAPAN", "Locale.US"], answerIndex: 0, hint: "ofPatternの第2引数です。", afterExplanation: "正解です。Formatterに指定したLocale.JAPANです。")),
+            Step(index: 2, narration: "したがって出力は `4月` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization024Explanation = Explanation(
+        id: "explain-gold-localization-024",
+        initialCode: """
+Locale loc = Locale.forLanguageTag("pt-BR");
+System.out.println(loc.getLanguage() + ":" + loc.getCountry());
+""",
+        steps: [
+            Step(index: 0, narration: "`Locale.forLanguageTag(\"pt-BR\")` は、言語ptと地域BRを持つLocaleを作ります。", highlightLines: [1], variables: [Variable(name: "loc", type: "Locale", value: "pt_BR", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`getLanguage()` は言語コード、`getCountry()` は国/地域コードを返します。", highlightLines: [2], variables: [Variable(name: "language", type: "String", value: "\"pt\"", scope: "main"), Variable(name: "country", type: "String", value: "\"BR\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "出力される順は？", choices: ["pt:BR", "BR:pt"], answerIndex: 0, hint: "getLanguageの後にgetCountryです。", afterExplanation: "正解です。pt:BRです。")),
+            Step(index: 2, narration: "コロンで連結しているため、出力は `pt:BR` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization004Explanation = Explanation(
+        id: "explain-gold-localization-004",
+        initialCode: """
+NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US);
+System.out.println(nf.format(10));
+""",
+        steps: [
+            Step(index: 0, narration: "`getCurrencyInstance(Locale.US)` で、米国の通貨形式を使うNumberFormatを作ります。", highlightLines: [1], variables: [Variable(name: "nf.locale", type: "Locale", value: "US", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "通貨形式なので、数値10はドル記号付きかつ小数2桁の形になります。", highlightLines: [2], variables: [Variable(name: "value", type: "int", value: "10", scope: "main")], callStack: [CallStackFrame(method: "format", line: 2)], heap: [], predict: PredictPrompt(question: "Locale.USの通貨記号は？", choices: ["$", "円"], answerIndex: 0, hint: "USの通貨です。", afterExplanation: "正解です。ドル記号です。")),
+            Step(index: 2, narration: "出力は `$10.00` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization005Explanation = Explanation(
+        id: "explain-gold-localization-005",
+        initialCode: """
+Locale loc = new Locale.Builder()
+    .setLanguage("en")
+    .setRegion("US")
+    .build();
+System.out.println(loc.toLanguageTag());
+""",
+        steps: [
+            Step(index: 0, narration: "`Locale.Builder` でlanguageにen、regionにUSを指定しています。", highlightLines: [1, 2, 3, 4], variables: [Variable(name: "language", type: "String", value: "\"en\"", scope: "builder"), Variable(name: "region", type: "String", value: "\"US\"", scope: "builder")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`toLanguageTag()` はLocaleの `toString()` とは異なり、ハイフン区切りのBCP 47形式を返します。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "言語タグの区切りは？", choices: ["ハイフン", "アンダースコア"], answerIndex: 0, hint: "toLanguageTagです。", afterExplanation: "正解です。en-USです。")),
+            Step(index: 2, narration: "したがって出力は `en-US` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization006Explanation = Explanation(
+        id: "explain-gold-localization-006",
+        initialCode: """
+Locale.setDefault(Locale.JAPAN);
+NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+System.out.println(nf.format(1234.5));
+""",
+        steps: [
+            Step(index: 0, narration: "デフォルトLocaleはJAPANに変更されています。ただし次の行でNumberFormatにLocale.USを明示しています。", highlightLines: [1, 2], variables: [Variable(name: "defaultLocale", type: "Locale", value: "JAPAN", scope: "JVM"), Variable(name: "formatLocale", type: "Locale", value: "US", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "明示Localeがある場合、そのFormatterは指定Localeの規則で数値を整形します。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "format", line: 3)], heap: [], predict: PredictPrompt(question: "使われる数値形式は？", choices: ["Locale.US", "Locale.JAPAN"], answerIndex: 0, hint: "getNumberInstanceの引数を見ます。", afterExplanation: "正解です。明示したLocale.USです。")),
+            Step(index: 2, narration: "米国形式ではカンマで桁区切り、ピリオドで小数を表すため、`1,234.5` です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization007Explanation = Explanation(
+        id: "explain-gold-localization-007",
+        initialCode: """
+// Messages: ok=base-ok, cancel=base-cancel
+// Messages_ja: ok=ja-ok
+ResourceBundle rb = ResourceBundle.getBundle("Test$Messages", Locale.JAPAN);
+System.out.println(rb.getString("ok") + ":" + rb.getString("cancel"));
+""",
+        steps: [
+            Step(index: 0, narration: "`Locale.JAPAN` はja_JPです。候補は `Messages_ja_JP`、`Messages_ja`、`Messages` の順に探されます。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "getBundle", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`ok` は `Messages_ja` にあるので `ja-ok` です。`cancel` は子にないため親の `Messages` から探します。", highlightLines: [1, 2, 4], variables: [Variable(name: "ok", type: "String", value: "\"ja-ok\"", scope: "bundle"), Variable(name: "cancel", type: "String", value: "\"base-cancel\"", scope: "parent bundle")], callStack: [CallStackFrame(method: "getString", line: 4)], heap: [], predict: PredictPrompt(question: "子にないキーは親を探す？", choices: ["探す", "探さない"], answerIndex: 0, hint: "ResourceBundleには親チェーンがあります。", afterExplanation: "正解です。キー単位で親も探します。")),
+            Step(index: 2, narration: "連結結果は `ja-ok:base-cancel` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization008Explanation = Explanation(
+        id: "explain-gold-localization-008",
+        initialCode: """
+ResourceBundle rb = ResourceBundle.getBundle("Test$Messages", Locale.US);
+try {
+    System.out.println(rb.getString("missing"));
+} catch (MissingResourceException e) {
+    System.out.println("missing");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "バンドル自体は見つかりますが、キー `missing` は定義されていません。", highlightLines: [1, 3], variables: [Variable(name: "key", type: "String", value: "\"missing\"", scope: "main")], callStack: [CallStackFrame(method: "getString", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "ResourceBundleはキーが見つからない場合、nullではなく `MissingResourceException` を投げます。", highlightLines: [3, 4], variables: [Variable(name: "e", type: "MissingResourceException", value: "missing key", scope: "catch")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "存在しないキーの結果は？", choices: ["null", "MissingResourceException"], answerIndex: 1, hint: "getStringは例外を投げます。", afterExplanation: "正解です。例外です。")),
+            Step(index: 2, narration: "catchブロックで `missing` を出力します。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization009Explanation = Explanation(
+        id: "explain-gold-localization-009",
+        initialCode: """
+// Config ListResourceBundle: {"count", 3}
+ResourceBundle rb = ResourceBundle.getBundle("Test$Config", Locale.US);
+Object value = rb.getObject("count");
+System.out.println(value.getClass().getSimpleName() + ":" + value);
+""",
+        steps: [
+            Step(index: 0, narration: "`ListResourceBundle` はStringだけでなくObject値も保持できます。`3` はIntegerにボクシングされます。", highlightLines: [1], variables: [Variable(name: "count", type: "Integer", value: "3", scope: "bundle")], callStack: [CallStackFrame(method: "getContents", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`getObject(\"count\")` でIntegerオブジェクトとして取り出します。", highlightLines: [3], variables: [Variable(name: "value", type: "Object", value: "Integer(3)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "valueの実体型は？", choices: ["Integer", "String"], answerIndex: 0, hint: "getObjectです。", afterExplanation: "正解です。Integerです。")),
+            Step(index: 2, narration: "実体クラス名と値を連結するため、出力は `Integer:3` です。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization010Explanation = Explanation(
+        id: "explain-gold-localization-010",
+        initialCode: """
+NumberFormat nf = NumberFormat.getNumberInstance(Locale.GERMANY);
+System.out.println(nf.format(1234.5));
+""",
+        steps: [
+            Step(index: 0, narration: "`Locale.GERMANY` の数値形式では、桁区切りがピリオド、小数区切りがカンマです。", highlightLines: [1], variables: [Variable(name: "locale", type: "Locale", value: "GERMANY", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`1234.5` を整形すると、整数部に桁区切りが入り、小数部はカンマの後に出ます。", highlightLines: [2], variables: [Variable(name: "value", type: "double", value: "1234.5", scope: "main")], callStack: [CallStackFrame(method: "format", line: 2)], heap: [], predict: PredictPrompt(question: "ドイツ形式の小数区切りは？", choices: [",", "."], answerIndex: 0, hint: "Locale.GERMANYです。", afterExplanation: "正解です。カンマです。")),
+            Step(index: 2, narration: "出力は `1.234,5` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization011Explanation = Explanation(
+        id: "explain-gold-localization-011",
+        initialCode: """
+NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+Number n = nf.parse("12abc");
+System.out.println(n);
+""",
+        steps: [
+            Step(index: 0, narration: "`NumberFormat.parse(String)` は、文字列の先頭から数値として読める部分を解析します。", highlightLines: [2], variables: [Variable(name: "input", type: "String", value: "\"12abc\"", scope: "main")], callStack: [CallStackFrame(method: "parse", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "先頭の `12` は解析できます。後ろの `abc` が残っていても、`parse(String)` はこの時点でNumberを返します。", highlightLines: [2], variables: [Variable(name: "n", type: "Number", value: "12", scope: "main")], callStack: [CallStackFrame(method: "parse", line: 2)], heap: [], predict: PredictPrompt(question: "末尾にabcがあると必ず例外？", choices: ["必ず例外", "先頭が読めれば返る"], answerIndex: 1, hint: "全文消費チェックではありません。", afterExplanation: "正解です。12が返ります。")),
+            Step(index: 2, narration: "`System.out.println(n)` は `12` を出力します。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization012Explanation = Explanation(
+        id: "explain-gold-localization-012",
+        initialCode: """
+DecimalFormat df = new DecimalFormat("0000.00");
+System.out.println(df.format(7.5));
+""",
+        steps: [
+            Step(index: 0, narration: "DecimalFormatの `0` は必須桁です。整数部に4つ、小数部に2つ指定されています。", highlightLines: [1], variables: [Variable(name: "pattern", type: "String", value: "\"0000.00\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`7.5` は整数部が4桁になるように左側が0埋めされ、小数部も2桁になります。", highlightLines: [2], variables: [Variable(name: "value", type: "double", value: "7.5", scope: "main")], callStack: [CallStackFrame(method: "format", line: 2)], heap: [], predict: PredictPrompt(question: "整数部は何桁表示？", choices: ["4桁", "1桁"], answerIndex: 0, hint: "0000です。", afterExplanation: "正解です。0007になります。")),
+            Step(index: 2, narration: "出力は `0007.50` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization013Explanation = Explanation(
+        id: "explain-gold-localization-013",
+        initialCode: """
+NumberFormat nf = NumberFormat.getPercentInstance(Locale.US);
+System.out.println(nf.format(0.25));
+""",
+        steps: [
+            Step(index: 0, narration: "`getPercentInstance` は数値をパーセントとして整形します。内部値は表示時に100倍されます。", highlightLines: [1], variables: [Variable(name: "formatter", type: "NumberFormat", value: "percent US", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`0.25` は25パーセントです。Locale.USではパーセント記号を付けて表示します。", highlightLines: [2], variables: [Variable(name: "value", type: "double", value: "0.25", scope: "main")], callStack: [CallStackFrame(method: "format", line: 2)], heap: [], predict: PredictPrompt(question: "0.25のパーセント表示は？", choices: ["25%", "0.25%"], answerIndex: 0, hint: "100倍して%です。", afterExplanation: "正解です。25%です。")),
+            Step(index: 2, narration: "出力は `25%` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization014Explanation = Explanation(
+        id: "explain-gold-localization-014",
+        initialCode: """
+LocalDate d = LocalDate.of(2026, 4, 5);
+DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+System.out.println(d.format(f));
+""",
+        steps: [
+            Step(index: 0, narration: "`LocalDate.of(2026, 4, 5)` で2026年4月5日を作ります。", highlightLines: [1], variables: [Variable(name: "d", type: "LocalDate", value: "2026-04-05", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "パターン `yyyy/MM/dd` は、年4桁、月2桁、日2桁をスラッシュでつなぎます。", highlightLines: [2], variables: [Variable(name: "pattern", type: "String", value: "\"yyyy/MM/dd\"", scope: "main")], callStack: [CallStackFrame(method: "ofPattern", line: 2)], heap: [], predict: PredictPrompt(question: "月と日はゼロ埋めされる？", choices: ["される", "されない"], answerIndex: 0, hint: "MMとddです。", afterExplanation: "正解です。04と05になります。")),
+            Step(index: 2, narration: "出力は `2026/04/05` です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization015Explanation = Explanation(
+        id: "explain-gold-localization-015",
+        initialCode: """
+LocalDate d = LocalDate.of(2026, 4, 5);
+DateTimeFormatter f = DateTimeFormatter.ofPattern("MMM d", Locale.US);
+System.out.println(d.format(f));
+""",
+        steps: [
+            Step(index: 0, narration: "`MMM` は短い月名を表します。月名はLocaleに依存します。", highlightLines: [2], variables: [Variable(name: "locale", type: "Locale", value: "US", scope: "main")], callStack: [CallStackFrame(method: "ofPattern", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "Locale.USで4月の短い月名は `Apr` です。`d` は日を最小桁で表示するため5になります。", highlightLines: [1, 2], variables: [Variable(name: "monthText", type: "String", value: "\"Apr\"", scope: "format")], callStack: [CallStackFrame(method: "format", line: 3)], heap: [], predict: PredictPrompt(question: "MMMの出力は？", choices: ["Apr", "April"], answerIndex: 0, hint: "短い月名です。", afterExplanation: "正解です。Aprです。")),
+            Step(index: 2, narration: "出力は `Apr 5` です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization016Explanation = Explanation(
+        id: "explain-gold-localization-016",
+        initialCode: """
+DateTimeFormatter f = DateTimeFormatter.ofPattern("uuuu/MM/dd");
+LocalDate d = LocalDate.parse("2026/04/05", f);
+System.out.println(d.getMonthValue());
+""",
+        steps: [
+            Step(index: 0, narration: "スラッシュ区切りの日付を解析するため、`uuuu/MM/dd` のformatterを作っています。", highlightLines: [1], variables: [Variable(name: "pattern", type: "String", value: "\"uuuu/MM/dd\"", scope: "main")], callStack: [CallStackFrame(method: "ofPattern", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`LocalDate.parse` にformatterを渡しているため、`2026/04/05` をLocalDateとして解析できます。", highlightLines: [2], variables: [Variable(name: "d", type: "LocalDate", value: "2026-04-05", scope: "main")], callStack: [CallStackFrame(method: "parse", line: 2)], heap: [], predict: PredictPrompt(question: "月の数値は？", choices: ["4", "04"], answerIndex: 0, hint: "getMonthValueはintです。", afterExplanation: "正解です。4です。")),
+            Step(index: 2, narration: "`getMonthValue()` はintの4を返すため、出力は `4` です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization017Explanation = Explanation(
+        id: "explain-gold-localization-017",
+        initialCode: """
+try {
+    LocalDate.parse("2026/04/05");
+} catch (DateTimeParseException e) {
+    System.out.println("parse error");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "formatterなしの `LocalDate.parse` は、標準のISO_LOCAL_DATE形式、つまり `yyyy-MM-dd` のようなハイフン区切りを期待します。", highlightLines: [2], variables: [Variable(name: "input", type: "String", value: "\"2026/04/05\"", scope: "main")], callStack: [CallStackFrame(method: "parse", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "入力はスラッシュ区切りなので、標準形式とは一致せず `DateTimeParseException` が発生します。", highlightLines: [2, 3], variables: [Variable(name: "e", type: "DateTimeParseException", value: "format mismatch", scope: "catch")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "スラッシュ形式を読むには？", choices: ["formatterを指定する", "何もしなくてよい"], answerIndex: 0, hint: "ofPatternが必要です。", afterExplanation: "正解です。formatterを渡します。")),
+            Step(index: 2, narration: "catchブロックが実行され、`parse error` が出力されます。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization018Explanation = Explanation(
+        id: "explain-gold-localization-018",
+        initialCode: """
+LocalDateTime t = LocalDateTime.of(2026, 4, 5, 9, 7);
+DateTimeFormatter f = DateTimeFormatter.ofPattern("MM:mm");
+System.out.println(t.format(f));
+""",
+        steps: [
+            Step(index: 0, narration: "DateTimeFormatterのパターン文字は大文字小文字を区別します。`MM` は月、`mm` は分です。", highlightLines: [2], variables: [Variable(name: "pattern", type: "String", value: "\"MM:mm\"", scope: "main")], callStack: [CallStackFrame(method: "ofPattern", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "日時は4月、分は7分です。2桁指定なので、それぞれ `04` と `07` になります。", highlightLines: [1, 3], variables: [Variable(name: "month", type: "int", value: "4", scope: "t"), Variable(name: "minute", type: "int", value: "7", scope: "t")], callStack: [CallStackFrame(method: "format", line: 3)], heap: [], predict: PredictPrompt(question: "`MM:mm` の前半は？", choices: ["月", "分"], answerIndex: 0, hint: "大文字Mです。", afterExplanation: "正解です。前半は月です。")),
+            Step(index: 2, narration: "出力は `04:07` です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization019Explanation = Explanation(
+        id: "explain-gold-localization-019",
+        initialCode: """
+System.out.println(MessageFormat.format("Hello {0}", "Java"));
+""",
+        steps: [
+            Step(index: 0, narration: "`MessageFormat.format` は、パターン内の `{0}` を0番目の引数で置換します。", highlightLines: [1], variables: [Variable(name: "arg0", type: "String", value: "\"Java\"", scope: "format")], callStack: [CallStackFrame(method: "format", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "0番目の引数は `Java` なので、`Hello {0}` は `Hello Java` になります。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: PredictPrompt(question: "{0}に入る値は？", choices: ["Java", "null"], answerIndex: 0, hint: "第2引数です。", afterExplanation: "正解です。Javaです。")),
+            Step(index: 2, narration: "出力は `Hello Java` です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization020Explanation = Explanation(
+        id: "explain-gold-localization-020",
+        initialCode: """
+System.out.println(MessageFormat.format("'{0}' {0}", "Java"));
+""",
+        steps: [
+            Step(index: 0, narration: "MessageFormatでは単一引用符がエスケープに使われます。`'{0}'` は置換対象ではなくリテラルの `{0}` です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "format", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "後半の `{0}` は引用符の外なので、引数 `Java` に置換されます。", highlightLines: [1], variables: [Variable(name: "arg0", type: "String", value: "\"Java\"", scope: "format")], callStack: [CallStackFrame(method: "format", line: 1)], heap: [], predict: PredictPrompt(question: "引用符内の{0}は置換される？", choices: ["される", "されない"], answerIndex: 1, hint: "単一引用符の中です。", afterExplanation: "正解です。リテラルになります。")),
+            Step(index: 2, narration: "したがって出力は `{0} Java` です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization021Explanation = Explanation(
+        id: "explain-gold-localization-021",
+        initialCode: """
+System.out.println(MessageFormat.format("{1} scored {0}", 90, "Ana"));
+""",
+        steps: [
+            Step(index: 0, narration: "MessageFormatの番号は引数インデックスです。出現順ではありません。", highlightLines: [1], variables: [Variable(name: "arg0", type: "Integer", value: "90", scope: "format"), Variable(name: "arg1", type: "String", value: "\"Ana\"", scope: "format")], callStack: [CallStackFrame(method: "format", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`{1}` は2番目の引数Ana、`{0}` は1番目の引数90を参照します。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "format", line: 1)], heap: [], predict: PredictPrompt(question: "先頭に入るのは？", choices: ["Ana", "90"], answerIndex: 0, hint: "{1}です。", afterExplanation: "正解です。Anaです。")),
+            Step(index: 2, narration: "出力は `Ana scored 90` です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization022Explanation = Explanation(
+        id: "explain-gold-localization-022",
+        initialCode: """
+MessageFormat mf = new MessageFormat("{0,number,#,##0}", Locale.US);
+System.out.println(mf.format(new Object[] { 1234 }));
+""",
+        steps: [
+            Step(index: 0, narration: "`{0,number,#,##0}` は0番目の引数を数値として、`#,##0` パターンで整形する指定です。", highlightLines: [1], variables: [Variable(name: "pattern", type: "String", value: "\"{0,number,#,##0}\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "Locale.USなので桁区切りはカンマです。1234は `1,234` になります。", highlightLines: [1, 2], variables: [Variable(name: "arg0", type: "Integer", value: "1234", scope: "format")], callStack: [CallStackFrame(method: "format", line: 2)], heap: [], predict: PredictPrompt(question: "区切り文字は？", choices: [",", "."], answerIndex: 0, hint: "Locale.USです。", afterExplanation: "正解です。カンマです。")),
+            Step(index: 2, narration: "出力は `1,234` です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization023Explanation = Explanation(
+        id: "explain-gold-localization-023",
+        initialCode: """
+ResourceBundle rb = ResourceBundle.getBundle("Test$Texts", Locale.US);
+String pattern = rb.getString("notice");
+MessageFormat mf = new MessageFormat(pattern, Locale.US);
+System.out.println(mf.format(new Object[] { "Taro", 3 }));
+""",
+        steps: [
+            Step(index: 0, narration: "Locale.USでは `Texts_en` が候補になり、`notice` の値は `Hello {0}, you have {1}.` です。", highlightLines: [1, 2], variables: [Variable(name: "pattern", type: "String", value: "\"Hello {0}, you have {1}.\"", scope: "main")], callStack: [CallStackFrame(method: "getString", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "ResourceBundleは文字列パターンを返すだけです。実際の差し込みはMessageFormatで行います。", highlightLines: [2, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "置換を行うのは？", choices: ["MessageFormat", "ResourceBundle"], answerIndex: 0, hint: "formatを呼ぶ方です。", afterExplanation: "正解です。MessageFormatです。")),
+            Step(index: 2, narration: "`{0}` にTaro、`{1}` に3が入り、出力は `Hello Taro, you have 3.` です。", highlightLines: [4], variables: [Variable(name: "arg0", type: "String", value: "\"Taro\"", scope: "format"), Variable(name: "arg1", type: "Integer", value: "3", scope: "format")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
         ]
     )
 
@@ -5216,7 +5545,7 @@ class User implements Serializable {
         initialCode: """
 ObjectInputStream in = new ObjectInputStream(bytes);
 in.setObjectInputFilter(info ->
-    info.serialClass() == String.class
+    info.serialClass() == Box.class
         ? ObjectInputFilter.Status.REJECTED
         : ObjectInputFilter.Status.UNDECIDED);
 try {
@@ -5227,7 +5556,7 @@ try {
 """,
         steps: [
             Step(index: 0, narration: "`ObjectInputFilter` はデシリアライズされるクラスや深さなどを見て、許可・拒否・未決定を返せます。", highlightLines: [2, 3, 4, 5], variables: [], callStack: [CallStackFrame(method: "readObject", line: 7)], heap: [], predict: nil),
-            Step(index: 1, narration: "ストリーム内のオブジェクトは `String` です。フィルタは `String.class` に対して `REJECTED` を返します。", highlightLines: [3, 4], variables: [Variable(name: "serialClass", type: "Class<?>", value: "String.class", scope: "filter")], callStack: [CallStackFrame(method: "filter", line: 3)], heap: [], predict: PredictPrompt(question: "`REJECTED` の結果は？", choices: ["読み込み拒否", "そのまま読み込み"], answerIndex: 0, hint: "名前通り拒否です。", afterExplanation: "正解です。InvalidClassExceptionにつながります。")),
+            Step(index: 1, narration: "ストリーム内のオブジェクトは `Box` です。フィルタは `Box.class` に対して `REJECTED` を返します。", highlightLines: [3, 4], variables: [Variable(name: "serialClass", type: "Class<?>", value: "Box.class", scope: "filter")], callStack: [CallStackFrame(method: "filter", line: 3)], heap: [], predict: PredictPrompt(question: "`REJECTED` の結果は？", choices: ["読み込み拒否", "そのまま読み込み"], answerIndex: 0, hint: "名前通り拒否です。", afterExplanation: "正解です。InvalidClassExceptionにつながります。")),
             Step(index: 2, narration: "`readObject()` は `InvalidClassException` を投げ、catchで `rejected` が出力されます。", highlightLines: [7, 8, 9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
         ]
     )
