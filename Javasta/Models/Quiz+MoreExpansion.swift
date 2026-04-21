@@ -63,6 +63,26 @@ extension QuizExpansion {
         goldGenerics008,
         goldOptional008,
         goldCollections005,
+        goldCollections006,
+        goldCollections007,
+        goldCollections008,
+        goldCollections009,
+        goldCollections010,
+        goldCollections011,
+        goldCollections012,
+        goldCollections013,
+        goldCollections014,
+        goldCollections015,
+        goldCollections016,
+        goldCollections017,
+        goldCollections018,
+        goldCollections019,
+        goldCollections020,
+        goldCollections021,
+        goldCollections022,
+        goldCollections023,
+        goldCollections024,
+        goldCollections025,
         goldConcurrency009,
         goldDateTime005,
         goldIo006,
@@ -4064,6 +4084,584 @@ public class Test {
         ],
         explanationRef: "explain-gold-collections-005",
         designIntent: "computeIfAbsentが既存値を再利用するため、同じListへ要素が蓄積されることを確認する。"
+    )
+
+    static let goldCollections006 = Quiz(
+        id: "gold-collections-006",
+        level: .gold,
+        category: "collections",
+        tags: ["List", "subList", "ビュー"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>(List.of("A", "B", "C"));
+        List<String> sub = list.subList(1, 3);
+        sub.set(0, "X");
+        System.out.println(list);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "[A, B, C]", correct: false, misconception: "subListが独立コピーだと誤解", explanation: "subListは元Listのビューです。setの変更は元Listに反映されます。"),
+            Choice(id: "b", text: "[A, X, C]", correct: true, misconception: nil, explanation: "subList(1,3)はB,Cを指すビューで、sub.set(0,\"X\")は元Listのインデックス1を書き換えます。"),
+            Choice(id: "c", text: "[X, B, C]", correct: false, misconception: "subList内の0番を元Listの0番と混同", explanation: "subListの0番は元Listのインデックス1です。"),
+            Choice(id: "d", text: "UnsupportedOperationException", correct: false, misconception: "subListが常に変更不可と誤解", explanation: "元が変更可能なArrayListなので、setは可能です。"),
+        ],
+        explanationRef: "explain-gold-collections-006",
+        designIntent: "List.subListがコピーではなく元Listに連動するビューであることを確認する。"
+    )
+
+    static let goldCollections007 = Quiz(
+        id: "gold-collections-007",
+        level: .gold,
+        category: "collections",
+        tags: ["List", "remove", "オーバーロード"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<Integer> list = new ArrayList<>(List.of(1, 2, 3));
+        list.remove(1);
+        list.remove(Integer.valueOf(1));
+        System.out.println(list);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "[1, 3]", correct: false, misconception: "2回目のremoveを見落としている", explanation: "2回目のremove(Integer.valueOf(1))で値1も削除されます。"),
+            Choice(id: "b", text: "[2, 3]", correct: false, misconception: "remove(1)を値削除だと誤解", explanation: "List<Integer>でも引数がintのremove(1)はインデックス削除です。"),
+            Choice(id: "c", text: "[3]", correct: true, misconception: nil, explanation: "remove(1)でインデックス1の2を削除し、remove(Integer.valueOf(1))で値1を削除します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "removeのオーバーロードが曖昧だと誤解", explanation: "int引数はremove(int)、Integer引数はremove(Object)に解決されます。"),
+        ],
+        explanationRef: "explain-gold-collections-007",
+        designIntent: "List.remove(int)とremove(Object)のオーバーロード解決を確認する。"
+    )
+
+    static let goldCollections008 = Quiz(
+        id: "gold-collections-008",
+        level: .gold,
+        category: "collections",
+        tags: ["Set", "add", "重複"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Set<String> set = new LinkedHashSet<>();
+        System.out.println(set.add("A") + ":" + set.add("A") + ":" + set.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true:true:2", correct: false, misconception: "Setが重複を許すと誤解", explanation: "Setは同じ要素を重複保持しません。"),
+            Choice(id: "b", text: "true:false:1", correct: true, misconception: nil, explanation: "1回目のaddは成功してtrue、2回目は既存要素なのでfalse、サイズは1です。"),
+            Choice(id: "c", text: "false:true:1", correct: false, misconception: "初回addも失敗すると誤解", explanation: "空のSetにAを追加する初回addは成功します。"),
+            Choice(id: "d", text: "A:A:1", correct: false, misconception: "addが要素を返すと誤解", explanation: "Set.addはbooleanを返します。"),
+        ],
+        explanationRef: "explain-gold-collections-008",
+        designIntent: "Set.addの戻り値と重複排除を確認する。"
+    )
+
+    static let goldCollections009 = Quiz(
+        id: "gold-collections-009",
+        level: .gold,
+        category: "collections",
+        tags: ["Queue", "ArrayDeque", "peek", "poll"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Queue<String> q = new ArrayDeque<>();
+        q.offer("A");
+        q.offer("B");
+        System.out.print(q.peek());
+        System.out.print(q.poll());
+        System.out.print(q.poll());
+        System.out.print(q.peek());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "AABnull", correct: true, misconception: nil, explanation: "peekは先頭Aを削除せず返し、pollでA、次にBを削除し、空のpeekはnullを返します。"),
+            Choice(id: "b", text: "ABnull", correct: false, misconception: "peekが要素を削除すると誤解", explanation: "peekは参照するだけで削除しません。"),
+            Choice(id: "c", text: "ABBnull", correct: false, misconception: "pollの順序を誤解", explanation: "ArrayDequeをQueueとして使うとFIFOです。Aの次にBです。"),
+            Choice(id: "d", text: "NoSuchElementException", correct: false, misconception: "空のpeekが例外を投げると誤解", explanation: "peekは空ならnullを返します。elementなら例外です。"),
+        ],
+        explanationRef: "explain-gold-collections-009",
+        designIntent: "Queueのoffer/peek/pollの違いと空キュー時のpeekの戻り値を確認する。"
+    )
+
+    static let goldCollections010 = Quiz(
+        id: "gold-collections-010",
+        level: .gold,
+        category: "collections",
+        tags: ["Queue", "PriorityQueue", "自然順序"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Queue<Integer> q = new PriorityQueue<>();
+        q.offer(3);
+        q.offer(1);
+        q.offer(2);
+        while (!q.isEmpty()) {
+            System.out.print(q.poll());
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "312", correct: false, misconception: "挿入順に取り出されると誤解", explanation: "PriorityQueueは優先順位順でpollします。"),
+            Choice(id: "b", text: "123", correct: true, misconception: nil, explanation: "Integerの自然順序により、最小値から1,2,3の順に取り出されます。"),
+            Choice(id: "c", text: "321", correct: false, misconception: "最大値優先だと誤解", explanation: "デフォルトのPriorityQueueは自然順序の最小値が先頭です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "PriorityQueueをQueueに代入できないと誤解", explanation: "PriorityQueueはQueueの実装です。"),
+        ],
+        explanationRef: "explain-gold-collections-010",
+        designIntent: "PriorityQueueが挿入順ではなく自然順序で要素を取り出すことを確認する。"
+    )
+
+    static let goldCollections011 = Quiz(
+        id: "gold-collections-011",
+        level: .gold,
+        category: "collections",
+        tags: ["Map", "put", "戻り値"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new HashMap<>();
+        System.out.println(map.put("A", 1) + ":" + map.put("A", 2) + ":" + map.get("A"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "null:1:2", correct: true, misconception: nil, explanation: "初回putは旧値がないのでnull、2回目は旧値1を返し、最終値は2です。"),
+            Choice(id: "b", text: "1:2:2", correct: false, misconception: "putが新しい値を返すと誤解", explanation: "Map.putは旧値を返します。"),
+            Choice(id: "c", text: "null:null:2", correct: false, misconception: "上書き時も旧値がないと誤解", explanation: "2回目のputではキーAの旧値1があります。"),
+            Choice(id: "d", text: "1:1:2", correct: false, misconception: "初回putの戻り値を誤解", explanation: "初回は旧値がないためnullです。"),
+        ],
+        explanationRef: "explain-gold-collections-011",
+        designIntent: "Map.putは新しい値ではなく旧値を返し、同じキーは上書きされることを確認する。"
+    )
+
+    static let goldCollections012 = Quiz(
+        id: "gold-collections-012",
+        level: .gold,
+        category: "collections",
+        tags: ["Map", "merge", "BiFunction"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("A", 1);
+        map.merge("A", 2, (oldValue, newValue) -> oldValue + newValue);
+        map.merge("B", 5, (oldValue, newValue) -> oldValue + newValue);
+        System.out.println(map.get("A") + ":" + map.get("B"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2:5", correct: false, misconception: "Aが単純に上書きされると誤解", explanation: "既存キーAではマージ関数が実行され、1+2になります。"),
+            Choice(id: "b", text: "3:5", correct: true, misconception: nil, explanation: "Aは既存値1と新値2を足して3、Bは未登録なので5がそのまま入ります。"),
+            Choice(id: "c", text: "3:null", correct: false, misconception: "未登録キーではmergeが何もしないと誤解", explanation: "未登録キーBには指定値5が入ります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "mergeにラムダを渡せないと誤解", explanation: "mergeの第3引数はBiFunctionです。"),
+        ],
+        explanationRef: "explain-gold-collections-012",
+        designIntent: "Map.mergeが既存キーと未登録キーで異なる動きをすることを確認する。"
+    )
+
+    static let goldCollections013 = Quiz(
+        id: "gold-collections-013",
+        level: .gold,
+        category: "collections",
+        tags: ["raw type", "Generics", "ClassCastException"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        List raw = list;
+        raw.add(10);
+        try {
+            String s = list.get(0);
+            System.out.println(s);
+        } catch (ClassCastException e) {
+            System.out.println("CCE");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "10", correct: false, misconception: "IntegerがStringとして取り出せると誤解", explanation: "list.get(0)の代入時にStringへのキャストが発生します。"),
+            Choice(id: "b", text: "CCE", correct: true, misconception: nil, explanation: "raw型経由でIntegerを追加できても、List<String>として取り出す時にClassCastExceptionになります。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "raw型の使用がコンパイルエラーだと誤解", explanation: "raw型使用は警告ですが、通常はコンパイルできます。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: nil, explanation: "nullは扱っていません。"),
+        ],
+        explanationRef: "explain-gold-collections-013",
+        designIntent: "従来型raw typeによるヒープ汚染と、ジェネリクス型で取り出す時のClassCastExceptionを確認する。"
+    )
+
+    static let goldCollections014 = Quiz(
+        id: "gold-collections-014",
+        level: .gold,
+        category: "collections",
+        tags: ["raw type", "List", "Object"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List list = new ArrayList<String>();
+        list.add(10);
+        Object value = list.get(0);
+        System.out.println(value.getClass().getSimpleName());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "String", correct: false, misconception: "生成時のArrayList<String>が実行時にも要素型を守ると誤解", explanation: "raw型として扱っているため、add(10)は警告付きで通ります。"),
+            Choice(id: "b", text: "Integer", correct: true, misconception: nil, explanation: "raw Listから取り出した値はObjectとして受けているためキャストはなく、実体はIntegerです。"),
+            Choice(id: "c", text: "ClassCastException", correct: false, misconception: "Objectで受けてもStringキャストが入ると誤解", explanation: "Object valueへの代入ではStringへのキャストは入りません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "raw型代入を完全禁止と誤解", explanation: "警告は出ますがコンパイルは可能です。"),
+        ],
+        explanationRef: "explain-gold-collections-014",
+        designIntent: "raw型ではコンパイル時のジェネリクス検査が外れ、Objectとして取り出す限り実体型が残ることを確認する。"
+    )
+
+    static let goldCollections015 = Quiz(
+        id: "gold-collections-015",
+        level: .gold,
+        category: "generics",
+        tags: ["ジェネリクス", "独自クラス", "Box"],
+        code: """
+public class Test {
+    static class Box<T> {
+        private T value;
+        Box(T value) { this.value = value; }
+        T get() { return value; }
+    }
+
+    public static void main(String[] args) {
+        Box<String> box = new Box<>("Java");
+        System.out.println(box.get().substring(1));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Java", correct: false, misconception: "substring(1)を見落としている", explanation: "substring(1)はインデックス1以降を返します。"),
+            Choice(id: "b", text: "ava", correct: true, misconception: nil, explanation: "Box<String>なのでget()の戻り値はStringとして扱え、\"Java\".substring(1)は\"ava\"です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "独自ジェネリクスクラスでStringメソッドを呼べないと誤解", explanation: "Box<String>として型引数が決まっているためget()はStringです。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "ジェネリクスが実行時キャストに失敗すると誤解", explanation: "Stringを入れてStringとして取り出しています。"),
+        ],
+        explanationRef: "explain-gold-collections-015",
+        designIntent: "ジェネリクスを用いた独自クラスで、型引数により戻り値型が決まることを確認する。"
+    )
+
+    static let goldCollections016 = Quiz(
+        id: "gold-collections-016",
+        level: .gold,
+        category: "generics",
+        tags: ["ジェネリクス", "static method", "型推論"],
+        code: """
+import java.util.*;
+
+public class Test {
+    static <T> T first(List<T> list) {
+        return list.get(0);
+    }
+
+    public static void main(String[] args) {
+        String s = first(List.of("A", "B"));
+        System.out.println(s);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A", correct: true, misconception: nil, explanation: "List.of(\"A\",\"B\")からTはStringと推論され、firstは先頭要素Aを返します。"),
+            Choice(id: "b", text: "B", correct: false, misconception: "最後の要素を返すと誤解", explanation: "get(0)なので先頭要素です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "staticなジェネリックメソッドに型引数を書かないといけないと誤解", explanation: "呼び出し側の引数から型推論されます。"),
+            Choice(id: "d", text: "Object", correct: false, misconception: "Tが常にObjectになると誤解", explanation: "この呼び出しではTはStringです。"),
+        ],
+        explanationRef: "explain-gold-collections-016",
+        designIntent: "ジェネリックメソッドの型推論とList<T>からTを返す流れを確認する。"
+    )
+
+    static let goldCollections017 = Quiz(
+        id: "gold-collections-017",
+        level: .gold,
+        category: "generics",
+        tags: ["ジェネリクス", "bounded type", "Number"],
+        code: """
+public class Test {
+    static class Box<T extends Number> {
+        private T value;
+        Box(T value) { this.value = value; }
+        double asDouble() { return value.doubleValue(); }
+    }
+
+    public static void main(String[] args) {
+        Box<Integer> box = new Box<>(3);
+        System.out.println(box.asDouble());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "3", correct: false, misconception: "doubleValueの表示をintと誤解", explanation: "println(double)なので3.0と表示されます。"),
+            Choice(id: "b", text: "3.0", correct: true, misconception: nil, explanation: "T extends Numberによりvalue.doubleValue()を呼べます。Integer 3のdoubleValueは3.0です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "TにNumber境界を付けてもdoubleValueを呼べないと誤解", explanation: "上限境界がNumberなのでNumberのメソッドを利用できます。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: nil, explanation: "IntegerをNumber境界の範囲内で扱っているだけです。"),
+        ],
+        explanationRef: "explain-gold-collections-017",
+        designIntent: "境界付き型パラメータにより、型TでもNumberのメソッドを呼べることを確認する。"
+    )
+
+    static let goldCollections018 = Quiz(
+        id: "gold-collections-018",
+        level: .gold,
+        category: "generics",
+        tags: ["ジェネリクス", "型消去", "new T"],
+        code: """
+public class Test {
+    static class Box<T> {
+        T value = new T();
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "正常にコンパイルされる", correct: false, misconception: "Tの実体型でnewできると誤解", explanation: "Javaのジェネリクスは型消去されるため、Tのコンストラクタを直接呼べません。"),
+            Choice(id: "b", text: "new T() の行でコンパイルエラー", correct: true, misconception: nil, explanation: "型パラメータTは直接インスタンス化できません。必要ならSupplier<T>などで生成方法を渡します。"),
+            Choice(id: "c", text: "実行時にInstantiationException", correct: false, misconception: "実行時まで進むと誤解", explanation: "このコードはコンパイル時に拒否されます。"),
+            Choice(id: "d", text: "TがObjectとして生成される", correct: false, misconception: "型消去後にnew Object()へ置き換わると誤解", explanation: "コンパイラはnew T()を許可しません。"),
+        ],
+        explanationRef: "explain-gold-collections-018",
+        designIntent: "型消去により型パラメータTを直接newできないことを確認する。"
+    )
+
+    static let goldCollections019 = Quiz(
+        id: "gold-collections-019",
+        level: .gold,
+        category: "collections",
+        tags: ["Comparable", "Collections.sort", "自然順序"],
+        code: """
+import java.util.*;
+
+public class Test {
+    static class Item implements Comparable<Item> {
+        int price;
+        Item(int price) { this.price = price; }
+        public int compareTo(Item other) { return this.price - other.price; }
+    }
+
+    public static void main(String[] args) {
+        List<Item> list = new ArrayList<>(List.of(new Item(3), new Item(1), new Item(2)));
+        Collections.sort(list);
+        System.out.println(list.get(0).price);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "compareToがprice昇順を定義しているため、sort後の先頭はprice=1です。"),
+            Choice(id: "b", text: "2", correct: false, misconception: "中央の値が先頭になると誤解", explanation: "昇順ソートなので最小値が先頭です。"),
+            Choice(id: "c", text: "3", correct: false, misconception: "元の先頭が残ると誤解", explanation: "Collections.sortがリストを並べ替えます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Itemをsortできないと誤解", explanation: "ItemはComparable<Item>を実装しています。"),
+        ],
+        explanationRef: "explain-gold-collections-019",
+        designIntent: "Comparableによる自然順序とCollections.sortの動作を確認する。"
+    )
+
+    static let goldCollections020 = Quiz(
+        id: "gold-collections-020",
+        level: .gold,
+        category: "collections",
+        tags: ["TreeSet", "Comparator", "順序づけ"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Set<String> set = new TreeSet<>(Comparator.comparingInt(String::length));
+        set.add("aa");
+        set.add("bb");
+        set.add("c");
+        System.out.println(set.size() + ":" + set);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "3:[c, aa, bb]", correct: false, misconception: "Comparatorがequalsとは別に全要素を保持すると誤解", explanation: "TreeSetではComparator.compareが0の要素は重複扱いです。"),
+            Choice(id: "b", text: "2:[c, aa]", correct: true, misconception: nil, explanation: "aaとbbは長さが同じでcompare結果0のため、bbは追加されません。長さ順でc, aaになります。"),
+            Choice(id: "c", text: "2:[aa, c]", correct: false, misconception: "TreeSetの順序を挿入順と誤解", explanation: "TreeSetはComparatorの順序で並びます。"),
+            Choice(id: "d", text: "3:[aa, bb, c]", correct: false, misconception: "HashSetや挿入順Setと混同", explanation: "TreeSetは比較順かつ重複排除です。"),
+        ],
+        explanationRef: "explain-gold-collections-020",
+        designIntent: "TreeSetではComparatorの比較結果が順序づけと重複判定の両方に使われることを確認する。"
+    )
+
+    static let goldCollections021 = Quiz(
+        id: "gold-collections-021",
+        level: .gold,
+        category: "collections",
+        tags: ["Collections", "frequency", "便利メソッド"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("A", "B", "A");
+        System.out.println(Collections.frequency(list, "A"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: false, misconception: "Setのように重複が消えると誤解", explanation: "Listは重複を保持します。"),
+            Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "Collections.frequencyは指定要素とequalsで一致する個数を数えます。Aは2個です。"),
+            Choice(id: "c", text: "3", correct: false, misconception: "リスト全体のサイズを返すと誤解", explanation: "frequencyは指定要素だけを数えます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Arrays.asListをfrequencyに渡せないと誤解", explanation: "Arrays.asListの戻り値はListなので有効です。"),
+        ],
+        explanationRef: "explain-gold-collections-021",
+        designIntent: "Collections.frequencyが指定要素の出現回数をequalsで数えることを確認する。"
+    )
+
+    static let goldCollections022 = Quiz(
+        id: "gold-collections-022",
+        level: .gold,
+        category: "collections",
+        tags: ["Collections", "sort", "reverse"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<Integer> list = new ArrayList<>(List.of(3, 1, 2));
+        Collections.sort(list);
+        Collections.reverse(list);
+        System.out.println(list);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "[1, 2, 3]", correct: false, misconception: "reverseを見落としている", explanation: "sort後にreverseが実行されます。"),
+            Choice(id: "b", text: "[3, 2, 1]", correct: true, misconception: nil, explanation: "昇順ソートで[1,2,3]になり、その後reverseで[3,2,1]になります。"),
+            Choice(id: "c", text: "[3, 1, 2]", correct: false, misconception: "Collections.sortが元Listを変更しないと誤解", explanation: "sortもreverseもリスト自身を変更します。"),
+            Choice(id: "d", text: "UnsupportedOperationException", correct: false, misconception: "List.of由来だから変更不可と誤解", explanation: "new ArrayList<>(List.of(...))で変更可能なArrayListを作っています。"),
+        ],
+        explanationRef: "explain-gold-collections-022",
+        designIntent: "Collections.sortとreverseがList自身を破壊的に並べ替えることを確認する。"
+    )
+
+    static let goldCollections023 = Quiz(
+        id: "gold-collections-023",
+        level: .gold,
+        category: "collections",
+        tags: ["List.of", "unmodifiable", "便利メソッド"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = List.of("A");
+        try {
+            list.add("B");
+        } catch (UnsupportedOperationException e) {
+            System.out.println("UOE");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "UOE", correct: true, misconception: nil, explanation: "List.ofで作ったリストは変更不可なので、addでUnsupportedOperationExceptionが発生します。"),
+            Choice(id: "b", text: "[A, B]", correct: false, misconception: "List.ofが変更可能なArrayListを返すと誤解", explanation: "List.ofの戻り値は変更不可です。"),
+            Choice(id: "c", text: "NPE", correct: false, misconception: "null拒否と混同", explanation: "nullは渡していません。問題は変更不可リストへのaddです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "List.ofの戻り値にaddメソッドがないと誤解", explanation: "Listインターフェースなのでaddメソッドはありますが、実行時に例外になります。"),
+        ],
+        explanationRef: "explain-gold-collections-023",
+        designIntent: "List.ofで作るリストは変更不可で、変更操作が実行時例外になることを確認する。"
+    )
+
+    static let goldCollections024 = Quiz(
+        id: "gold-collections-024",
+        level: .gold,
+        category: "collections",
+        tags: ["Map", "keySet", "ビュー"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        map.put("A", 1);
+        map.put("B", 2);
+        Set<String> keys = map.keySet();
+        keys.remove("A");
+        System.out.println(map.containsKey("A") + ":" + map.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true:2", correct: false, misconception: "keySetが独立コピーだと誤解", explanation: "keySetはMapと連動するビューです。"),
+            Choice(id: "b", text: "false:1", correct: true, misconception: nil, explanation: "keys.remove(\"A\")はMapからキーAのエントリを削除するため、containsKeyはfalse、サイズは1です。"),
+            Choice(id: "c", text: "false:2", correct: false, misconception: "containsKeyだけ変わると誤解", explanation: "キーを削除するとエントリ数も減ります。"),
+            Choice(id: "d", text: "UnsupportedOperationException", correct: false, misconception: "keySetビューは常に変更不可と誤解", explanation: "HashMap/LinkedHashMapのkeySetビューは削除操作をMapに反映できます。"),
+        ],
+        explanationRef: "explain-gold-collections-024",
+        designIntent: "Map.keySetがMap本体と連動するビューであり、削除がMapへ反映されることを確認する。"
+    )
+
+    static let goldCollections025 = Quiz(
+        id: "gold-collections-025",
+        level: .gold,
+        category: "collections",
+        tags: ["Map", "entrySet", "setValue"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        map.put("A", 1);
+        Map.Entry<String, Integer> entry = map.entrySet().iterator().next();
+        entry.setValue(9);
+        System.out.println(map.get("A"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: false, misconception: "Map.Entryがコピーだと誤解", explanation: "entrySetのエントリはMap本体のエントリを表します。"),
+            Choice(id: "b", text: "9", correct: true, misconception: nil, explanation: "entry.setValue(9)はMap内の値を更新するため、map.get(\"A\")は9です。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "setValueでキーが削除されると誤解", explanation: "setValueは値を更新するだけです。"),
+            Choice(id: "d", text: "UnsupportedOperationException", correct: false, misconception: "LinkedHashMapのEntryは変更不可と誤解", explanation: "LinkedHashMapのentrySetから得たEntryはsetValueで値を更新できます。"),
+        ],
+        explanationRef: "explain-gold-collections-025",
+        designIntent: "Map.entrySetのEntryがMap本体と連動し、setValueで値を更新できることを確認する。"
     )
 
     static let goldConcurrency009 = Quiz(

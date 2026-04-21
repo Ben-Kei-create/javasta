@@ -2885,6 +2885,26 @@ public class Test {
         goldGenerics008Explanation.id: goldGenerics008Explanation,
         goldOptional008Explanation.id: goldOptional008Explanation,
         goldCollections005Explanation.id: goldCollections005Explanation,
+        goldCollections006Explanation.id: goldCollections006Explanation,
+        goldCollections007Explanation.id: goldCollections007Explanation,
+        goldCollections008Explanation.id: goldCollections008Explanation,
+        goldCollections009Explanation.id: goldCollections009Explanation,
+        goldCollections010Explanation.id: goldCollections010Explanation,
+        goldCollections011Explanation.id: goldCollections011Explanation,
+        goldCollections012Explanation.id: goldCollections012Explanation,
+        goldCollections013Explanation.id: goldCollections013Explanation,
+        goldCollections014Explanation.id: goldCollections014Explanation,
+        goldCollections015Explanation.id: goldCollections015Explanation,
+        goldCollections016Explanation.id: goldCollections016Explanation,
+        goldCollections017Explanation.id: goldCollections017Explanation,
+        goldCollections018Explanation.id: goldCollections018Explanation,
+        goldCollections019Explanation.id: goldCollections019Explanation,
+        goldCollections020Explanation.id: goldCollections020Explanation,
+        goldCollections021Explanation.id: goldCollections021Explanation,
+        goldCollections022Explanation.id: goldCollections022Explanation,
+        goldCollections023Explanation.id: goldCollections023Explanation,
+        goldCollections024Explanation.id: goldCollections024Explanation,
+        goldCollections025Explanation.id: goldCollections025Explanation,
         goldConcurrency009Explanation.id: goldConcurrency009Explanation,
         goldDateTime005Explanation.id: goldDateTime005Explanation,
         goldIo006Explanation.id: goldIo006Explanation,
@@ -5317,6 +5337,307 @@ System.out.println(map.get("A").size());
             Step(index: 0, narration: "1回目のcomputeIfAbsentではキーAがないため、新しいArrayListを作成してMapへ入れ、そのListに1を追加します。", highlightLines: [1, 2], variables: [Variable(name: "map[A]", type: "List<Integer>", value: "[1]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
             Step(index: 1, narration: "2回目はキーAが既にあるため、ラムダで新規Listは作らず既存Listを返し、そこへ2を追加します。", highlightLines: [3], variables: [Variable(name: "map[A]", type: "List<Integer>", value: "[1, 2]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: PredictPrompt(question: "sizeは？", choices: ["1", "2", "0"], answerIndex: 1, hint: "同じListへ追加", afterExplanation: "正解です。2件になります。")),
             Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [4], variables: [Variable(name: "map[A].size()", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections006Explanation = Explanation(
+        id: "explain-gold-collections-006",
+        initialCode: """
+List<String> list = new ArrayList<>(List.of("A", "B", "C"));
+List<String> sub = list.subList(1, 3);
+sub.set(0, "X");
+System.out.println(list);
+""",
+        steps: [
+            Step(index: 0, narration: "`subList(1, 3)` は元Listのインデックス1から2までを指すビューです。独立コピーではありません。", highlightLines: [1, 2], variables: [Variable(name: "list", type: "List<String>", value: "[A, B, C]", scope: "main"), Variable(name: "sub", type: "List<String>", value: "[B, C] view", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`sub.set(0, \"X\")` はビューの0番、つまり元Listのインデックス1を書き換えます。出力は `[A, X, C]` です。", highlightLines: [3, 4], variables: [Variable(name: "list", type: "List<String>", value: "[A, X, C]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "subListはコピー？", choices: ["コピー", "ビュー"], answerIndex: 1, hint: "元Listに反映されます。", afterExplanation: "正解です。subListはビューです。")),
+        ]
+    )
+
+    static let goldCollections007Explanation = Explanation(
+        id: "explain-gold-collections-007",
+        initialCode: """
+List<Integer> list = new ArrayList<>(List.of(1, 2, 3));
+list.remove(1);
+list.remove(Integer.valueOf(1));
+System.out.println(list);
+""",
+        steps: [
+            Step(index: 0, narration: "`list.remove(1)` は引数がintなので、値1ではなくインデックス1の要素2を削除します。", highlightLines: [1, 2], variables: [Variable(name: "list", type: "List<Integer>", value: "[1, 3]", scope: "main")], callStack: [CallStackFrame(method: "remove", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Integer.valueOf(1)` はObject引数として扱われ、値1を削除します。最終的なListは `[3]` です。", highlightLines: [3, 4], variables: [Variable(name: "list", type: "List<Integer>", value: "[3]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "`remove(1)` で消えるのは？", choices: ["値1", "インデックス1の要素"], answerIndex: 1, hint: "int引数のオーバーロードです。", afterExplanation: "正解です。2が削除されます。")),
+        ]
+    )
+
+    static let goldCollections008Explanation = Explanation(
+        id: "explain-gold-collections-008",
+        initialCode: """
+Set<String> set = new LinkedHashSet<>();
+System.out.println(set.add("A") + ":" + set.add("A") + ":" + set.size());
+""",
+        steps: [
+            Step(index: 0, narration: "空のSetへ最初に `A` を追加すると成功し、`add` はtrueを返します。", highlightLines: [1, 2], variables: [Variable(name: "first add", type: "boolean", value: "true", scope: "main"), Variable(name: "set", type: "Set<String>", value: "[A]", scope: "main")], callStack: [CallStackFrame(method: "add", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "2回目の `add(\"A\")` は重複なのでfalseです。サイズは1のまま、出力は `true:false:1` です。", highlightLines: [2], variables: [Variable(name: "second add", type: "boolean", value: "false", scope: "main"), Variable(name: "set.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections009Explanation = Explanation(
+        id: "explain-gold-collections-009",
+        initialCode: """
+Queue<String> q = new ArrayDeque<>();
+q.offer("A");
+q.offer("B");
+System.out.print(q.peek());
+System.out.print(q.poll());
+System.out.print(q.poll());
+System.out.print(q.peek());
+""",
+        steps: [
+            Step(index: 0, narration: "Queueとして使うArrayDequeはFIFOです。`offer` でA、Bの順に入ります。`peek()` は先頭Aを返しますが削除しません。", highlightLines: [1, 2, 3, 4], variables: [Variable(name: "q", type: "Queue<String>", value: "[A, B]", scope: "main"), Variable(name: "peek()", type: "String", value: "A", scope: "main")], callStack: [CallStackFrame(method: "peek", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "続くpollはA、次のpollはBを削除して返します。空になった後のpeekはnullなので、全体は `AABnull` です。", highlightLines: [5, 6, 7], variables: [Variable(name: "q", type: "Queue<String>", value: "[]", scope: "main"), Variable(name: "last peek", type: "String", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "peekは削除する？", choices: ["する", "しない"], answerIndex: 1, hint: "削除するのはpollです。", afterExplanation: "正解です。peekは参照だけです。")),
+        ]
+    )
+
+    static let goldCollections010Explanation = Explanation(
+        id: "explain-gold-collections-010",
+        initialCode: """
+Queue<Integer> q = new PriorityQueue<>();
+q.offer(3);
+q.offer(1);
+q.offer(2);
+while (!q.isEmpty()) {
+    System.out.print(q.poll());
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`PriorityQueue<Integer>` は挿入順ではなく、Integerの自然順序で最小値を先頭にします。", highlightLines: [1, 2, 3, 4], variables: [Variable(name: "q", type: "PriorityQueue<Integer>", value: "1,2,3 priority order", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "pollするたびに現在の最小値が返るため、1、2、3の順に出力されます。最終出力は `123` です。", highlightLines: [5, 6], variables: [Variable(name: "poll sequence", type: "int", value: "1 -> 2 -> 3", scope: "main")], callStack: [CallStackFrame(method: "poll", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections011Explanation = Explanation(
+        id: "explain-gold-collections-011",
+        initialCode: """
+Map<String, Integer> map = new HashMap<>();
+System.out.println(map.put("A", 1) + ":" + map.put("A", 2) + ":" + map.get("A"));
+""",
+        steps: [
+            Step(index: 0, narration: "最初の `put(\"A\", 1)` は旧値がないためnullを返し、MapにはA=1が入ります。", highlightLines: [1, 2], variables: [Variable(name: "first put", type: "Integer", value: "null", scope: "main"), Variable(name: "map[A]", type: "Integer", value: "1", scope: "main")], callStack: [CallStackFrame(method: "put", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "2回目のputは旧値1を返し、値を2へ上書きします。`get(\"A\")` は2なので `null:1:2` です。", highlightLines: [2], variables: [Variable(name: "second put", type: "Integer", value: "1", scope: "main"), Variable(name: "map[A]", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "Map.putが返すのは？", choices: ["新値", "旧値"], answerIndex: 1, hint: "初回は旧値がないのでnull", afterExplanation: "正解です。旧値です。")),
+        ]
+    )
+
+    static let goldCollections012Explanation = Explanation(
+        id: "explain-gold-collections-012",
+        initialCode: """
+Map<String, Integer> map = new HashMap<>();
+map.put("A", 1);
+map.merge("A", 2, (oldValue, newValue) -> oldValue + newValue);
+map.merge("B", 5, (oldValue, newValue) -> oldValue + newValue);
+System.out.println(map.get("A") + ":" + map.get("B"));
+""",
+        steps: [
+            Step(index: 0, narration: "キーAは既にあるため、mergeの関数が実行されます。旧値1と新値2を足してAは3になります。", highlightLines: [1, 2, 3], variables: [Variable(name: "map[A]", type: "Integer", value: "3", scope: "main")], callStack: [CallStackFrame(method: "merge", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "キーBは未登録なので、マージ関数は使われず指定値5がそのまま入ります。出力は `3:5` です。", highlightLines: [4, 5], variables: [Variable(name: "map[B]", type: "Integer", value: "5", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "Bのmergeでラムダは実行される？", choices: ["される", "されない"], answerIndex: 1, hint: "未登録キーです。", afterExplanation: "正解です。値5がそのまま入ります。")),
+        ]
+    )
+
+    static let goldCollections013Explanation = Explanation(
+        id: "explain-gold-collections-013",
+        initialCode: """
+List<String> list = new ArrayList<>();
+List raw = list;
+raw.add(10);
+try {
+    String s = list.get(0);
+} catch (ClassCastException e) {
+    System.out.println("CCE");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`List raw = list` によりジェネリクス検査が外れます。`raw.add(10)` は警告付きでコンパイルされ、Integerが入ります。", highlightLines: [1, 2, 3], variables: [Variable(name: "list", type: "List<String>", value: "[Integer(10)]", scope: "main")], callStack: [CallStackFrame(method: "add", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`String s = list.get(0)` ではStringへのキャストが入り、実体がIntegerなのでClassCastExceptionです。catchで `CCE` が出力されます。", highlightLines: [5, 6, 7], variables: [Variable(name: "element", type: "Integer", value: "10", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "失敗するタイミングは？", choices: ["raw.add(10)", "Stringへ取り出す時"], answerIndex: 1, hint: "raw addは警告で通ります。", afterExplanation: "正解です。取り出してStringへ代入する時です。")),
+        ]
+    )
+
+    static let goldCollections014Explanation = Explanation(
+        id: "explain-gold-collections-014",
+        initialCode: """
+List list = new ArrayList<String>();
+list.add(10);
+Object value = list.get(0);
+System.out.println(value.getClass().getSimpleName());
+""",
+        steps: [
+            Step(index: 0, narration: "変数型がraw `List` なので、`add(10)` は警告付きで許可されます。実体にはIntegerが入ります。", highlightLines: [1, 2], variables: [Variable(name: "list", type: "raw List", value: "[Integer(10)]", scope: "main")], callStack: [CallStackFrame(method: "add", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Object value` で受けているためStringへのキャストは入りません。実体クラス名は `Integer` です。", highlightLines: [3, 4], variables: [Variable(name: "value", type: "Object", value: "Integer(10)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections015Explanation = Explanation(
+        id: "explain-gold-collections-015",
+        initialCode: """
+static class Box<T> {
+    private T value;
+    Box(T value) { this.value = value; }
+    T get() { return value; }
+}
+Box<String> box = new Box<>("Java");
+System.out.println(box.get().substring(1));
+""",
+        steps: [
+            Step(index: 0, narration: "`Box<String>` として生成しているため、このboxの `get()` の戻り値はStringとして扱われます。", highlightLines: [1, 6], variables: [Variable(name: "box.value", type: "String", value: "\"Java\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "`box.get()` は `\"Java\"` を返します。`substring(1)` はインデックス1以降なので、出力は `ava` です。", highlightLines: [7], variables: [Variable(name: "box.get()", type: "String", value: "\"Java\"", scope: "main")], callStack: [CallStackFrame(method: "get", line: 7)], heap: [], predict: PredictPrompt(question: "get()の静的な戻り値型は？", choices: ["Object", "String"], answerIndex: 1, hint: "Box<String>です。", afterExplanation: "正解です。Stringです。")),
+        ]
+    )
+
+    static let goldCollections016Explanation = Explanation(
+        id: "explain-gold-collections-016",
+        initialCode: """
+static <T> T first(List<T> list) {
+    return list.get(0);
+}
+String s = first(List.of("A", "B"));
+System.out.println(s);
+""",
+        steps: [
+            Step(index: 0, narration: "`first(List<T>)` はListの要素型Tをそのまま戻り値型にします。`List.of(\"A\", \"B\")` からTはStringと推論されます。", highlightLines: [1, 4], variables: [Variable(name: "T", type: "type parameter", value: "String", scope: "first")], callStack: [CallStackFrame(method: "first", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`list.get(0)` は先頭のAを返します。戻り値はStringとして `s` に入り、出力は `A` です。", highlightLines: [2, 5], variables: [Variable(name: "s", type: "String", value: "\"A\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections017Explanation = Explanation(
+        id: "explain-gold-collections-017",
+        initialCode: """
+static class Box<T extends Number> {
+    private T value;
+    Box(T value) { this.value = value; }
+    double asDouble() { return value.doubleValue(); }
+}
+Box<Integer> box = new Box<>(3);
+System.out.println(box.asDouble());
+""",
+        steps: [
+            Step(index: 0, narration: "`T extends Number` なので、T型のvalueでもNumberのメソッド `doubleValue()` を呼べます。", highlightLines: [1, 4], variables: [Variable(name: "T", type: "upper bound", value: "Number", scope: "Box")], callStack: [CallStackFrame(method: "asDouble", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "実体はInteger 3です。`doubleValue()` は3.0を返し、出力は `3.0` です。", highlightLines: [6, 7], variables: [Variable(name: "box.value", type: "Integer", value: "3", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections018Explanation = Explanation(
+        id: "explain-gold-collections-018",
+        initialCode: """
+static class Box<T> {
+    T value = new T();
+}
+""",
+        steps: [
+            Step(index: 0, narration: "Javaのジェネリクスは型消去されるため、実行時にTの具体的なコンストラクタ情報を直接使えません。", highlightLines: [1, 2], variables: [Variable(name: "T", type: "type parameter", value: "erased", scope: "Box")], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "`new T()` はコンパイルエラーです。生成が必要なら `Supplier<T>` や `Class<T>` を渡す設計にします。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "`new T()` は可能？", choices: ["可能", "不可"], answerIndex: 1, hint: "型消去です。", afterExplanation: "正解です。型パラメータは直接newできません。")),
+        ]
+    )
+
+    static let goldCollections019Explanation = Explanation(
+        id: "explain-gold-collections-019",
+        initialCode: """
+static class Item implements Comparable<Item> {
+    int price;
+    Item(int price) { this.price = price; }
+    public int compareTo(Item other) { return this.price - other.price; }
+}
+List<Item> list = new ArrayList<>(List.of(new Item(3), new Item(1), new Item(2)));
+Collections.sort(list);
+System.out.println(list.get(0).price);
+""",
+        steps: [
+            Step(index: 0, narration: "`Item` は `Comparable<Item>` を実装し、priceの差で昇順の自然順序を定義しています。", highlightLines: [1, 4], variables: [Variable(name: "compareTo", type: "method", value: "price ascending", scope: "Item")], callStack: [CallStackFrame(method: "compareTo", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Collections.sort(list)` でprice順に1,2,3へ並び替わります。先頭のpriceは1です。", highlightLines: [6, 7, 8], variables: [Variable(name: "list", type: "List<Item>", value: "[1, 2, 3]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: PredictPrompt(question: "sort後の先頭priceは？", choices: ["1", "3"], answerIndex: 0, hint: "昇順です。", afterExplanation: "正解です。1です。")),
+        ]
+    )
+
+    static let goldCollections020Explanation = Explanation(
+        id: "explain-gold-collections-020",
+        initialCode: """
+Set<String> set = new TreeSet<>(Comparator.comparingInt(String::length));
+set.add("aa");
+set.add("bb");
+set.add("c");
+System.out.println(set.size() + ":" + set);
+""",
+        steps: [
+            Step(index: 0, narration: "このTreeSetは文字列の長さだけで比較します。`aa` と `bb` はどちらも長さ2なので、Comparatorの結果は0です。", highlightLines: [1, 2, 3], variables: [Variable(name: "compare(\"aa\", \"bb\")", type: "int", value: "0", scope: "TreeSet")], callStack: [CallStackFrame(method: "compare", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "TreeSetでは比較結果0を重複扱いにするため、bbは追加されません。長さ1のcが先に並び、出力は `2:[c, aa]` です。", highlightLines: [4, 5], variables: [Variable(name: "set", type: "TreeSet<String>", value: "[c, aa]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "bbは保持される？", choices: ["保持される", "重複扱い"], answerIndex: 1, hint: "比較結果0です。", afterExplanation: "正解です。長さだけで見るので重複扱いです。")),
+        ]
+    )
+
+    static let goldCollections021Explanation = Explanation(
+        id: "explain-gold-collections-021",
+        initialCode: """
+List<String> list = Arrays.asList("A", "B", "A");
+System.out.println(Collections.frequency(list, "A"));
+""",
+        steps: [
+            Step(index: 0, narration: "`Arrays.asList(\"A\", \"B\", \"A\")` はAを2つ含むListを作ります。Listは重複を保持します。", highlightLines: [1], variables: [Variable(name: "list", type: "List<String>", value: "[A, B, A]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`Collections.frequency(list, \"A\")` はequalsで一致する要素数を数えるので、結果は2です。", highlightLines: [2], variables: [Variable(name: "frequency", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "frequency", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections022Explanation = Explanation(
+        id: "explain-gold-collections-022",
+        initialCode: """
+List<Integer> list = new ArrayList<>(List.of(3, 1, 2));
+Collections.sort(list);
+Collections.reverse(list);
+System.out.println(list);
+""",
+        steps: [
+            Step(index: 0, narration: "`Collections.sort(list)` はList自身を昇順に並べ替えます。途中状態は `[1, 2, 3]` です。", highlightLines: [1, 2], variables: [Variable(name: "list", type: "List<Integer>", value: "[1, 2, 3]", scope: "main")], callStack: [CallStackFrame(method: "sort", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "続く `Collections.reverse(list)` もList自身を反転します。最終出力は `[3, 2, 1]` です。", highlightLines: [3, 4], variables: [Variable(name: "list", type: "List<Integer>", value: "[3, 2, 1]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "reverse後は？", choices: ["[1, 2, 3]", "[3, 2, 1]"], answerIndex: 1, hint: "sort後に反転します。", afterExplanation: "正解です。[3, 2, 1]です。")),
+        ]
+    )
+
+    static let goldCollections023Explanation = Explanation(
+        id: "explain-gold-collections-023",
+        initialCode: """
+List<String> list = List.of("A");
+try {
+    list.add("B");
+} catch (UnsupportedOperationException e) {
+    System.out.println("UOE");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`List.of(\"A\")` は変更不可Listを返します。List型なのでaddメソッドは見えますが、実装としては変更を許しません。", highlightLines: [1, 3], variables: [Variable(name: "list", type: "List<String>", value: "[A] unmodifiable", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`list.add(\"B\")` でUnsupportedOperationExceptionが発生し、catchで `UOE` が出力されます。", highlightLines: [3, 4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "List.ofのListは変更可能？", choices: ["可能", "不可"], answerIndex: 1, hint: "ファクトリメソッドの戻り値です。", afterExplanation: "正解です。変更不可です。")),
+        ]
+    )
+
+    static let goldCollections024Explanation = Explanation(
+        id: "explain-gold-collections-024",
+        initialCode: """
+Map<String, Integer> map = new LinkedHashMap<>();
+map.put("A", 1);
+map.put("B", 2);
+Set<String> keys = map.keySet();
+keys.remove("A");
+System.out.println(map.containsKey("A") + ":" + map.size());
+""",
+        steps: [
+            Step(index: 0, narration: "`map.keySet()` はキーのコピーではなく、Map本体と連動するビューを返します。", highlightLines: [1, 2, 3, 4], variables: [Variable(name: "map", type: "LinkedHashMap<String,Integer>", value: "{A=1, B=2}", scope: "main"), Variable(name: "keys", type: "Set<String>", value: "[A, B] view", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`keys.remove(\"A\")` はMapからAのエントリを削除します。`containsKey(\"A\")` はfalse、サイズは1です。", highlightLines: [5, 6], variables: [Variable(name: "map", type: "LinkedHashMap<String,Integer>", value: "{B=2}", scope: "main")], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "keys.removeはMapに反映される？", choices: ["される", "されない"], answerIndex: 0, hint: "keySetはビューです。", afterExplanation: "正解です。Mapからも消えます。")),
+        ]
+    )
+
+    static let goldCollections025Explanation = Explanation(
+        id: "explain-gold-collections-025",
+        initialCode: """
+Map<String, Integer> map = new LinkedHashMap<>();
+map.put("A", 1);
+Map.Entry<String, Integer> entry = map.entrySet().iterator().next();
+entry.setValue(9);
+System.out.println(map.get("A"));
+""",
+        steps: [
+            Step(index: 0, narration: "`entrySet()` から得たEntryはMap本体のエントリを表します。ここではキーA、値1のEntryです。", highlightLines: [1, 2, 3], variables: [Variable(name: "entry", type: "Map.Entry<String,Integer>", value: "A=1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`entry.setValue(9)` はEntryだけでなくMap本体の値を更新します。`map.get(\"A\")` は9です。", highlightLines: [4, 5], variables: [Variable(name: "map[A]", type: "Integer", value: "9", scope: "main")], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "setValueはMap本体を変える？", choices: ["変える", "変えない"], answerIndex: 0, hint: "EntryはビューのようにMapと連動します。", afterExplanation: "正解です。Mapの値が9になります。")),
         ]
     )
 

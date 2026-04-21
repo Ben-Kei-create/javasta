@@ -23,7 +23,7 @@ extension GlossaryTerm {
         // 文字列
         stringPool, referenceEquals, integerCache, stringBuilderTerm,
         // ジェネリクス
-        genericsInvariance, pecs,
+        genericsInvariance, rawTypeTerm, pecs,
         // 関数型・Stream
         lambdaTerm, functionalInterface, methodReference,
         primitiveFunctionalInterfaceTerm, streamApi, intermediateOp, terminalOp, lazyEvaluation, optionalType,
@@ -312,9 +312,31 @@ Javaのジェネリクス型は **不変** （invariant）です。`Integer` が
 
 この制約を緩めるためにワイルドカード（`<? extends T>` `<? super T>`）を使います。覚え方は [PECS](javasta://term/pecs)。
 """,
-        relatedTermIds: ["pecs"],
+        relatedTermIds: ["pecs", "raw-type"],
         relatedLessonIds: ["lesson-bounded-wildcards"],
-        relatedQuizIds: ["gold-generics-001", "gold-secure-coding-018", "gold-secure-coding-019"]
+        relatedQuizIds: ["gold-generics-001", "gold-secure-coding-018", "gold-secure-coding-019", "gold-collections-013", "gold-collections-014", "gold-collections-015", "gold-collections-016", "gold-collections-017", "gold-collections-018"]
+    )
+
+    static let rawTypeTerm = GlossaryTerm(
+        id: "raw-type",
+        term: "raw type（従来型）",
+        aliases: ["raw type", "raw List", "従来型", "非ジェネリクス型"],
+        summary: "`List` のように型引数を省略した従来型。ジェネリクス検査が弱まり、ヒープ汚染の原因になる。",
+        body: """
+**raw type** は、`List<String>` のような型引数を付けずに `List` と書く従来型です。
+
+```java
+List<String> strings = new ArrayList<>();
+List raw = strings;  // raw type
+raw.add(10);         // 警告は出るが追加できる
+String s = strings.get(0); // ここでClassCastExceptionの可能性
+```
+
+raw typeを使うとコンパイラの型検査をすり抜け、[ジェネリクス](javasta://term/generics-invariance)の安全性が崩れます。古いAPIとの互換性のために残っていますが、新しいコードでは原則として使いません。
+""",
+        relatedTermIds: ["generics-invariance", "collections", "checked-unchecked"],
+        relatedLessonIds: [],
+        relatedQuizIds: ["gold-collections-013", "gold-collections-014", "gold-secure-coding-017", "gold-secure-coding-018"]
     )
 
     // MARK: - 文字列 / 参照
@@ -1265,9 +1287,9 @@ Javaの **コレクションフレームワーク** は `java.util` パッケー
 
 共通のユーティリティは `Collections` クラスに静的メソッドとして提供されます（`sort`, `shuffle`, `unmodifiableList` 等）。
 """,
-        relatedTermIds: ["arraylist", "hashmap", "iterator", "generics-invariance", "secure-coding"],
+        relatedTermIds: ["arraylist", "hashmap", "iterator", "generics-invariance", "raw-type", "secure-coding"],
         relatedLessonIds: [],
-        relatedQuizIds: ["gold-secure-coding-016", "gold-secure-coding-017", "gold-secure-coding-020"]
+        relatedQuizIds: ["gold-secure-coding-016", "gold-secure-coding-017", "gold-secure-coding-020", "gold-collections-006", "gold-collections-007", "gold-collections-008", "gold-collections-009", "gold-collections-010", "gold-collections-011", "gold-collections-012", "gold-collections-013", "gold-collections-014", "gold-collections-019", "gold-collections-020", "gold-collections-021", "gold-collections-022", "gold-collections-023", "gold-collections-024", "gold-collections-025"]
     )
 
     static let arrayListTerm = GlossaryTerm(
@@ -1297,7 +1319,7 @@ list.remove(0); // 後続要素がシフト（O(n)）
 """,
         relatedTermIds: ["collections", "iterator"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-collections-006", "gold-collections-007", "gold-collections-021", "gold-collections-022", "gold-collections-023"]
     )
 
     static let hashMapTerm = GlossaryTerm(
@@ -1325,9 +1347,9 @@ map.getOrDefault("grape", 0); // 0（未登録のデフォルト値）
 
 スレッドセーフが必要なら `ConcurrentHashMap` を使います。
 """,
-        relatedTermIds: ["collections", "reference-equals"],
+        relatedTermIds: ["collections", "reference-equals", "map-compute-if-absent"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-collections-011", "gold-collections-012", "gold-collections-024", "gold-collections-025"]
     )
 
     static let mapComputeIfAbsentTerm = GlossaryTerm(
@@ -1350,7 +1372,7 @@ map.get("A"); // [1, 2]
 """,
         relatedTermIds: ["hashmap", "collections", "lambda"],
         relatedLessonIds: [],
-        relatedQuizIds: ["gold-collections-005"]
+        relatedQuizIds: ["gold-collections-005", "gold-collections-012"]
     )
 
     static let iteratorTerm = GlossaryTerm(
@@ -1379,7 +1401,7 @@ for (String s : list) { ... }
 """,
         relatedTermIds: ["collections", "arraylist"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-collections-019", "gold-collections-020"]
     )
 
     static let comparableTerm = GlossaryTerm(
@@ -1410,7 +1432,7 @@ class Student implements Comparable<Student> {
 """,
         relatedTermIds: ["comparator", "collections"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-collections-004", "gold-collections-020"]
     )
 
     static let comparatorTerm = GlossaryTerm(
