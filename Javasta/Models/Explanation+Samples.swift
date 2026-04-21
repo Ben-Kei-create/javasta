@@ -2651,6 +2651,30 @@ public class Test {
         goldOptional003Explanation.id: goldOptional003Explanation,
         goldGenerics002Explanation.id: goldGenerics002Explanation,
         goldGenerics003Explanation.id: goldGenerics003Explanation,
+        goldAnnotations001Explanation.id: goldAnnotations001Explanation,
+        goldClasses001Explanation.id: goldClasses001Explanation,
+        goldClasses002Explanation.id: goldClasses002Explanation,
+        goldCollections001Explanation.id: goldCollections001Explanation,
+        goldConcurrency001Explanation.id: goldConcurrency001Explanation,
+        goldConcurrency002Explanation.id: goldConcurrency002Explanation,
+        goldConcurrency003Explanation.id: goldConcurrency003Explanation,
+        goldConcurrency004Explanation.id: goldConcurrency004Explanation,
+        goldDateTime001Explanation.id: goldDateTime001Explanation,
+        goldIo001Explanation.id: goldIo001Explanation,
+        goldIo002Explanation.id: goldIo002Explanation,
+        goldJdbc001Explanation.id: goldJdbc001Explanation,
+        goldJdbc002Explanation.id: goldJdbc002Explanation,
+        goldLocalization001Explanation.id: goldLocalization001Explanation,
+        goldLocalization002Explanation.id: goldLocalization002Explanation,
+        goldModule001Explanation.id: goldModule001Explanation,
+        goldModule002Explanation.id: goldModule002Explanation,
+        goldPathNormalize001Explanation.id: goldPathNormalize001Explanation,
+        silverClasses006Explanation.id: silverClasses006Explanation,
+        silverControlFlow007Explanation.id: silverControlFlow007Explanation,
+        silverDataTypes006Explanation.id: silverDataTypes006Explanation,
+        silverException007Explanation.id: silverException007Explanation,
+        goldStream010Explanation.id: goldStream010Explanation,
+        goldConcurrency006Explanation.id: goldConcurrency006Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3491,6 +3515,383 @@ public class Test {
             Step(index: 0, narration: "一見すると型引数違いのオーバーロードですが、Javaの型消去後は両方とも `print(List)` になります。", highlightLines: [3, 4], variables: [], callStack: [], heap: [], predict: nil),
             Step(index: 1, narration: "同一シグネチャ重複となるためクラス定義時点でコンパイルエラーです。", highlightLines: [3, 4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "結果は？", choices: ["正常コンパイル", "コンパイルエラー", "実行時ClassCastException"], answerIndex: 1, hint: "erasureで衝突", afterExplanation: "正解です。コンパイルエラーです。")),
             Step(index: 2, narration: "このコードはコンパイルエラーになります。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldAnnotations001Explanation = Explanation(
+        id: "explain-gold-annotations-001",
+        initialCode: """
+class Parent { void run() {} }
+class Child extends Parent {
+    @Override
+    void run(String name) {}
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`run(String)` は引数が異なるため `run()` のオーバーライドではなくオーバーロードです。", highlightLines: [1, 4], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "@Override は実際にオーバーライドしていることを要求します。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "結果は？", choices: ["正常コンパイル", "@Overrideでコンパイルエラー"], answerIndex: 1, hint: "シグネチャ一致が必要", afterExplanation: "正解です。@Override行でエラーです。")),
+            Step(index: 2, narration: "このコードはコンパイルエラーです。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldClasses001Explanation = Explanation(
+        id: "explain-gold-classes-001",
+        initialCode: """
+public class Test {
+    record Item(String name) {}
+    public static void main(String[] args) {
+        var item = new Item("Apple");
+        item.name = "Banana";
+        System.out.println(item.name());
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "recordのコンポーネントはfinalフィールドとして扱われます。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`item.name = ...` はfinalフィールドへの再代入となりコンパイルエラーです。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "結果は？", choices: ["Apple出力", "コンパイルエラー"], answerIndex: 1, hint: "recordは不変データ指向", afterExplanation: "正解です。再代入不可です。")),
+            Step(index: 2, narration: "このコードはコンパイルエラーです。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldClasses002Explanation = Explanation(
+        id: "explain-gold-classes-002",
+        initialCode: """
+sealed interface Service permits FileService {}
+final class FileService implements Service {}
+final class NetworkService implements Service {}
+""",
+        steps: [
+            Step(index: 0, narration: "sealed interface Service は permitsで許可した型のみ直接実装できます。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "NetworkService は permitsに含まれないため実装不可です。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "どこでエラー？", choices: ["FileService", "NetworkService"], answerIndex: 1, hint: "permits対象外", afterExplanation: "正解です。NetworkService宣言でエラーです。")),
+            Step(index: 2, narration: "このコードは NetworkService 側でコンパイルエラーになります。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldCollections001Explanation = Explanation(
+        id: "explain-gold-collections-001",
+        initialCode: """
+Set<String> set = new TreeSet<>(Comparator.comparingInt(String::length));
+set.add("aa");
+set.add("bb");
+set.add("c");
+System.out.println(set.size());
+""",
+        steps: [
+            Step(index: 0, narration: "比較基準が長さのみなので、\"aa\" と \"bb\" は比較結果0で同値扱いです。", highlightLines: [1, 2, 3], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "\"c\" は長さ1で別要素。最終的に長さ1と長さ2の2要素が残ります。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "sizeは？", choices: ["1", "2", "3"], answerIndex: 1, hint: "TreeSetの重複判定はComparator"), afterExplanation: "正解です。2です。")),
+            Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldConcurrency001Explanation = Explanation(
+        id: "explain-gold-concurrency-001",
+        initialCode: """
+ExecutorService es = Executors.newSingleThreadExecutor();
+Future<?> future = es.submit(() -> { throw new RuntimeException("Error!"); });
+Thread.sleep(100);
+System.out.println("Done");
+es.shutdown();
+""",
+        steps: [
+            Step(index: 0, narration: "submit() 内例外はFutureに保持され、mainスレッドへ自動伝播しません。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "future.get() を呼んでいないため例外は観測されず、mainは継続してDoneを出力します。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "表示されるのは？", choices: ["Done", "スタックトレースで停止"], answerIndex: 0, hint: "submit + get未呼び出し", afterExplanation: "正解です。Doneが表示されます。")),
+            Step(index: 2, narration: "最終的に `Done` が表示されます。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldConcurrency002Explanation = Explanation(
+        id: "explain-gold-concurrency-002",
+        initialCode: """
+AtomicInteger n = new AtomicInteger(1);
+System.out.println(n.getAndIncrement() + " " + n.get());
+""",
+        steps: [
+            Step(index: 0, narration: "getAndIncrementは現在値を返してから内部値を+1します。", highlightLines: [2], variables: [Variable(name: "n", type: "AtomicInteger", value: "2(呼び出し後)", scope: "main")], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "返り値は1、続くgetは2です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["1 2", "2 2", "1 1"], answerIndex: 0, hint: "後置increment相当", afterExplanation: "正解です。1 2です。")),
+            Step(index: 2, narration: "最終出力は `1 2` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldConcurrency003Explanation = Explanation(
+        id: "explain-gold-concurrency-003",
+        initialCode: """
+CompletableFuture<Integer> future = CompletableFuture
+    .supplyAsync(() -> 10)
+    .thenApply(n -> n + 5);
+System.out.println(future.join());
+""",
+        steps: [
+            Step(index: 0, narration: "supplyAsyncで10を生成し、thenApplyで15へ変換します。", highlightLines: [2, 3], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "join() は完了待ちして結果値15を返します。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["10", "15", "CompletableFuture[15]"], answerIndex: 1, hint: "joinは値を返す", afterExplanation: "正解です。15です。")),
+            Step(index: 2, narration: "最終出力は `15` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldConcurrency004Explanation = Explanation(
+        id: "explain-gold-concurrency-004",
+        initialCode: """
+for (Future<String> f : es.invokeAll(tasks)) {
+    System.out.print(f.get());
+}
+""",
+        steps: [
+            Step(index: 0, narration: "invokeAllは全タスク完了を待ち、入力タスク順でFutureリストを返します。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "Bが先に完了しても、取得順はタスクリスト順なのでA→Bです。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["AB", "BA"], answerIndex: 0, hint: "完了順ではなく返却リスト順", afterExplanation: "正解です。ABです。")),
+            Step(index: 2, narration: "最終出力は `AB` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldDateTime001Explanation = Explanation(
+        id: "explain-gold-date-time-001",
+        initialCode: """
+LocalDate date = LocalDate.of(2026, 4, 19);
+date.plusDays(1);
+System.out.println(date);
+""",
+        steps: [
+            Step(index: 0, narration: "LocalDateは不変オブジェクトです。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "plusDays(1) は新しいLocalDateを返すだけで、戻り値未代入なら元のdateは変わりません。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["2026-04-19", "2026-04-20"], answerIndex: 0, hint: "immutable", afterExplanation: "正解です。元の値のままです。")),
+            Step(index: 2, narration: "最終出力は `2026-04-19` です。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldIo001Explanation = Explanation(
+        id: "explain-gold-io-001",
+        initialCode: """
+Path p1 = Path.of("/app/logs");
+Path p2 = Path.of("/backup/data");
+Path result = p1.resolve(p2);
+System.out.println(result.getNameCount());
+""",
+        steps: [
+            Step(index: 0, narration: "resolveに絶対パスp2を渡すと、結果はp2自身になります。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`/backup/data` の名前要素は backup, data の2つです。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "getNameCountは？", choices: ["2", "4"], answerIndex: 0, hint: "絶対パス引数は置換扱い", afterExplanation: "正解です。2です。")),
+            Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldIo002Explanation = Explanation(
+        id: "explain-gold-io-002",
+        initialCode: """
+Path base = Path.of("/app/logs");
+Path file = Path.of("/app/logs/2026/app.log");
+Path relative = base.relativize(file);
+System.out.println(relative.getNameCount());
+""",
+        steps: [
+            Step(index: 0, narration: "baseからfileへの相対パスは `2026/app.log` です。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "名前要素は `2026` と `app.log` の2つです。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["1", "2", "3"], answerIndex: 1, hint: "相対化後の要素数", afterExplanation: "正解です。2です。")),
+            Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldJdbc001Explanation = Explanation(
+        id: "explain-gold-jdbc-001",
+        initialCode: """
+ResultSet rs = stmt.executeQuery("SELECT name FROM users");
+System.out.println(rs.getString(1));
+""",
+        steps: [
+            Step(index: 0, narration: "executeQuery直後のResultSetカーソルは first行の手前（before first）です。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "rs.next() せずに getString() すると無効カーソル位置のためSQLExceptionです。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "必要な前処理は？", choices: ["rs.next()", "stmt.next()"], answerIndex: 0, hint: "ResultSetを次行へ進める", afterExplanation: "正解です。取得前にrs.next()が必要です。")),
+            Step(index: 2, narration: "このコードは実行時に SQLException になります。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldJdbc002Explanation = Explanation(
+        id: "explain-gold-jdbc-002",
+        initialCode: """
+static void bind(PreparedStatement ps) throws SQLException {
+    ps.setString(0, "Alice");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "PreparedStatementのパラメータ番号は1始まりです。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "index 0 指定は実行時にSQLException原因となります（コード自体はコンパイル可）。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "正しい最初の番号は？", choices: ["0", "1"], answerIndex: 1, hint: "JDBCプレースホルダ規則", afterExplanation: "正解です。1からです。")),
+            Step(index: 2, narration: "結論: 実行時エラー要因で、正しくは `setString(1, ...)` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization001Explanation = Explanation(
+        id: "explain-gold-localization-001",
+        initialCode: """
+Locale loc = new Locale("fr", "CA");
+ResourceBundle rb = ResourceBundle.getBundle("Msg", loc);
+System.out.println(rb.getString("greet"));
+""",
+        steps: [
+            Step(index: 0, narration: "fr_CA向け探索は `Msg_fr_CA` → `Msg_fr` → `Msg` の順です。", highlightLines: [1, 2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "Msg_fr_CAが無い場合、次の候補 Msg_fr が採用されます。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "取得値は？", choices: ["Bonjour", "Bonjour FR", "Hello"], answerIndex: 0, hint: "FR(国)ではなくfr言語フォールバック", afterExplanation: "正解です。Bonjourです。")),
+            Step(index: 2, narration: "最終的に `Bonjour` が取得されます。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldLocalization002Explanation = Explanation(
+        id: "explain-gold-localization-002",
+        initialCode: """
+ResourceBundle rb = ResourceBundle.getBundle("Test$Messages", Locale.JAPAN);
+System.out.println(rb.getString("greeting"));
+""",
+        steps: [
+            Step(index: 0, narration: "Locale.JAPAN は ja_JP。`Messages_ja_JP` が無ければ `Messages_ja` を探します。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "`Messages_ja` があるため greeting は `ja` になります。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["ja", "base"], answerIndex: 0, hint: "言語バンドル優先", afterExplanation: "正解です。jaです。")),
+            Step(index: 2, narration: "最終出力は `ja` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldModule001Explanation = Explanation(
+        id: "explain-gold-module-001",
+        initialCode: """
+module com.example.app {
+    exports com.example.api;
+    requires java.logging;
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`exports com.example.api` でそのパッケージのみ外部公開されます。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "同一モジュール内でも非公開パッケージは他モジュールから参照できません。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "公開されるのは？", choices: ["com.example.apiのみ", "全パッケージ"], answerIndex: 0, hint: "exports対象限定", afterExplanation: "正解です。exportsしたAPIだけ公開です。")),
+            Step(index: 2, narration: "モジュールのカプセル化ルールとして、exports対象のみアクセス可能です。", highlightLines: [1, 2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldModule002Explanation = Explanation(
+        id: "explain-gold-module-002",
+        initialCode: """
+module lib.core {
+    requires transitive java.sql;
+    exports lib.api;
+}
+module app.main {
+    requires lib.core;
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`requires transitive java.sql` により、lib.core依存のモジュールにもjava.sql可読性が伝播します。", highlightLines: [2, 6], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "app.mainはlib.coreだけrequiresしていても、java.sql型を利用可能です。", highlightLines: [5, 6], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "app.mainでjava.sql使用可？", choices: ["可", "不可"], answerIndex: 0, hint: "transitiveの効果", afterExplanation: "正解です。可読性が伝播します。")),
+            Step(index: 2, narration: "結論: `requires transitive` により下流モジュールでもjava.sqlが読めます。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldPathNormalize001Explanation = Explanation(
+        id: "explain-gold-path-normalize-001",
+        initialCode: """
+Path p = Path.of("a/../b/./c.txt").normalize();
+System.out.println(p.getNameCount());
+""",
+        steps: [
+            Step(index: 0, narration: "normalizeで `a/..` は相殺、`./` は除去されます。", highlightLines: [1], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "残る相対パスは `b/c.txt` で要素数2です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "getNameCountは？", choices: ["1", "2", "4"], answerIndex: 1, hint: "正規化後で数える", afterExplanation: "正解です。2です。")),
+            Step(index: 2, narration: "最終出力は `2` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    // MARK: - New quiz batch
+
+    static let silverClasses006Explanation = Explanation(
+        id: "explain-silver-classes-006",
+        initialCode: """
+public class Test {
+    static { System.out.print("S "); }
+    { System.out.print("I "); }
+    Test() { System.out.print("C "); }
+    public static void main(String[] args) {
+        new Test();
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "最初のクラス使用時に static 初期化子 `S` が実行されます。", highlightLines: [2, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "new Test() でインスタンス初期化子 `I`、続いてコンストラクタ本体 `C` が実行されます。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "Test()", line: 4)], heap: [], predict: PredictPrompt(question: "出力順は？", choices: ["S I C", "S C I", "I C S"], answerIndex: 0, hint: "static→instance init→ctor", afterExplanation: "正解です。S I Cです。")),
+            Step(index: 2, narration: "最終出力は `S I C` です。", highlightLines: [2, 3, 4], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverControlFlow007Explanation = Explanation(
+        id: "explain-silver-control-flow-007",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        int n = 1;
+        switch (n) {
+            case 1: System.out.print("A ");
+            case 2: System.out.print("B "); break;
+            default: System.out.print("D ");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "n=1でcase1に入り `A` を出力します。", highlightLines: [3, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 1, narration: "case1にbreakがないためcase2へフォールスルーし `B` を出力、breakで終了します。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: PredictPrompt(question: "defaultに到達する？", choices: ["する", "しない"], answerIndex: 1, hint: "case2でbreak", afterExplanation: "正解です。defaultには落ちません。")),
+            Step(index: 2, narration: "最終出力は `A B` です。", highlightLines: [5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverDataTypes006Explanation = Explanation(
+        id: "explain-silver-data-types-006",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        double d = 9.8;
+        int x = (int) d;
+        System.out.println(x);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "dは9.8。`(int)d` でdoubleからintへ明示キャストします。", highlightLines: [3, 4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "このキャストは小数部を切り捨てるため x=9 になります。", highlightLines: [4], variables: [Variable(name: "x", type: "int", value: "9", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "丸め？切り捨て？", choices: ["丸め", "切り捨て"], answerIndex: 1, hint: "primitive narrowing conversion", afterExplanation: "正解です。切り捨てです。")),
+            Step(index: 2, narration: "最終出力は `9` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverException007Explanation = Explanation(
+        id: "explain-silver-exception-007",
+        initialCode: """
+public class Test {
+    static void run() {
+        throw new IllegalStateException();
+    }
+    public static void main(String[] args) {
+        try { run(); }
+        catch (RuntimeException e) { System.out.println("R"); }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "run() は IllegalStateException を送出します（RuntimeException系）。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "run", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "catch(RuntimeException) が一致し、例外は捕捉されます。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["R", "異常終了", "コンパイルエラー"], answerIndex: 0, hint: "IllegalStateException ⊂ RuntimeException", afterExplanation: "正解です。Rです。")),
+            Step(index: 2, narration: "最終出力は `R` です。", highlightLines: [7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream010Explanation = Explanation(
+        id: "explain-gold-stream-010",
+        initialCode: """
+List<String> list = Arrays.asList("b", "aa", "c");
+list.stream()
+    .sorted(Comparator.comparingInt(String::length))
+    .forEach(System.out::print);
+""",
+        steps: [
+            Step(index: 0, narration: "Comparatorは文字列長基準。要素長は b=1, aa=2, c=1。", highlightLines: [1, 3], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "長さ昇順で同長要素は元順を保ち、並びは b, c, aa です。", highlightLines: [3], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "連結出力は？", choices: ["bcaa", "aabc", "cbaa"], answerIndex: 0, hint: "長さ順 + 安定順序", afterExplanation: "正解です。bcaaです。")),
+            Step(index: 2, narration: "最終出力は `bcaa` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldConcurrency006Explanation = Explanation(
+        id: "explain-gold-concurrency-006",
+        initialCode: """
+Thread t = new Thread(() -> System.out.print("T"));
+t.start();
+t.join();
+System.out.print("M");
+""",
+        steps: [
+            Step(index: 0, narration: "start() で別スレッドtが `T` を出力します。", highlightLines: [1, 2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "join() によりmainはt完了まで待機するため、`M` は必ず後に出力されます。", highlightLines: [3, 4], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "順序は？", choices: ["TM", "MT"], answerIndex: 0, hint: "joinは完了待ち", afterExplanation: "正解です。TMです。")),
+            Step(index: 2, narration: "最終出力は `TM` です。", highlightLines: [4], variables: [], callStack: [], heap: [], predict: nil),
         ]
     )
 }
