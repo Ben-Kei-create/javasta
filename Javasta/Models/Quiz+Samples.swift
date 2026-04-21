@@ -3368,12 +3368,18 @@ public class Test {
         silverOverload005,
         silverString004,
         silverException006,
+        silverControlFlow006,
+        silverDataTypes005,
+        silverCollections004,
+        silverInheritance003,
     ]
 
     static let generatedGoldQueue: [Quiz] = [
         goldStream007,
         goldGenerics005,
         goldOptional005,
+        goldStream008,
+        goldOptional006,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -3548,5 +3554,174 @@ public class Test {
         ],
         explanationRef: "explain-gold-optional-005",
         designIntent: "Optional.mapとorElseの基本評価順を確認する。"
+    )
+
+    static let silverControlFlow006 = Quiz(
+        id: "silver-control-flow-006",
+        level: .silver,
+        category: "control-flow",
+        tags: ["for文", "break", "continue", "実行順"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        for (int i = 1; i <= 5; i++) {
+            if (i == 2) continue;
+            if (i == 4) break;
+            System.out.print(i + " ");
+        }
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "1 2 3", correct: false, misconception: "continueで2も出力されると誤解", explanation: "i=2ではcontinueでprintを飛ばします。"),
+            Choice(id: "b", text: "1 3", correct: true, misconception: nil, explanation: "2はcontinueで飛び、4でbreakするため1と3のみ出力されます。"),
+            Choice(id: "c", text: "1 3 4", correct: false, misconception: "break後も同回のprint実行と誤解", explanation: "i=4でbreakした時点でループ終了です。"),
+            Choice(id: "d", text: "1 3 5", correct: false, misconception: nil, explanation: "4でbreakするので5には到達しません。"),
+        ],
+        explanationRef: "explain-silver-control-flow-006",
+        designIntent: "continueとbreakを同じループ内で使った際の到達順を整理する。"
+    )
+
+    static let silverDataTypes005 = Quiz(
+        id: "silver-data-types-005",
+        level: .silver,
+        category: "data-types",
+        tags: ["char", "インクリメント", "型変換"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        char c = 'A';
+        c++;
+        System.out.println(c);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A", correct: false, misconception: nil, explanation: "c++で1進むためAのままではありません。"),
+            Choice(id: "b", text: "B", correct: true, misconception: nil, explanation: "'A'(65) から1増えて 'B'(66) になります。"),
+            Choice(id: "c", text: "66", correct: false, misconception: "charが常に数値表示されると誤解", explanation: "println(char) は文字として表示されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "charへのインクリメントは有効です。"),
+        ],
+        explanationRef: "explain-silver-data-types-005",
+        designIntent: "charのインクリメント挙動（数値コード上で+1）を確認する。"
+    )
+
+    static let silverCollections004 = Quiz(
+        id: "silver-collections-004",
+        level: .silver,
+        category: "collections",
+        tags: ["Map", "put", "戻り値"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new HashMap<>();
+        System.out.print(map.put("A", 1) + " ");
+        System.out.print(map.put("A", 2) + " ");
+        System.out.println(map.get("A"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "null 1 2", correct: true, misconception: nil, explanation: "最初のputは旧値なしでnull、2回目は旧値1を返し、最終値は2です。"),
+            Choice(id: "b", text: "1 2 2", correct: false, misconception: "putが新値を返すと誤解", explanation: "putの戻り値は新値ではなく旧値です。"),
+            Choice(id: "c", text: "null 2 2", correct: false, misconception: nil, explanation: "2回目putの戻り値は旧値1です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "Map APIの使い方は正しいです。"),
+        ],
+        explanationRef: "explain-silver-collections-004",
+        designIntent: "Map.putの戻り値が『旧値』であることを確認する。"
+    )
+
+    static let silverInheritance003 = Quiz(
+        id: "silver-inheritance-003",
+        level: .silver,
+        category: "inheritance",
+        tags: ["継承", "final", "オーバーライド"],
+        code: """
+class Parent {
+    final void show() {}
+}
+class Child extends Parent {
+    void show() {}
+}
+public class Test {
+    public static void main(String[] args) {
+        System.out.println("ok");
+    }
+}
+""",
+        question: "このコードについて正しい説明はどれか？",
+        choices: [
+            Choice(id: "a", text: "ok が出力される", correct: false, misconception: "finalメソッドを上書き可能と誤解", explanation: "Child.show() はfinalメソッドのオーバーライドでコンパイルエラーです。"),
+            Choice(id: "b", text: "コンパイルエラーになる", correct: true, misconception: nil, explanation: "finalメソッドはサブクラスでオーバーライドできません。"),
+            Choice(id: "c", text: "実行時に例外が発生する", correct: false, misconception: nil, explanation: "実行前にコンパイルエラーです。"),
+            Choice(id: "d", text: "Childのshowはオーバーロードとして扱われる", correct: false, misconception: nil, explanation: "同シグネチャなのでオーバーロードではありません。"),
+        ],
+        explanationRef: "explain-silver-inheritance-003",
+        designIntent: "finalメソッドのオーバーライド禁止を明確にする。"
+    )
+
+    static let goldStream008 = Quiz(
+        id: "gold-stream-008",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Stream", "filter", "findFirst", "Optional"],
+        code: """
+import java.util.*;
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Optional<String> r = Stream.of("aa", "b", "ccc")
+            .filter(s -> s.length() == 1)
+            .findFirst();
+        System.out.println(r.orElse("NONE"));
+    }
+}
+""",
+        question: "このコードの出力として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "aa", correct: false, misconception: "filter条件を無視", explanation: "長さ1の要素だけ残るためaaは対象外です。"),
+            Choice(id: "b", text: "b", correct: true, misconception: nil, explanation: "filter後の最初の要素はbです。"),
+            Choice(id: "c", text: "ccc", correct: false, misconception: nil, explanation: "最初に条件一致するのはbです。"),
+            Choice(id: "d", text: "NONE", correct: false, misconception: nil, explanation: "一致要素bがあるためNONEは使われません。"),
+        ],
+        explanationRef: "explain-gold-stream-008",
+        designIntent: "filter + findFirst + orElse の連携を確認する。"
+    )
+
+    static let goldOptional006 = Quiz(
+        id: "gold-optional-006",
+        level: .gold,
+        category: "optional-api",
+        tags: ["Optional", "flatMap", "map"],
+        code: """
+import java.util.*;
+
+public class Test {
+    static Optional<String> wrap(String s) {
+        return Optional.of("[" + s + "]");
+    }
+    public static void main(String[] args) {
+        String r = Optional.of("x")
+            .flatMap(Test::wrap)
+            .orElse("none");
+        System.out.println(r);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "x", correct: false, misconception: nil, explanation: "wrapで[]が付与されます。"),
+            Choice(id: "b", text: "[x]", correct: true, misconception: nil, explanation: "flatMapでOptional<String>を平坦化し、値[x]を取り出します。"),
+            Choice(id: "c", text: "none", correct: false, misconception: nil, explanation: "Optionalは空ではありません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "flatMapの型は整合しています。"),
+        ],
+        explanationRef: "explain-gold-optional-006",
+        designIntent: "flatMapでOptionalの入れ子を回避する使い方を確認する。"
     )
 }

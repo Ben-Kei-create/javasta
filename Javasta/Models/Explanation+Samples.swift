@@ -2613,9 +2613,15 @@ public class Test {
         silverOverload005Explanation.id: silverOverload005Explanation,
         silverString004Explanation.id: silverString004Explanation,
         silverException006Explanation.id: silverException006Explanation,
+        silverControlFlow006Explanation.id: silverControlFlow006Explanation,
+        silverDataTypes005Explanation.id: silverDataTypes005Explanation,
+        silverCollections004Explanation.id: silverCollections004Explanation,
+        silverInheritance003Explanation.id: silverInheritance003Explanation,
         goldStream007Explanation.id: goldStream007Explanation,
         goldGenerics005Explanation.id: goldGenerics005Explanation,
         goldOptional005Explanation.id: goldOptional005Explanation,
+        goldStream008Explanation.id: goldStream008Explanation,
+        goldOptional006Explanation.id: goldOptional006Explanation,
     ]
 
     // MARK: - Silver Batch Queue-001
@@ -2747,6 +2753,133 @@ public class Test {
             Step(index: 0, narration: "Optionalには `\"java\"` が存在します。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
             Step(index: 1, narration: "map(toUpperCase) により値は `\"JAVA\"` になります。値ありなので `orElse(\"NONE\")` は使われません。", highlightLines: [6, 7], variables: [Variable(name: "result", type: "String", value: "\"JAVA\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["java", "JAVA", "NONE"], answerIndex: 1, hint: "map後もOptionalは値あり", afterExplanation: "正解です。JAVAです。")),
             Step(index: 2, narration: "最終出力は `JAVA` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverControlFlow006Explanation = Explanation(
+        id: "explain-silver-control-flow-006",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        for (int i = 1; i <= 5; i++) {
+            if (i == 2) continue;
+            if (i == 4) break;
+            System.out.print(i + " ");
+        }
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "i=1はそのまま出力されます。", highlightLines: [3, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "i=2はcontinueでスキップ、i=3は出力、i=4でbreakして終了します。", highlightLines: [4, 5, 6], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: PredictPrompt(question: "最終出力は？", choices: ["1 2 3", "1 3", "1 3 4"], answerIndex: 1, hint: "2はcontinue、4でbreak", afterExplanation: "正解です。1 3です。")),
+            Step(index: 2, narration: "最終出力は `1 3` です。", highlightLines: [6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverDataTypes005Explanation = Explanation(
+        id: "explain-silver-data-types-005",
+        initialCode: """
+public class Test {
+    public static void main(String[] args) {
+        char c = 'A';
+        c++;
+        System.out.println(c);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`c` は文字 'A'(65) で開始します。", highlightLines: [3], variables: [Variable(name: "c", type: "char", value: "'A'(65)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`c++` で文字コードが1増え、'B'(66) になります。", highlightLines: [4], variables: [Variable(name: "c", type: "char", value: "'B'(66)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: PredictPrompt(question: "println(c)の表示は？", choices: ["B", "66", "コンパイルエラー"], answerIndex: 0, hint: "println(char)は文字表示", afterExplanation: "正解です。Bが表示されます。")),
+            Step(index: 2, narration: "最終出力は `B` です。", highlightLines: [5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverCollections004Explanation = Explanation(
+        id: "explain-silver-collections-004",
+        initialCode: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new HashMap<>();
+        System.out.print(map.put("A", 1) + " ");
+        System.out.print(map.put("A", 2) + " ");
+        System.out.println(map.get("A"));
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "最初の put(\"A\",1) は旧値がないため null を返します。", highlightLines: [6], variables: [], callStack: [CallStackFrame(method: "main", line: 6)], heap: [], predict: nil),
+            Step(index: 1, narration: "次の put(\"A\",2) は旧値1を返し、マップ内値は2に更新されます。", highlightLines: [7], variables: [Variable(name: "map[A]", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: PredictPrompt(question: "最後のget(\"A\")は？", choices: ["1", "2", "null"], answerIndex: 1, hint: "Aの現在値は更新後", afterExplanation: "その通りです。2です。")),
+            Step(index: 2, narration: "最終出力は `null 1 2` です。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverInheritance003Explanation = Explanation(
+        id: "explain-silver-inheritance-003",
+        initialCode: """
+class Parent {
+    final void show() {}
+}
+class Child extends Parent {
+    void show() {}
+}
+public class Test {
+    public static void main(String[] args) {
+        System.out.println("ok");
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "Parent.show() は final メソッドです。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 1, narration: "Childで同シグネチャ show() を宣言しており、finalメソッドのオーバーライド禁止に違反します。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "結果は？", choices: ["実行時例外", "コンパイルエラー", "okが出力"], answerIndex: 1, hint: "finalは上書き不可", afterExplanation: "正解です。コンパイルエラーです。")),
+            Step(index: 2, narration: "このコードはコンパイルエラーです。", highlightLines: [5], variables: [], callStack: [], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldStream008Explanation = Explanation(
+        id: "explain-gold-stream-008",
+        initialCode: """
+import java.util.*;
+import java.util.stream.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Optional<String> r = Stream.of("aa", "b", "ccc")
+            .filter(s -> s.length() == 1)
+            .findFirst();
+        System.out.println(r.orElse("NONE"));
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "stream要素は aa, b, ccc。filterで長さ1の要素だけ通します。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+            Step(index: 1, narration: "条件一致の最初は b なので findFirst は Optional.of(\"b\") を返します。", highlightLines: [8], variables: [], callStack: [CallStackFrame(method: "main", line: 8)], heap: [], predict: PredictPrompt(question: "orElse(\"NONE\") の結果は？", choices: ["b", "NONE", "aa"], answerIndex: 0, hint: "Optionalは値あり", afterExplanation: "正解です。bです。")),
+            Step(index: 2, narration: "最終出力は `b` です。", highlightLines: [9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+        ]
+    )
+
+    static let goldOptional006Explanation = Explanation(
+        id: "explain-gold-optional-006",
+        initialCode: """
+import java.util.*;
+
+public class Test {
+    static Optional<String> wrap(String s) {
+        return Optional.of("[" + s + "]");
+    }
+    public static void main(String[] args) {
+        String r = Optional.of("x")
+            .flatMap(Test::wrap)
+            .orElse("none");
+        System.out.println(r);
+    }
+}
+""",
+        steps: [
+            Step(index: 0, narration: "`Optional.of(\"x\")` から開始し、flatMapで wrap を適用します。", highlightLines: [8, 9], variables: [], callStack: [CallStackFrame(method: "main", line: 9)], heap: [], predict: nil),
+            Step(index: 1, narration: "wrapは Optional.of(\"[x]\") を返し、flatMapで平坦化された結果を得ます。", highlightLines: [4, 5, 9], variables: [Variable(name: "r", type: "String", value: "\"[x]\"", scope: "main")], callStack: [CallStackFrame(method: "wrap", line: 5)], heap: [], predict: PredictPrompt(question: "orElse(\"none\") は使われる？", choices: ["使われる", "使われない"], answerIndex: 1, hint: "値ありOptionalです。", afterExplanation: "その通りです。値があるので使われません。")),
+            Step(index: 2, narration: "最終出力は `[x]` です。", highlightLines: [11], variables: [], callStack: [CallStackFrame(method: "main", line: 11)], heap: [], predict: nil),
         ]
     )
 }
