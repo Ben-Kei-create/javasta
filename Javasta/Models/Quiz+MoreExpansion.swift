@@ -103,6 +103,26 @@ extension QuizExpansion {
         goldEnum005,
         silverObject001,
         silverObject002,
+        silverJavaBasics007,
+        silverDataTypes013,
+        silverDataTypes014,
+        silverString007,
+        silverStringBuilder006,
+        silverArray010,
+        silverArray011,
+        silverCollections008,
+        silverCollections009,
+        silverControlFlow011,
+        silverControlFlow012,
+        silverClasses009,
+        silverClasses010,
+        silverInheritance008,
+        silverInheritance009,
+        silverException009,
+        silverException010,
+        silverLambda006,
+        silverStatic005,
+        silverFinal004,
         goldObject003,
         goldObject004,
         goldAnnotations003,
@@ -209,6 +229,26 @@ extension QuizExpansion {
         goldFunctionalLambda038,
         goldFunctionalLambda039,
         goldFunctionalLambda040,
+        goldFunctionalLambda041,
+        goldFunctionalLambda042,
+        goldFunctionalLambda043,
+        goldFunctionalLambda044,
+        goldFunctionalLambda045,
+        goldFunctionalLambda046,
+        goldFunctionalLambda047,
+        goldFunctionalLambda048,
+        goldFunctionalLambda049,
+        goldFunctionalLambda050,
+        goldFunctionalLambda051,
+        goldFunctionalLambda052,
+        goldFunctionalLambda053,
+        goldFunctionalLambda054,
+        goldFunctionalLambda055,
+        goldFunctionalLambda056,
+        goldFunctionalLambda057,
+        goldFunctionalLambda058,
+        goldFunctionalLambda059,
+        goldFunctionalLambda060,
     ]
 
     // MARK: - Gold: Generics (extends wildcard)
@@ -1375,6 +1415,552 @@ public class Test {
         ],
         explanationRef: "explain-gold-functional-lambda-040",
         designIntent: "ラッパークラスのnullをプリミティブ型へアンボクシングするとNullPointerExceptionになることを確認する。"
+    )
+
+    static let goldFunctionalLambda041 = Quiz(
+        id: "gold-functional-lambda-041",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["@FunctionalInterface", "Object", "default method"],
+        code: """
+@FunctionalInterface
+interface Task {
+    void run();
+    default void log() {}
+    String toString();
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Task task = () -> System.out.print("R");
+        task.run();
+    }
+}
+""",
+        question: "このコードを実行したときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "Rと出力される", correct: true, misconception: nil, explanation: "抽象メソッドとして数えるのはrunだけです。ObjectのtoStringとdefaultメソッドは関数型インターフェースの抽象メソッド数に含めません。"),
+            Choice(id: "b", text: "コンパイルエラー（抽象メソッドが2つある）", correct: false, misconception: "Objectのpublicメソッドを抽象メソッドとして数えている", explanation: "String toString()はObject由来のpublicメソッドなのでSAM数に含めません。"),
+            Choice(id: "c", text: "コンパイルエラー（defaultメソッドがある）", correct: false, misconception: "defaultメソッドを抽象メソッドと誤解", explanation: "defaultメソッドは実装済みなので抽象メソッドではありません。"),
+            Choice(id: "d", text: "何も出力されない", correct: false, misconception: "task.run()を見落としている", explanation: "run()内でRを出力します。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-041",
+        designIntent: "関数型インターフェースの抽象メソッド数にObjectメソッドやdefaultメソッドを含めないことを確認する。"
+    )
+
+    static let goldFunctionalLambda042 = Quiz(
+        id: "gold-functional-lambda-042",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["var", "ローカル変数型推論", "ラムダ式", "キャスト"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        var p = (Predicate<String>) (s -> s.length() > 1);
+        System.out.println(p.test("Go"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "ラムダ式自体にはターゲット型が必要ですが、キャストでPredicate<String>が与えられているためvarで受けられます。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "文字数判定を誤っている", explanation: "\"Go\"の長さは2なのでlength() > 1はtrueです。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "varとラムダ式が常に併用不可と誤解", explanation: "右辺に明示キャストがあり、ターゲット型が存在します。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "ラムダのキャストが実行時に失敗すると誤解", explanation: "ラムダはPredicate<String>として生成されます。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-042",
+        designIntent: "ローカル変数型推論varでラムダを扱うには、右辺側にターゲット型が必要であることを確認する。"
+    )
+
+    static let goldFunctionalLambda043 = Quiz(
+        id: "gold-functional-lambda-043",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["var", "Function.identity", "型推論"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        var f = Function.identity();
+        String s = f.apply("A");
+        System.out.println(s);
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "Aと出力される", correct: false, misconception: "f.applyの戻り値がStringに推論されると誤解", explanation: "varだけではFunction.identity()のTをStringにするターゲット型がありません。"),
+            Choice(id: "b", text: "String s = f.apply(\"A\"); でコンパイルエラー", correct: true, misconception: nil, explanation: "fはFunction<Object,Object>相当に推論され、applyの戻り値はObjectです。Stringへそのまま代入できません。"),
+            Choice(id: "c", text: "var f = Function.identity(); でコンパイルエラー", correct: false, misconception: "identity自体をvarで受けられないと誤解", explanation: "identity自体は型推論されますが、戻り値型はStringではありません。"),
+            Choice(id: "d", text: "実行時にClassCastException", correct: false, misconception: "コンパイル後に失敗すると誤解", explanation: "Stringへの代入時点でコンパイルエラーです。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-043",
+        designIntent: "varは代入先ターゲット型を提供しないため、ジェネリックメソッドの型推論結果に注意が必要なことを確認する。"
+    )
+
+    static let goldFunctionalLambda044 = Quiz(
+        id: "gold-functional-lambda-044",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Supplier", "ラムダ式", "ブロックラムダ"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Supplier<Integer> s = () -> { return 1 + 2; };
+        System.out.println(s.get());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "3", correct: true, misconception: nil, explanation: "Supplier.getは引数なしで値を返します。ブロックラムダではreturnが必要で、1+2の結果3が返ります。"),
+            Choice(id: "b", text: "1 + 2", correct: false, misconception: "式が文字列として出ると誤解", explanation: "式は数値計算されます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "ブロックラムダでreturnできないと誤解", explanation: "戻り値のある関数型インターフェースでは、ブロック内でreturnできます。"),
+            Choice(id: "d", text: "何も出力されない", correct: false, misconception: "get()を呼んでいないと見落としている", explanation: "s.get()がprintlnに渡されています。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-044",
+        designIntent: "引数なしラムダと、ブロックラムダでのreturnの使い方を確認する。"
+    )
+
+    static let goldFunctionalLambda045 = Quiz(
+        id: "gold-functional-lambda-045",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["ラムダ式", "省略記法", "コンパイルエラー"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Predicate<String> p = String s -> s.isEmpty();
+        System.out.println(p.test(""));
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "trueと出力される", correct: false, misconception: "型付き単一引数でも括弧を省略できると誤解", explanation: "引数型を明示する場合は括弧が必要です。"),
+            Choice(id: "b", text: "falseと出力される", correct: false, misconception: "空文字判定と構文の両方を誤解", explanation: "構文エラーのため実行されません。"),
+            Choice(id: "c", text: "ラムダ引数の行でコンパイルエラー", correct: true, misconception: nil, explanation: "`String s -> ...` は不正です。`(String s) -> ...` または `s -> ...` と書きます。"),
+            Choice(id: "d", text: "実行時にNullPointerException", correct: false, misconception: nil, explanation: "nullは渡しておらず、そもそもコンパイルされません。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-045",
+        designIntent: "ラムダ式の省略記法では、型を明示する単一引数に括弧が必要であることを確認する。"
+    )
+
+    static let goldFunctionalLambda046 = Quiz(
+        id: "gold-functional-lambda-046",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["実質的final", "ローカル変数", "ラムダ式"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        int base;
+        if (args.length == 0) {
+            base = 1;
+        } else {
+            base = 2;
+        }
+        Supplier<Integer> s = () -> base;
+        System.out.println(s.get());
+    }
+}
+""",
+        question: "引数なしでこのコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "baseは各実行経路で一度だけ代入され、その後変更されません。実質的finalなのでラムダから参照できます。引数なしならbaseは1です。"),
+            Choice(id: "b", text: "2", correct: false, misconception: "else側が実行されると誤解", explanation: "引数なしなのでargs.length == 0がtrueです。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "宣言時finalでないと参照できないと誤解", explanation: "明示的finalでなくても、実質的finalなら参照できます。"),
+            Choice(id: "d", text: "0", correct: false, misconception: "ローカル変数にデフォルト値があると誤解", explanation: "ローカル変数にデフォルト値はありませんが、このコードでは全経路で代入済みです。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-046",
+        designIntent: "分岐内代入でも各経路で一度だけ代入されれば実質的finalとしてラムダから参照できることを確認する。"
+    )
+
+    static let goldFunctionalLambda047 = Quiz(
+        id: "gold-functional-lambda-047",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["実質的final", "ローカル変数", "コンパイルエラー"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int base = 1;
+        Runnable r = () -> System.out.print(base);
+        base += 1;
+        r.run();
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "1と出力される", correct: false, misconception: "ラムダ定義時の値が固定されると誤解", explanation: "ラムダが参照するローカル変数は、後で変更されると実質的finalではなくなります。"),
+            Choice(id: "b", text: "2と出力される", correct: false, misconception: "変更後の値を参照できると誤解", explanation: "変更されるローカル変数baseはラムダから参照できません。"),
+            Choice(id: "c", text: "base += 1; によりコンパイルエラー", correct: true, misconception: nil, explanation: "baseがラムダから参照されているのに後で変更されるため、実質的final条件を満たしません。"),
+            Choice(id: "d", text: "実行時にIllegalStateException", correct: false, misconception: "実質的final違反が実行時判定と誤解", explanation: "コンパイル時に検査されます。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-047",
+        designIntent: "ラムダが捕捉するローカル変数は、複合代入でも変更された時点で実質的finalではなくなることを確認する。"
+    )
+
+    static let goldFunctionalLambda048 = Quiz(
+        id: "gold-functional-lambda-048",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["メソッド参照", "static method", "Function"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Function<String, Integer> f = Integer::valueOf;
+        System.out.println(f.apply("10") + 1);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "101", correct: false, misconception: "文字列連結だと誤解", explanation: "f.applyの戻り値はIntegerなので、+ 1は数値加算です。"),
+            Choice(id: "b", text: "11", correct: true, misconception: nil, explanation: "Integer::valueOfはFunction<String,Integer>の文脈ではvalueOf(String)が選ばれ、10に1を足して11です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "Integer::valueOfのオーバーロードが曖昧だと誤解", explanation: "ターゲット型Function<String,Integer>によりString引数版が選ばれます。"),
+            Choice(id: "d", text: "NumberFormatException", correct: false, misconception: nil, explanation: "\"10\"は整数として解析できます。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-048",
+        designIntent: "メソッド参照のオーバーロード解決はターゲット型に依存することを確認する。"
+    )
+
+    static let goldFunctionalLambda049 = Quiz(
+        id: "gold-functional-lambda-049",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["メソッド参照", "IntFunction", "String.valueOf"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        IntFunction<String> f = String::valueOf;
+        System.out.println(f.apply(5) + 1);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "6", correct: false, misconception: "数値加算だと誤解", explanation: "f.apply(5)はStringを返します。+ 1は文字列連結です。"),
+            Choice(id: "b", text: "51", correct: true, misconception: nil, explanation: "String::valueOfはintをStringに変換し、\"5\" + 1は\"51\"です。"),
+            Choice(id: "c", text: "5", correct: false, misconception: "後ろの+1を見落としている", explanation: "printlnの式では+1も評価されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "String::valueOfをIntFunctionにできないと誤解", explanation: "intを受け取りStringを返す形に適合します。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-049",
+        designIntent: "プリミティブ特化関数型インターフェースとstaticメソッド参照、戻り値型による+演算の違いを確認する。"
+    )
+
+    static let goldFunctionalLambda050 = Quiz(
+        id: "gold-functional-lambda-050",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["メソッド参照", "bound instance", "Supplier"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder("A");
+        Supplier<String> s = sb::toString;
+        sb.append("B");
+        System.out.println(s.get());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A", correct: false, misconception: "メソッド参照作成時の文字列が固定されると誤解", explanation: "固定されるのはレシーバsbであり、toStringの実行はs.get()時です。"),
+            Choice(id: "b", text: "AB", correct: true, misconception: nil, explanation: "sb::toStringは同じStringBuilderを参照し、append後にget()でtoStringするためABです。"),
+            Choice(id: "c", text: "B", correct: false, misconception: "append後の追加分だけ返ると誤解", explanation: "StringBuilder全体のtoStringが返ります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "toString参照をSupplierにできないと誤解", explanation: "引数なしでStringを返すためSupplier<String>に適合します。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-050",
+        designIntent: "特定オブジェクトのインスタンスメソッド参照では、レシーバは固定されるがメソッド実行は呼び出し時であることを確認する。"
+    )
+
+    static let goldFunctionalLambda051 = Quiz(
+        id: "gold-functional-lambda-051",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["メソッド参照", "unbound instance", "BiFunction"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        BiFunction<String, String, Boolean> f = String::startsWith;
+        System.out.println(f.apply("Java", "Ja"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "String::startsWithは、最初の引数をレシーバ、2番目をstartsWithの引数として使います。\"Java\".startsWith(\"Ja\")はtrueです。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "引数の対応を逆にしている", explanation: "レシーバは最初の引数Javaです。"),
+            Choice(id: "c", text: "JavaJa", correct: false, misconception: "startsWithを連結と誤解", explanation: "startsWithはbooleanを返します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "インスタンスメソッド参照をBiFunctionにできないと誤解", explanation: "未束縛インスタンスメソッド参照では、レシーバが第1引数になります。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-051",
+        designIntent: "任意オブジェクトのインスタンスメソッド参照で、第1引数がレシーバになることを確認する。"
+    )
+
+    static let goldFunctionalLambda052 = Quiz(
+        id: "gold-functional-lambda-052",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["コンストラクタ参照", "String", "Function"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Function<StringBuilder, String> f = String::new;
+        System.out.println(f.apply(new StringBuilder("Hi")));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "Hi", correct: true, misconception: nil, explanation: "Function<StringBuilder,String>の文脈でString::newはString(StringBuilder)コンストラクタに対応します。"),
+            Choice(id: "b", text: "StringBuilder", correct: false, misconception: "クラス名が出ると誤解", explanation: "生成されたStringの内容がprintlnされます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "StringBuilderからStringを作るコンストラクタがないと誤解", explanation: "StringにはStringBuilderを受け取るコンストラクタがあります。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: nil, explanation: "new StringBuilder(\"Hi\")はnullではありません。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-052",
+        designIntent: "コンストラクタ参照もターゲット型により対応するコンストラクタが決まることを確認する。"
+    )
+
+    static let goldFunctionalLambda053 = Quiz(
+        id: "gold-functional-lambda-053",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["コンストラクタ参照", "ジェネリクス", "独自クラス"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    static class Box<T> {
+        T value;
+        Box(T value) { this.value = value; }
+        T get() { return value; }
+    }
+
+    public static void main(String[] args) {
+        Function<String, Box<String>> maker = Box::new;
+        System.out.println(maker.apply("A").get());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A", correct: true, misconception: nil, explanation: "Function<String, Box<String>>により、Stringを受け取るBox<String>生成としてBox::newが解決されます。"),
+            Choice(id: "b", text: "Box", correct: false, misconception: "オブジェクトのクラス名が出ると誤解", explanation: "get()で中身のAを取り出しています。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "ジェネリッククラスのコンストラクタ参照が使えないと誤解", explanation: "ターゲット型からBox<String>が推論されます。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: nil, explanation: "Stringを入れてStringとして取り出しています。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-053",
+        designIntent: "独自ジェネリッククラスでもコンストラクタ参照がターゲット型から型推論されることを確認する。"
+    )
+
+    static let goldFunctionalLambda054 = Quiz(
+        id: "gold-functional-lambda-054",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["配列コンストラクタ参照", "IntFunction", "コンストラクタ参照"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        IntFunction<String[]> maker = String[]::new;
+        System.out.println(maker.apply(2).length);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "0", correct: false, misconception: "配列の要素がnullなので長さも0と誤解", explanation: "要素値がnullでも配列長は指定サイズです。"),
+            Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "String[]::newは指定された長さのString配列を作ります。maker.apply(2)のlengthは2です。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "配列そのものがnullになると誤解", explanation: "新しい配列が生成されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "配列コンストラクタ参照が使えないと誤解", explanation: "配列生成はIntFunction<T[]>に適合します。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-054",
+        designIntent: "配列コンストラクタ参照は長さintを受け取り配列を返す関数型インターフェースに適合することを確認する。"
+    )
+
+    static let goldFunctionalLambda055 = Quiz(
+        id: "gold-functional-lambda-055",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Predicate.not", "メソッド参照", "Java 11"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Predicate<String> p = Predicate.not(String::isBlank);
+        System.out.println(p.test("Java"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "String::isBlankは\"Java\"でfalse、Predicate.notで反転してtrueになります。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "notによる反転を見落としている", explanation: "isBlankの結果falseが反転されます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "Predicate.notを知らない", explanation: "Java 11以降、Predicate.notでPredicateを反転できます。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: nil, explanation: "テスト対象はnullではありません。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-055",
+        designIntent: "Predicate.notとメソッド参照を組み合わせた否定Predicateの評価を確認する。"
+    )
+
+    static let goldFunctionalLambda056 = Quiz(
+        id: "gold-functional-lambda-056",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["BiPredicate", "List::contains", "unbound instance"],
+        code: """
+import java.util.*;
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        BiPredicate<List<String>, String> p = List::contains;
+        System.out.println(p.test(List.of("A", "B"), "B"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "List::containsでは第1引数のListがレシーバ、第2引数がcontainsの引数です。Bは含まれます。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "containsの対象を誤解", explanation: "List.of(\"A\", \"B\")にはBがあります。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "List::containsをBiPredicateにできないと誤解", explanation: "レシーバListと検索値を受け取るboolean関数として適合します。"),
+            Choice(id: "d", text: "UnsupportedOperationException", correct: false, misconception: "List.ofの変更不可性と混同", explanation: "containsは変更操作ではありません。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-056",
+        designIntent: "コレクションのインスタンスメソッド参照でも第1引数がレシーバになることを確認する。"
+    )
+
+    static let goldFunctionalLambda057 = Quiz(
+        id: "gold-functional-lambda-057",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["Consumer", "andThen", "合成"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Consumer<String> first = s -> System.out.print(s);
+        Consumer<String> second = s -> System.out.print(s.toLowerCase());
+        first.andThen(second).accept("A");
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "A", correct: false, misconception: "andThen後のsecondを見落としている", explanation: "firstの後にsecondも実行されます。"),
+            Choice(id: "b", text: "Aa", correct: true, misconception: nil, explanation: "firstがAを出力し、secondが小文字化したaを続けて出力します。"),
+            Choice(id: "c", text: "aA", correct: false, misconception: "andThenの順序を逆にしている", explanation: "andThenは左側が先です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Consumerを合成できないと誤解", explanation: "ConsumerにはdefaultメソッドandThenがあります。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-057",
+        designIntent: "Consumer.andThenが副作用処理を左から右へ順に実行することを確認する。"
+    )
+
+    static let goldFunctionalLambda058 = Quiz(
+        id: "gold-functional-lambda-058",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["BinaryOperator", "String::concat", "unbound instance"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        BinaryOperator<String> op = String::concat;
+        System.out.println(op.apply("A", "B"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "AB", correct: true, misconception: nil, explanation: "String::concatは第1引数をレシーバ、第2引数をconcatの引数として使います。"),
+            Choice(id: "b", text: "BA", correct: false, misconception: "レシーバと引数の対応を逆にしている", explanation: "op.apply(\"A\", \"B\")は\"A\".concat(\"B\")です。"),
+            Choice(id: "c", text: "A B", correct: false, misconception: "空白が自動挿入されると誤解", explanation: "concatは空白を挟みません。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "インスタンスメソッド参照をBinaryOperatorにできないと誤解", explanation: "Stringを2つ受け取りStringを返す形に適合します。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-058",
+        designIntent: "同じ型の2引数を扱うunboundインスタンスメソッド参照がBinaryOperatorに適合することを確認する。"
+    )
+
+    static let goldFunctionalLambda059 = Quiz(
+        id: "gold-functional-lambda-059",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["UnaryOperator", "andThen", "Function"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        UnaryOperator<Integer> plusOne = x -> x + 1;
+        Function<Integer, Integer> f = plusOne.andThen(x -> x * 2);
+        System.out.println(f.apply(3));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "6", correct: false, misconception: "plusOneを実行していないと誤解", explanation: "andThenの前にplusOneが実行されます。"),
+            Choice(id: "b", text: "7", correct: false, misconception: "composeの順序と混同", explanation: "plusOneの後に2倍です。"),
+            Choice(id: "c", text: "8", correct: true, misconception: nil, explanation: "3にplusOneを適用して4、その後2倍して8です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "UnaryOperatorのandThen結果をFunctionで受けられないと誤解", explanation: "andThenはFunctionを返すためFunction<Integer,Integer>で受けられます。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-059",
+        designIntent: "UnaryOperatorもFunctionとして合成でき、andThen結果はFunctionとして扱えることを確認する。"
+    )
+
+    static let goldFunctionalLambda060 = Quiz(
+        id: "gold-functional-lambda-060",
+        level: .gold,
+        category: "lambda-streams",
+        tags: ["コンストラクタ参照", "ArrayList", "Supplier"],
+        code: """
+import java.util.*;
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Supplier<ArrayList<String>> s = ArrayList<String>::new;
+        ArrayList<String> list = s.get();
+        list.add("A");
+        System.out.println(list.getClass().getSimpleName() + ":" + list.get(0));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "ArrayList:A", correct: true, misconception: nil, explanation: "ArrayList<String>::newは無引数コンストラクタ参照です。Supplier.getで新しいArrayListが作られます。"),
+            Choice(id: "b", text: "List:A", correct: false, misconception: "変数の抽象型名が出ると誤解", explanation: "getClass().getSimpleName()は実体クラス名ArrayListを返します。"),
+            Choice(id: "c", text: "ArrayList:null", correct: false, misconception: "add(\"A\")を見落としている", explanation: "get(0)は追加したAです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "ジェネリクス付きコンストラクタ参照を書けないと誤解", explanation: "ArrayList<String>::newはSupplier<ArrayList<String>>に適合します。"),
+        ],
+        explanationRef: "explain-gold-functional-lambda-060",
+        designIntent: "ジェネリクス付きコンストラクタ参照とSupplierによるインスタンス生成を確認する。"
     )
     
     
@@ -5288,6 +5874,565 @@ public class Test {
         ],
         explanationRef: "explain-silver-object-002",
         designIntent: "Object参照でも実体クラスのメソッド実装が使われることを、getClassとtoStringで追わせる。"
+    )
+
+    // MARK: - Silver: Core Reinforcement Batch
+
+    static let silverJavaBasics007 = Quiz(
+        id: "silver-java-basics-007",
+        level: .silver,
+        category: "java-basics",
+        tags: ["main", "インクリメント", "評価順"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int x = 0;
+        System.out.println(x++ + ":" + x);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "0:1", correct: true, misconception: nil, explanation: "後置インクリメントなので、式の値としては0を使い、その後xが1になります。"),
+            Choice(id: "b", text: "1:1", correct: false, misconception: "後置インクリメントの式の値も増加後になると誤解", explanation: "x++は値を使ったあとでxを増やします。"),
+            Choice(id: "c", text: "0:0", correct: false, misconception: "x++が変数を書き換えないと誤解", explanation: "x++は式の評価後にxへ1を足します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "文字列連結とインクリメントを組み合わせられないと誤解", explanation: "intとStringの連結は有効です。"),
+        ],
+        explanationRef: "explain-silver-java-basics-007",
+        designIntent: "後置インクリメントの式値と変数更新のタイミングを確認する。"
+    )
+
+    static let silverDataTypes013 = Quiz(
+        id: "silver-data-types-013",
+        level: .silver,
+        category: "data-types",
+        tags: ["byte", "複合代入", "数値昇格"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        byte b = 1;
+        b += 2;
+        System.out.println(b);
+    }
+}
+""",
+        question: "このコードをコンパイル・実行したときの結果はどれか？",
+        choices: [
+            Choice(id: "a", text: "3", correct: true, misconception: nil, explanation: "複合代入のb += 2は暗黙のキャストを含むため、byteへ戻して代入できます。"),
+            Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "b = b + 2 と完全に同じ扱いだと誤解", explanation: "b = b + 2ならintからbyteへの代入でエラーですが、b += 2は暗黙キャストされます。"),
+            Choice(id: "c", text: "1", correct: false, misconception: "複合代入が値を変更しないと誤解", explanation: "bへ2が加算されます。"),
+            Choice(id: "d", text: "実行時にClassCastException", correct: false, misconception: "プリミティブの変換を実行時キャストと混同", explanation: "これはコンパイル時に扱われる数値変換です。"),
+        ],
+        explanationRef: "explain-silver-data-types-013",
+        designIntent: "byteに対する複合代入が暗黙の型変換を含むことを確認する。"
+    )
+
+    static let silverDataTypes014 = Quiz(
+        id: "silver-data-types-014",
+        level: .silver,
+        category: "data-types",
+        tags: ["int", "除算", "整数演算"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(10 / 4);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2", correct: true, misconception: nil, explanation: "int同士の除算なので小数部は切り捨てられます。"),
+            Choice(id: "b", text: "2.5", correct: false, misconception: "整数同士でも小数計算になると誤解", explanation: "どちらもintリテラルなので結果もintです。"),
+            Choice(id: "c", text: "3", correct: false, misconception: "四捨五入されると誤解", explanation: "整数除算は四捨五入ではなく0方向への切り捨てです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "割り切れない整数除算が禁止されると誤解", explanation: "割り切れなくても有効で、余りが捨てられます。"),
+        ],
+        explanationRef: "explain-silver-data-types-014",
+        designIntent: "整数除算では小数部が捨てられることを確認する。"
+    )
+
+    static let silverString007 = Quiz(
+        id: "silver-string-007",
+        level: .silver,
+        category: "string",
+        tags: ["String", "trim", "length"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        String s = " Java ";
+        System.out.println("[" + s.trim() + "]:" + s.length());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "[Java]:6", correct: true, misconception: nil, explanation: "trim()の結果は前後空白を除いたJavaですが、s.length()は元の文字列の長さ6です。"),
+            Choice(id: "b", text: "[Java]:4", correct: false, misconception: "trim()が元のStringを書き換えると誤解", explanation: "Stringは不変です。s自体は\" Java \"のままです。"),
+            Choice(id: "c", text: "[ Java ]:6", correct: false, misconception: "trim()が何もしないと誤解", explanation: "trim()は前後の空白を除いた新しい文字列を返します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "文字列連結とメソッド呼び出しを混同", explanation: "trim()とlength()はStringの有効なメソッドです。"),
+        ],
+        explanationRef: "explain-silver-string-007",
+        designIntent: "Stringの不変性とtrim()の戻り値、元のlength()を分けて追わせる。"
+    )
+
+    static let silverStringBuilder006 = Quiz(
+        id: "silver-stringbuilder-006",
+        level: .silver,
+        category: "string",
+        tags: ["StringBuilder", "append", "delete"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder("ab");
+        sb.append("c").delete(0, 1);
+        System.out.println(sb);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "bc", correct: true, misconception: nil, explanation: "appendでabcになり、delete(0,1)で0番目だけが削除されてbcになります。"),
+            Choice(id: "b", text: "abc", correct: false, misconception: "deleteの終了位置が含まれると誤解", explanation: "deleteの終了インデックス1は含まれませんが、0番目のaは削除されます。"),
+            Choice(id: "c", text: "c", correct: false, misconception: "delete(0,1)が0から1まで両方消すと誤解", explanation: "削除範囲は開始を含み、終了を含みません。"),
+            Choice(id: "d", text: "ab", correct: false, misconception: "appendが新しいStringBuilderを返して元を変えないと誤解", explanation: "StringBuilderは可変で、appendは同じオブジェクトを変更して返します。"),
+        ],
+        explanationRef: "explain-silver-stringbuilder-006",
+        designIntent: "StringBuilderの破壊的変更とdelete範囲の開始包含・終了非包含を確認する。"
+    )
+
+    static let silverArray010 = Quiz(
+        id: "silver-array-010",
+        level: .silver,
+        category: "data-types",
+        tags: ["配列", "初期値", "length"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int[] a = new int[2];
+        System.out.println(a[0] + ":" + a.length);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "0:2", correct: true, misconception: nil, explanation: "int配列の要素は0で初期化され、lengthは要素数2です。"),
+            Choice(id: "b", text: "null:2", correct: false, misconception: "プリミティブ配列要素の初期値をnullと誤解", explanation: "intは参照型ではないため初期値は0です。"),
+            Choice(id: "c", text: "0:1", correct: false, misconception: "lengthが最大インデックスを返すと誤解", explanation: "lengthは最大インデックスではなく要素数です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "配列要素を代入前に読めないと誤解", explanation: "配列要素は生成時にデフォルト値で初期化されています。"),
+        ],
+        explanationRef: "explain-silver-array-010",
+        designIntent: "プリミティブ配列のデフォルト値とlengthプロパティを確認する。"
+    )
+
+    static let silverArray011 = Quiz(
+        id: "silver-array-011",
+        level: .silver,
+        category: "data-types",
+        tags: ["配列", "Object", "instanceof"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        String[] names = {"A", "B"};
+        Object obj = names;
+        System.out.println(obj instanceof String[]);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "配列はオブジェクトなのでObject変数へ代入でき、実体はString[]のままです。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "Objectへ代入すると配列型情報が消えると誤解", explanation: "参照型の宣言型がObjectでも、実行時型はString[]です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "配列をObjectへ代入できないと誤解", explanation: "Javaの配列型はObjectのサブタイプです。"),
+            Choice(id: "d", text: "ClassCastException", correct: false, misconception: "instanceofが例外を投げると誤解", explanation: "instanceofは判定結果としてbooleanを返します。"),
+        ],
+        explanationRef: "explain-silver-array-011",
+        designIntent: "配列がObjectとして扱えることと、instanceofが実行時型を見ることを確認する。"
+    )
+
+    static let silverCollections008 = Quiz(
+        id: "silver-collections-008",
+        level: .silver,
+        category: "collections",
+        tags: ["List", "ArrayList", "add"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("A");
+        list.add(0, "B");
+        System.out.println(list);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "[B, A]", correct: true, misconception: nil, explanation: "add(0, \"B\") は0番目にBを挿入し、既存のAを後ろへずらします。"),
+            Choice(id: "b", text: "[A, B]", correct: false, misconception: "add(index, element)を末尾追加と誤解", explanation: "index 0を指定しているので先頭挿入です。"),
+            Choice(id: "c", text: "[B]", correct: false, misconception: "0番目のAを置換すると誤解", explanation: "addは挿入です。置換ならset(0, \"B\")です。"),
+            Choice(id: "d", text: "IndexOutOfBoundsException", correct: false, misconception: "空でないListの0番目挿入が不正と誤解", explanation: "サイズ1のListでは、index 0への挿入は有効です。"),
+        ],
+        explanationRef: "explain-silver-collections-008",
+        designIntent: "List.add(index, element)が置換ではなく挿入であることを確認する。"
+    )
+
+    static let silverCollections009 = Quiz(
+        id: "silver-collections-009",
+        level: .silver,
+        category: "collections",
+        tags: ["Set", "HashSet", "重複"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Set<String> set = new HashSet<>();
+        set.add("A");
+        set.add("A");
+        System.out.println(set.size());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "Setは重複要素を保持しないため、同じ\"A\"を2回追加してもサイズは1です。"),
+            Choice(id: "b", text: "2", correct: false, misconception: "SetもListと同じように重複を保持すると誤解", explanation: "Setはequalsで等しい要素を重複として扱います。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "重複追加で既存要素も削除されると誤解", explanation: "2回目のaddが追加されないだけで、1回目のAは残ります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "HashSetをSet型で受けられないと誤解", explanation: "HashSetはSetインターフェースを実装しています。"),
+        ],
+        explanationRef: "explain-silver-collections-009",
+        designIntent: "Setが重複を保持しないことをsizeで確認する。"
+    )
+
+    static let silverControlFlow011 = Quiz(
+        id: "silver-control-flow-011",
+        level: .silver,
+        category: "control-flow",
+        tags: ["switch", "fall-through", "break"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int x = 2;
+        switch (x) {
+            case 1:
+                System.out.print("A");
+            case 2:
+                System.out.print("B");
+            default:
+                System.out.print("C");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "BC", correct: true, misconception: nil, explanation: "case 2に一致してBを出力し、breakがないためdefaultへ続いてCも出力します。"),
+            Choice(id: "b", text: "B", correct: false, misconception: "caseごとに自動でbreakされると誤解", explanation: "従来のswitch文ではbreakを書かなければ次のラベルへ流れます。"),
+            Choice(id: "c", text: "ABC", correct: false, misconception: "一致前のcaseも実行されると誤解", explanation: "case 1は一致していないため、そこからは始まりません。"),
+            Choice(id: "d", text: "C", correct: false, misconception: "defaultが常に優先されると誤解", explanation: "まず一致したcase 2から実行が始まります。"),
+        ],
+        explanationRef: "explain-silver-control-flow-011",
+        designIntent: "switch文のフォールスルーとbreakの必要性を確認する。"
+    )
+
+    static let silverControlFlow012 = Quiz(
+        id: "silver-control-flow-012",
+        level: .silver,
+        category: "control-flow",
+        tags: ["for", "continue", "ループ"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        for (int i = 0; i < 3; i++) {
+            if (i == 1) {
+                continue;
+            }
+            System.out.print(i);
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "02", correct: true, misconception: nil, explanation: "iが1のときだけcontinueで出力をスキップし、0と2が出力されます。"),
+            Choice(id: "b", text: "012", correct: false, misconception: "continueが何もしないと誤解", explanation: "continueはその回の残り処理を飛ばします。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "continueがループ全体を終了すると誤解", explanation: "ループを終了するのはbreakです。continue後も更新式へ進んで次の反復に入ります。"),
+            Choice(id: "d", text: "2", correct: false, misconception: "i=0でもcontinueされると誤解", explanation: "continueするのはi == 1のときだけです。"),
+        ],
+        explanationRef: "explain-silver-control-flow-012",
+        designIntent: "continueが現在の反復だけをスキップすることを確認する。"
+    )
+
+    static let silverClasses009 = Quiz(
+        id: "silver-classes-009",
+        level: .silver,
+        category: "classes",
+        tags: ["コンストラクタ", "this", "初期化"],
+        code: """
+class A {
+    A() {
+        this(1);
+        System.out.print("A");
+    }
+
+    A(int x) {
+        System.out.print(x);
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        new A();
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "1A", correct: true, misconception: nil, explanation: "A()の先頭でthis(1)によりA(int)が実行され、その後Aが出力されます。"),
+            Choice(id: "b", text: "A1", correct: false, misconception: "this(1)より後続処理が先に実行されると誤解", explanation: "this(...)によるコンストラクタ呼び出しは最初に実行されます。"),
+            Choice(id: "c", text: "A", correct: false, misconception: "this(1)の呼び出し先が実行されないと誤解", explanation: "A(int)も実行され、1を出力します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "コンストラクタから別コンストラクタを呼べないと誤解", explanation: "this(...)はコンストラクタの先頭文として使えます。"),
+        ],
+        explanationRef: "explain-silver-classes-009",
+        designIntent: "this(...)によるコンストラクタ連鎖の実行順を確認する。"
+    )
+
+    static let silverClasses010 = Quiz(
+        id: "silver-classes-010",
+        level: .silver,
+        category: "classes",
+        tags: ["フィールド", "初期値", "インスタンス"],
+        code: """
+class Box {
+    int value;
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Box box = new Box();
+        System.out.println(box.value);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "0", correct: true, misconception: nil, explanation: "インスタンスフィールドのintは、明示的に初期化しなくても0で初期化されます。"),
+            Choice(id: "b", text: "null", correct: false, misconception: "プリミティブintの初期値をnullと誤解", explanation: "nullは参照型の値で、intの初期値は0です。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "フィールドもローカル変数と同じく未初期化で読めないと誤解", explanation: "フィールドはデフォルト値で初期化されます。"),
+            Choice(id: "d", text: "実行時例外", correct: false, misconception: "未代入フィールドの読み取りが実行時例外になると誤解", explanation: "boxは生成済みで、valueは0に初期化されています。"),
+        ],
+        explanationRef: "explain-silver-classes-010",
+        designIntent: "フィールドとローカル変数の初期化ルールの違いを確認する。"
+    )
+
+    static let silverInheritance008 = Quiz(
+        id: "silver-inheritance-008",
+        level: .silver,
+        category: "inheritance",
+        tags: ["オーバーライド", "動的ディスパッチ", "ポリモーフィズム"],
+        code: """
+class Parent {
+    String name() {
+        return "P";
+    }
+}
+
+class Child extends Parent {
+    String name() {
+        return "C";
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Parent p = new Child();
+        System.out.println(p.name());
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "C", correct: true, misconception: nil, explanation: "name()はインスタンスメソッドなので、実体Childのオーバーライド実装が呼ばれます。"),
+            Choice(id: "b", text: "P", correct: false, misconception: "メソッド呼び出しも参照変数の型だけで決まると誤解", explanation: "オーバーライドされたインスタンスメソッドは実行時の実体で選ばれます。"),
+            Choice(id: "c", text: "Parent", correct: false, misconception: "クラス名が出力されると誤解", explanation: "name()の戻り値は文字列\"C\"です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Parent型変数でChildを参照できないと誤解", explanation: "サブクラスのインスタンスはスーパークラス型へ代入できます。"),
+        ],
+        explanationRef: "explain-silver-inheritance-008",
+        designIntent: "オーバーライドされたインスタンスメソッドは実体クラスで選ばれることを確認する。"
+    )
+
+    static let silverInheritance009 = Quiz(
+        id: "silver-inheritance-009",
+        level: .silver,
+        category: "inheritance",
+        tags: ["フィールド隠蔽", "参照型", "継承"],
+        code: """
+class Parent {
+    String value = "P";
+}
+
+class Child extends Parent {
+    String value = "C";
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Parent p = new Child();
+        System.out.println(p.value);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "P", correct: true, misconception: nil, explanation: "フィールドアクセスはオーバーライドされず、参照変数の型Parentに基づいてParent.valueが読まれます。"),
+            Choice(id: "b", text: "C", correct: false, misconception: "フィールドもメソッドのように動的に選ばれると誤解", explanation: "フィールドは隠蔽であり、アクセス式の型で決まります。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "Parent側のvalueが初期化されないと誤解", explanation: "Parent部分のvalueは\"P\"で初期化されています。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "同名フィールドをサブクラスに宣言できないと誤解", explanation: "同名フィールドは宣言でき、親のフィールドを隠蔽します。"),
+        ],
+        explanationRef: "explain-silver-inheritance-009",
+        designIntent: "メソッドのオーバーライドとフィールド隠蔽の違いを確認する。"
+    )
+
+    static let silverException009 = Quiz(
+        id: "silver-exception-009",
+        level: .silver,
+        category: "exception-handling",
+        tags: ["try-catch-finally", "RuntimeException", "finally"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        try {
+            System.out.print("T");
+            throw new RuntimeException();
+        } catch (RuntimeException e) {
+            System.out.print("C");
+        } finally {
+            System.out.print("F");
+        }
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "TCF", correct: true, misconception: nil, explanation: "tryでTを出力後に例外が投げられ、catchでC、finallyでFが出力されます。"),
+            Choice(id: "b", text: "TF", correct: false, misconception: "RuntimeExceptionがcatchされないと誤解", explanation: "catch(RuntimeException e)が一致するためCも出力されます。"),
+            Choice(id: "c", text: "TC", correct: false, misconception: "catchされたらfinallyが実行されないと誤解", explanation: "finallyは通常、例外の有無にかかわらず実行されます。"),
+            Choice(id: "d", text: "T", correct: false, misconception: "例外後にcatch/finallyへ進まないと誤解", explanation: "対応するcatchとfinallyが順に実行されます。"),
+        ],
+        explanationRef: "explain-silver-exception-009",
+        designIntent: "try、catch、finallyの実行順を出力で確認する。"
+    )
+
+    static let silverException010 = Quiz(
+        id: "silver-exception-010",
+        level: .silver,
+        category: "exception-handling",
+        tags: ["checked exception", "throws", "IOException"],
+        code: """
+import java.io.IOException;
+
+public class Test {
+    static void read() throws IOException {
+    }
+
+    public static void main(String[] args) {
+        read();
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "read(); でコンパイルエラー", correct: true, misconception: nil, explanation: "read()は検査例外IOExceptionをthrowsしているため、main側で捕捉または宣言が必要です。"),
+            Choice(id: "b", text: "何も出力せず正常終了", correct: false, misconception: "throws宣言があっても呼び出し側の対応は不要と誤解", explanation: "検査例外は呼び出し側で処理またはthrows宣言しなければなりません。"),
+            Choice(id: "c", text: "IOExceptionが実行時に必ず発生する", correct: false, misconception: "throws宣言を必ずthrowすると誤解", explanation: "throwsは発生可能性の宣言です。ただしこのコードはその前にコンパイルエラーです。"),
+            Choice(id: "d", text: "import文でコンパイルエラー", correct: false, misconception: "IOExceptionのパッケージを誤解", explanation: "IOExceptionはjava.ioパッケージにあります。"),
+        ],
+        explanationRef: "explain-silver-exception-010",
+        designIntent: "検査例外をthrowsするメソッドの呼び出しには、catchまたはthrowsが必要なことを確認する。"
+    )
+
+    static let silverLambda006 = Quiz(
+        id: "silver-lambda-006",
+        level: .silver,
+        category: "lambda-streams",
+        tags: ["Predicate", "ラムダ式", "関数型インターフェース"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Predicate<String> p = s -> s.startsWith("J");
+        System.out.println(p.test("Java"));
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "Predicate<String>のtestに\"Java\"を渡すと、startsWith(\"J\")がtrueになります。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "startsWithの判定を逆に読んでいる", explanation: "\"Java\"はJで始まります。"),
+            Choice(id: "c", text: "Java", correct: false, misconception: "Predicateが値を変換して返すと誤解", explanation: "Predicateはbooleanを返す関数型インターフェースです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "ラムダ式をPredicateへ代入できないと誤解", explanation: "Predicate<T>はboolean test(T)を持つ関数型インターフェースなので、このラムダを代入できます。"),
+        ],
+        explanationRef: "explain-silver-lambda-006",
+        designIntent: "Predicateの抽象メソッドtestとラムダ式の対応を確認する。"
+    )
+
+    static let silverStatic005 = Quiz(
+        id: "silver-static-005",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "クラス変数", "インスタンス生成"],
+        code: """
+class Counter {
+    static int count;
+
+    Counter() {
+        count++;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        new Counter();
+        new Counter();
+        System.out.println(Counter.count);
+    }
+}
+""",
+        question: "このコードを実行したとき、出力されるのはどれか？",
+        choices: [
+            Choice(id: "a", text: "2", correct: true, misconception: nil, explanation: "countはstaticなのでCounterクラスに1つだけあり、コンストラクタ2回で2になります。"),
+            Choice(id: "b", text: "1", correct: false, misconception: "staticフィールドがインスタンスごとに初期化されると誤解", explanation: "staticフィールドは共有されます。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "コンストラクタでstaticフィールドを変更できないと誤解", explanation: "インスタンスコンストラクタからstaticフィールドを更新できます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "クラス名でstaticフィールドを参照できないと誤解", explanation: "staticフィールドは通常、クラス名経由で参照します。"),
+        ],
+        explanationRef: "explain-silver-static-005",
+        designIntent: "staticフィールドが全インスタンスで共有されることを、生成回数で確認する。"
+    )
+
+    static let silverFinal004 = Quiz(
+        id: "silver-final-004",
+        level: .silver,
+        category: "classes",
+        tags: ["final", "ローカル変数", "再代入"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        final int x = 1;
+        x = 2;
+        System.out.println(x);
+    }
+}
+""",
+        question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "x = 2; でコンパイルエラー", correct: true, misconception: nil, explanation: "finalローカル変数xは一度代入済みなので、別の値を再代入できません。"),
+            Choice(id: "b", text: "2と出力される", correct: false, misconception: "finalが再代入を許すと誤解", explanation: "final変数は一度代入すると変更できません。"),
+            Choice(id: "c", text: "1と出力される", correct: false, misconception: "不正な代入が無視されると誤解", explanation: "代入は無視されるのではなくコンパイルエラーになります。"),
+            Choice(id: "d", text: "実行時にIllegalStateException", correct: false, misconception: "final制約を実行時例外と誤解", explanation: "finalローカル変数への再代入はコンパイル時に拒否されます。"),
+        ],
+        explanationRef: "explain-silver-final-004",
+        designIntent: "finalローカル変数への明示的な再代入がコンパイルエラーになることを確認する。"
     )
 
     static let goldObject003 = Quiz(

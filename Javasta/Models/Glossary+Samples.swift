@@ -1062,13 +1062,13 @@ var i = 42;                          // int と推論
 
 **使える場所**: ローカル変数のみ。フィールド、パラメータ、戻り値型には使えません。
 
-**注意**: `null` で初期化すると型が確定しないのでコンパイルエラー。
+**注意**: `null` で初期化すると型が確定しないのでコンパイルエラー。ラムダ式も単体では型を持たないため、`var f = s -> s.length();` のようには書けません。キャストや代入先の関数型インターフェースなど、ターゲット型が必要です。
 
 型を明示したほうが読みやすい場面では使わないのが良い習慣です。
 """,
-        relatedTermIds: ["compile"],
+        relatedTermIds: ["compile", "lambda", "functional-interface"],
         relatedLessonIds: [],
-        relatedQuizIds: []
+        relatedQuizIds: ["gold-functional-lambda-024", "gold-functional-lambda-025", "gold-functional-lambda-042", "gold-functional-lambda-043"]
     )
 
     // MARK: - アクセス制御・構造
@@ -1524,7 +1524,7 @@ x -> x * 2             // 括弧省略可
 """,
         relatedTermIds: ["functional-interface", "method-reference", "primitive-functional-interface", "stream"],
         relatedLessonIds: [],
-        relatedQuizIds: ["gold-lambda-effectively-final-001", "gold-functional-lambda-002", "gold-functional-lambda-003", "gold-functional-lambda-004", "gold-functional-lambda-008", "gold-functional-lambda-009", "gold-functional-lambda-024", "gold-functional-lambda-025"]
+        relatedQuizIds: ["gold-lambda-effectively-final-001", "gold-functional-lambda-002", "gold-functional-lambda-003", "gold-functional-lambda-004", "gold-functional-lambda-008", "gold-functional-lambda-009", "gold-functional-lambda-024", "gold-functional-lambda-025", "gold-functional-lambda-041", "gold-functional-lambda-042", "gold-functional-lambda-043", "gold-functional-lambda-044", "gold-functional-lambda-045", "gold-functional-lambda-046", "gold-functional-lambda-047", "gold-functional-lambda-057", "gold-functional-lambda-059"]
     )
 
     static let functionalInterface = GlossaryTerm(
@@ -1552,7 +1552,7 @@ isLong.test("hello");   // false
 """,
         relatedTermIds: ["lambda", "method-reference", "primitive-functional-interface", "interface"],
         relatedLessonIds: [],
-        relatedQuizIds: ["gold-functional-lambda-001", "gold-functional-lambda-003", "gold-functional-lambda-005", "gold-functional-lambda-006", "gold-functional-lambda-007", "gold-functional-lambda-020", "gold-functional-lambda-021", "gold-functional-lambda-022"]
+        relatedQuizIds: ["gold-functional-lambda-001", "gold-functional-lambda-003", "gold-functional-lambda-005", "gold-functional-lambda-006", "gold-functional-lambda-007", "gold-functional-lambda-020", "gold-functional-lambda-021", "gold-functional-lambda-022", "gold-functional-lambda-041", "gold-functional-lambda-042", "gold-functional-lambda-043", "gold-functional-lambda-044", "gold-functional-lambda-048", "gold-functional-lambda-049", "gold-functional-lambda-055", "gold-functional-lambda-056", "gold-functional-lambda-057", "gold-functional-lambda-058", "gold-functional-lambda-059", "gold-functional-lambda-060"]
     )
 
     static let methodReference = GlossaryTerm(
@@ -1579,7 +1579,7 @@ words.stream().sorted(String::compareTo).toList();
 """,
         relatedTermIds: ["lambda", "functional-interface", "primitive-functional-interface", "stream"],
         relatedLessonIds: [],
-        relatedQuizIds: ["gold-lambda-method-ref-001", "gold-lambda-constructor-ref-001", "gold-functional-lambda-005", "gold-functional-lambda-010", "gold-functional-lambda-011", "gold-functional-lambda-012", "gold-functional-lambda-013", "gold-functional-lambda-014", "gold-functional-lambda-017"]
+        relatedQuizIds: ["gold-lambda-method-ref-001", "gold-lambda-constructor-ref-001", "gold-functional-lambda-005", "gold-functional-lambda-010", "gold-functional-lambda-011", "gold-functional-lambda-012", "gold-functional-lambda-013", "gold-functional-lambda-014", "gold-functional-lambda-017", "gold-functional-lambda-048", "gold-functional-lambda-049", "gold-functional-lambda-050", "gold-functional-lambda-051", "gold-functional-lambda-052", "gold-functional-lambda-053", "gold-functional-lambda-054", "gold-functional-lambda-055", "gold-functional-lambda-056", "gold-functional-lambda-058", "gold-functional-lambda-060"]
     )
 
     static let primitiveFunctionalInterfaceTerm = GlossaryTerm(
@@ -1603,7 +1603,7 @@ words.stream().sorted(String::compareTo).toList();
 """,
         relatedTermIds: ["functional-interface", "lambda", "method-reference", "boxing"],
         relatedLessonIds: [],
-        relatedQuizIds: ["gold-functional-lambda-014", "gold-functional-lambda-015", "gold-functional-lambda-016", "gold-functional-lambda-017", "gold-functional-lambda-018", "gold-functional-lambda-019", "gold-functional-lambda-023", "gold-functional-lambda-026", "gold-functional-lambda-027", "gold-functional-lambda-028", "gold-functional-lambda-029", "gold-functional-lambda-030", "gold-functional-lambda-031", "gold-functional-lambda-032", "gold-functional-lambda-033", "gold-functional-lambda-034"]
+        relatedQuizIds: ["gold-functional-lambda-014", "gold-functional-lambda-015", "gold-functional-lambda-016", "gold-functional-lambda-017", "gold-functional-lambda-018", "gold-functional-lambda-019", "gold-functional-lambda-023", "gold-functional-lambda-026", "gold-functional-lambda-027", "gold-functional-lambda-028", "gold-functional-lambda-029", "gold-functional-lambda-030", "gold-functional-lambda-031", "gold-functional-lambda-032", "gold-functional-lambda-033", "gold-functional-lambda-034", "gold-functional-lambda-049", "gold-functional-lambda-054"]
     )
 
     // MARK: - 制御フロー追加
