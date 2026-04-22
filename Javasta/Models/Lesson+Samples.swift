@@ -5,7 +5,7 @@ extension Lesson {
         overloadResolution,
         finallyAndReturn,
         boundedWildcards,
-    ] + quickLessons
+    ] + goldLearningExpansion + quickLessons
     
     static func sample(for id: String) -> Lesson? {
         samples.first(where: { $0.id == id })

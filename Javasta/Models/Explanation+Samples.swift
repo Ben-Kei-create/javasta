@@ -90,6 +90,8 @@ extension Explanation {
             .merging(generatedAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(streamApiAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldGeneralAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldAdvancedAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(mockExamOnlyAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
     }
 

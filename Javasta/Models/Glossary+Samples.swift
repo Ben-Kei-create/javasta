@@ -33,7 +33,7 @@ extension GlossaryTerm {
         `fallthrough`, switchExpression,
         // モダンJava
         enumTerm, annotationTerm, metaAnnotationTerm, pathNioTerm, recordTerm, sealedTerm,
-    ]
+    ] + examVocabularyExpansion
 
     static func lookup(_ id: String) -> GlossaryTerm? {
         samples.first { $0.id == id }

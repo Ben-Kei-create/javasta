@@ -69,6 +69,10 @@ enum QuestionBank {
         level: JavaLevel,
         progress: ProgressStore
     ) -> QuizSession? {
+        if mode == .mockExam {
+            return makeMockExamSession(variant: .full, version: version, level: level)
+        }
+
         let pool = quizzes(version: version, level: level)
         guard !pool.isEmpty else { return nil }
 
@@ -85,7 +89,7 @@ enum QuestionBank {
         case .unattempted:
             selected = unattempted(pool, progress: progress, limit: mode.limit)
         case .mockExam:
-            return makeMockExamSession(variant: .full, version: version, level: level)
+            return nil
         }
 
         let fallback = balanced(pool, limit: mode.limit)

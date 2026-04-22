@@ -95,6 +95,7 @@ extension Quiz {
             + QuizExpansion.mixedExpansion
             + QuizExpansion.streamApiExpansion
             + QuizExpansion.goldGeneralExpansion
+            + QuizExpansion.goldAdvancedExpansion
 
         var seenIds = Set<String>()
         return all.filter { quiz in

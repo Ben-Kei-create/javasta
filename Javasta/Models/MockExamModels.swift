@@ -8,7 +8,7 @@ enum MockExamVariant: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .small: return "スモール模試"
+        case .small: return "20分模試"
         case .full: return "本番模試"
         }
     }

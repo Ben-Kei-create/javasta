@@ -90,7 +90,7 @@ struct ExplanationView: View {
 
     private var relatedGlossaryTerms: [GlossaryTerm] {
         let lessonId = vm.explanation.relatedLessonId
-        let quizIds = Set(Quiz.samples
+        let quizIds = Set(QuestionBank.allQuizzes
             .filter { $0.explanationRef == vm.explanation.id }
             .map(\.id))
 
@@ -106,7 +106,7 @@ struct ExplanationView: View {
     }
 
     private var linkedQuiz: Quiz? {
-        Quiz.samples.first { $0.explanationRef == vm.explanation.id }
+        QuestionBank.allQuizzes.first { $0.explanationRef == vm.explanation.id }
     }
 
     @ViewBuilder
