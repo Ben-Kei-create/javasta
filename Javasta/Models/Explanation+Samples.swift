@@ -2987,6 +2987,26 @@ public class Test {
         silverException012Explanation.id: silverException012Explanation,
         silverLambda007Explanation.id: silverLambda007Explanation,
         silverLambda008Explanation.id: silverLambda008Explanation,
+        silverJavaBasics009Explanation.id: silverJavaBasics009Explanation,
+        silverDataTypes018Explanation.id: silverDataTypes018Explanation,
+        silverDataTypes019Explanation.id: silverDataTypes019Explanation,
+        silverString009Explanation.id: silverString009Explanation,
+        silverStringBuilder008Explanation.id: silverStringBuilder008Explanation,
+        silverArray014Explanation.id: silverArray014Explanation,
+        silverCollections012Explanation.id: silverCollections012Explanation,
+        silverCollections013Explanation.id: silverCollections013Explanation,
+        silverControlFlow015Explanation.id: silverControlFlow015Explanation,
+        silverClasses013Explanation.id: silverClasses013Explanation,
+        silverInheritance012Explanation.id: silverInheritance012Explanation,
+        silverException013Explanation.id: silverException013Explanation,
+        silverLambda009Explanation.id: silverLambda009Explanation,
+        silverStatic006Explanation.id: silverStatic006Explanation,
+        silverFinal005Explanation.id: silverFinal005Explanation,
+        silverEnum004Explanation.id: silverEnum004Explanation,
+        silverObject003Explanation.id: silverObject003Explanation,
+        silverOverload008Explanation.id: silverOverload008Explanation,
+        silverOperators003Explanation.id: silverOperators003Explanation,
+        silverJavaBasics010Explanation.id: silverJavaBasics010Explanation,
         goldObject003Explanation.id: goldObject003Explanation,
         goldObject004Explanation.id: goldObject004Explanation,
         goldAnnotations003Explanation.id: goldAnnotations003Explanation,
@@ -6968,6 +6988,282 @@ System.out.println(f.apply("abc"));
             Step(index: 0, narration: "`String::length` は未束縛インスタンスメソッド参照です。Functionの引数Stringが、length()を呼ぶ対象になります。", highlightLines: [1], variables: [Variable(name: "f", type: "Function<String,Integer>", value: "s -> s.length()", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
             Step(index: 1, narration: "`f.apply(\"abc\")` は `\"abc\".length()` と同じです。文字数は3です。", highlightLines: [2], variables: [Variable(name: "f.apply(\"abc\")", type: "Integer", value: "3", scope: "main")], callStack: [CallStackFrame(method: "Function.apply", line: 2)], heap: [], predict: PredictPrompt(question: "戻り値は？", choices: ["abc", "3"], answerIndex: 1, hint: "length()の結果です。", afterExplanation: "正解です。Integerの3です。")),
             Step(index: 2, narration: "printlnは `3` を出力します。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+
+    static let silverJavaBasics009Explanation = Explanation(
+        id: "explain-silver-java-basics-009",
+        initialCode: """
+public static void main(String[] args) {
+    System.out.println(args.length);
+}
+// 実行: java Test a b
+""",
+        steps: [
+            Step(index: 0, narration: "実行引数はa,bの2つなので、args配列の長さは2です。", highlightLines: [1, 4], variables: [Variable(name: "args", type: "String[]", value: "["a", "b"]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`args.length` は2を返し、その値がprintlnされます。", highlightLines: [2], variables: [Variable(name: "args.length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverDataTypes018Explanation = Explanation(
+        id: "explain-silver-data-types-018",
+        initialCode: """
+double d = 9.8;
+int i = (int) d;
+System.out.println(i);
+""",
+        steps: [
+            Step(index: 0, narration: "dは9.8です。", highlightLines: [1], variables: [Variable(name: "d", type: "double", value: "9.8", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`(int)d` は小数部を切り捨てて9になります。", highlightLines: [2], variables: [Variable(name: "i", type: "int", value: "9", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "出力は9です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverDataTypes019Explanation = Explanation(
+        id: "explain-silver-data-types-019",
+        initialCode: """
+Integer n = null;
+System.out.println(n + 1);
+""",
+        steps: [
+            Step(index: 0, narration: "nはInteger参照でnullです。", highlightLines: [1], variables: [Variable(name: "n", type: "Integer", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`n + 1` ではnをintへアンボクシングしようとしますが、nullのためNullPointerExceptionになります。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverString009Explanation = Explanation(
+        id: "explain-silver-string-009",
+        initialCode: """
+String a = new String("java");
+String b = "java";
+System.out.println(a == b);
+System.out.println(a.equals(b));
+""",
+        steps: [
+            Step(index: 0, narration: "aはnewで作られた別オブジェクト、bは文字列リテラル参照です。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`a == b` は参照比較なのでfalseです。", highlightLines: [3], variables: [Variable(name: "a == b", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 2, narration: "`a.equals(b)` は内容比較なのでtrueです。", highlightLines: [4], variables: [Variable(name: "a.equals(b)", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverStringBuilder008Explanation = Explanation(
+        id: "explain-silver-stringbuilder-008",
+        initialCode: """
+StringBuilder sb = new StringBuilder("ab");
+sb.reverse().append("c");
+System.out.println(sb);
+""",
+        steps: [
+            Step(index: 0, narration: "初期値はabです。", highlightLines: [1], variables: [Variable(name: "sb", type: "StringBuilder", value: ""ab"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "reverseでba、そのままappendでbacになります。", highlightLines: [2], variables: [Variable(name: "sb", type: "StringBuilder", value: ""bac"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "最終出力はbacです。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverArray014Explanation = Explanation(
+        id: "explain-silver-array-014",
+        initialCode: """
+int[][] a = {{1, 2}, {3, 4, 5}};
+System.out.println(a.length + ":" + a[1].length);
+""",
+        steps: [
+            Step(index: 0, narration: "aは2行のジャグ配列です。", highlightLines: [1], variables: [Variable(name: "a.length", type: "int", value: "2", scope: "main"), Variable(name: "a[1].length", type: "int", value: "3", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "式の評価結果は`2:3`です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverCollections012Explanation = Explanation(
+        id: "explain-silver-collections-012",
+        initialCode: """
+Set<String> set = new HashSet<>();
+set.add("A");
+set.add("A");
+System.out.println(set.size());
+""",
+        steps: [
+            Step(index: 0, narration: "HashSetは重複を許しません。", highlightLines: [1, 2, 3], variables: [Variable(name: "set", type: "Set<String>", value: "[A]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "同じAを2回addしても要素数は1です。", highlightLines: [4], variables: [Variable(name: "set.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverCollections013Explanation = Explanation(
+        id: "explain-silver-collections-013",
+        initialCode: """
+Map<String, Integer> map = new HashMap<>();
+map.put("x", 1);
+map.put("x", 2);
+System.out.println(map.get("x"));
+""",
+        steps: [
+            Step(index: 0, narration: "同じキーxに対する2回目のputで値が上書きされます。", highlightLines: [2, 3], variables: [Variable(name: "map[x]", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`map.get("x")` は2を返し、2が出力されます。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverControlFlow015Explanation = Explanation(
+        id: "explain-silver-control-flow-015",
+        initialCode: """
+int n = 1;
+switch (n) {
+    case 1:
+        System.out.print("A");
+    case 2:
+        System.out.print("B");
+        break;
+    default:
+        System.out.print("C");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "n=1なのでcase1から開始します。", highlightLines: [1, 2, 3], variables: [Variable(name: "n", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "case1にbreakがないためcase2へfall-throughし、A,Bを出力してbreakします。", highlightLines: [4, 5, 6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverClasses013Explanation = Explanation(
+        id: "explain-silver-classes-013",
+        initialCode: """
+class A { int x; }
+A a = new A();
+System.out.println(a.x);
+""",
+        steps: [
+            Step(index: 0, narration: "intフィールドxはデフォルト値0で初期化されます。", highlightLines: [1, 2], variables: [Variable(name: "a.x", type: "int", value: "0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "出力は0です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverInheritance012Explanation = Explanation(
+        id: "explain-silver-inheritance-012",
+        initialCode: """
+Parent p = new Child();
+System.out.println(p.name());
+""",
+        steps: [
+            Step(index: 0, narration: "参照型はParentでも、実体はChildです。", highlightLines: [1], variables: [Variable(name: "p", type: "Parent", value: "Child instance", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "インスタンスメソッドは実行時型で動的バインディングされるためChild.name()が呼ばれ、Cが出力されます。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "Child.name", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverException013Explanation = Explanation(
+        id: "explain-silver-exception-013",
+        initialCode: """
+try {
+    System.out.print("T");
+    throw new RuntimeException();
+} catch (RuntimeException e) {
+    System.out.print("C");
+} finally {
+    System.out.print("F");
+}
+""",
+        steps: [
+            Step(index: 0, narration: "tryでTを出力し、例外をthrowします。", highlightLines: [1, 2, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "RuntimeExceptionがcatchされてCを出力します。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 2, narration: "finallyが必ず実行されFを出力し、全体はTCFです。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverLambda009Explanation = Explanation(
+        id: "explain-silver-lambda-009",
+        initialCode: """
+Predicate<String> p = s -> s.isEmpty();
+System.out.println(p.negate().test(""));
+""",
+        steps: [
+            Step(index: 0, narration: "空文字に対する`p.test("")`はtrueです。", highlightLines: [1], variables: [Variable(name: "p.test("")", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "negateで真偽が反転するため結果はfalseです。", highlightLines: [2], variables: [Variable(name: "result", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverStatic006Explanation = Explanation(
+        id: "explain-silver-static-006",
+        initialCode: """
+A a = null;
+System.out.println(a.n);
+""",
+        steps: [
+            Step(index: 0, narration: "aはnullですが、nはstaticフィールドです。", highlightLines: [1, 2], variables: [Variable(name: "a", type: "A", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "staticアクセスは型Aに解決されるためNPEは発生せず、nの値1が出力されます。", highlightLines: [2], variables: [Variable(name: "A.n", type: "int", value: "1", scope: "class")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverFinal005Explanation = Explanation(
+        id: "explain-silver-final-005",
+        initialCode: """
+final class A {}
+class B extends A {}
+""",
+        steps: [
+            Step(index: 0, narration: "Aはfinal classなので継承禁止です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`class B extends A` が規則違反となりコンパイルエラーです。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverEnum004Explanation = Explanation(
+        id: "explain-silver-enum-004",
+        initialCode: """
+enum Level { LOW, HIGH }
+System.out.println(Level.HIGH.name() + ":" + Level.HIGH.ordinal());
+""",
+        steps: [
+            Step(index: 0, narration: "name()は定数名HIGHを返します。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.name()", type: "String", value: ""HIGH"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "ordinal()は0始まりでLOW=0,HIGH=1なので出力はHIGH:1です。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.ordinal()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverObject003Explanation = Explanation(
+        id: "explain-silver-object-003",
+        initialCode: """
+A a = new A();
+System.out.println(a.toString() != null);
+""",
+        steps: [
+            Step(index: 0, narration: "AはObjectを継承するためtoString()を利用できます。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "Object.toStringの既定実装はnullでない文字列を返すため比較結果はtrueです。", highlightLines: [2], variables: [Variable(name: "result", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverOverload008Explanation = Explanation(
+        id: "explain-silver-overload-008",
+        initialCode: """
+static void m(int x) { System.out.print("I"); }
+static void m(Integer... x) { System.out.print("V"); }
+m(1);
+""",
+        steps: [
+            Step(index: 0, narration: "m(1)はint固定引数に完全一致します。", highlightLines: [1, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "固定引数メソッドがvarargsより優先されるためm(int)が選ばれ、Iを出力します。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "m(int)", line: 1)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverOperators003Explanation = Explanation(
+        id: "explain-silver-operators-003",
+        initialCode: """
+int x = 0;
+boolean r = (x > 0) && (++x > 0);
+System.out.println(r + ":" + x);
+""",
+        steps: [
+            Step(index: 0, narration: "左辺`x > 0`はfalseです。", highlightLines: [1, 2], variables: [Variable(name: "x", type: "int", value: "0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 1, narration: "&&は短絡評価なので右辺`++x > 0`は評価されず、xは0のままです。", highlightLines: [2], variables: [Variable(name: "r", type: "boolean", value: "false", scope: "main"), Variable(name: "x", type: "int", value: "0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "出力はfalse:0です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+        ]
+    )
+
+    static let silverJavaBasics010Explanation = Explanation(
+        id: "explain-silver-java-basics-010",
+        initialCode: """
+for (int i = 0; i < 3; i++) {
+    if (i == 1) continue;
+    System.out.print(i);
+}
+""",
+        steps: [
+            Step(index: 0, narration: "i=0ではifがfalseなので0を出力します。", highlightLines: [1, 2, 3], variables: [Variable(name: "i", type: "int", value: "0", scope: "loop")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "i=1ではcontinueによりprintをスキップします。", highlightLines: [2], variables: [Variable(name: "i", type: "int", value: "1", scope: "loop")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "i=2では2を出力し、最終出力は02です。", highlightLines: [3], variables: [Variable(name: "i", type: "int", value: "2", scope: "loop")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
         ]
     )
 

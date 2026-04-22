@@ -143,6 +143,26 @@ extension QuizExpansion {
         silverException012,
         silverLambda007,
         silverLambda008,
+        silverJavaBasics009,
+        silverDataTypes018,
+        silverDataTypes019,
+        silverString009,
+        silverStringBuilder008,
+        silverArray014,
+        silverCollections012,
+        silverCollections013,
+        silverControlFlow015,
+        silverClasses013,
+        silverInheritance012,
+        silverException013,
+        silverLambda009,
+        silverStatic006,
+        silverFinal005,
+        silverEnum004,
+        silverObject003,
+        silverOverload008,
+        silverOperators003,
+        silverJavaBasics010,
         goldObject003,
         goldObject004,
         goldAnnotations003,
@@ -7023,6 +7043,534 @@ public class Test {
         ],
         explanationRef: "explain-silver-lambda-008",
         designIntent: "未束縛インスタンスメソッド参照で、関数の第1引数がレシーバになることを確認する。"
+    )
+
+
+    static let silverJavaBasics009 = Quiz(
+        id: "silver-java-basics-009",
+        level: .silver,
+        category: "java-basics",
+        tags: ["main", "args", "配列長"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(args.length);
+    }
+}
+""",
+        question: "`java Test a b` で実行したときの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "2", correct: true, misconception: nil, explanation: "コマンドライン引数は2つなのでargs.lengthは2です。"),
+            Choice(id: "b", text: "1", correct: false, misconception: "クラス名も引数に含むと誤解", explanation: "クラス名Testはargsに含まれません。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "argsは常に空と誤解", explanation: "aとbがargsに渡されています。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "args.lengthが不正と誤解", explanation: "配列のlength参照は正しい構文です。"),
+        ],
+        explanationRef: "explain-silver-java-basics-009",
+        designIntent: "main引数argsに渡る個数とlengthの基本を確認する。"
+    )
+
+    static let silverDataTypes018 = Quiz(
+        id: "silver-data-types-018",
+        level: .silver,
+        category: "data-types",
+        tags: ["キャスト", "double", "int"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        double d = 9.8;
+        int i = (int) d;
+        System.out.println(i);
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "9", correct: true, misconception: nil, explanation: "doubleからintへのキャストは小数部を切り捨てます。"),
+            Choice(id: "b", text: "10", correct: false, misconception: "四捨五入されると誤解", explanation: "キャストは四捨五入ではなく切り捨てです。"),
+            Choice(id: "c", text: "9.8", correct: false, misconception: "型変換されないと誤解", explanation: "intへ明示キャストしています。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "明示キャストでも不正と誤解", explanation: "縮小変換は明示キャストで可能です。"),
+        ],
+        explanationRef: "explain-silver-data-types-018",
+        designIntent: "doubleからintへの明示キャストで小数部が切り捨てられることを確認する。"
+    )
+
+    static let silverDataTypes019 = Quiz(
+        id: "silver-data-types-019",
+        level: .silver,
+        category: "data-types",
+        tags: ["ラッパー", "Unboxing", "null"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        Integer n = null;
+        System.out.println(n + 1);
+    }
+}
+""",
+        question: "このコードを実行した結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "NullPointerException", correct: true, misconception: nil, explanation: "n + 1でnがintへアンボクシングされる際、nullのためNPEになります。"),
+            Choice(id: "b", text: "1", correct: false, misconception: "nullが0として扱われると誤解", explanation: "JavaでnullのIntegerは自動で0になりません。"),
+            Choice(id: "c", text: "null1", correct: false, misconception: "文字列結合と誤解", explanation: "ここは算術演算で、アンボクシングが発生します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "null代入を不正と誤解", explanation: "Integer参照へnull代入は可能です。"),
+        ],
+        explanationRef: "explain-silver-data-types-019",
+        designIntent: "nullなラッパー型のアンボクシングでNPEになる典型を確認する。"
+    )
+
+    static let silverString009 = Quiz(
+        id: "silver-string-009",
+        level: .silver,
+        category: "string",
+        tags: ["String", "equals", "=="],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        String a = new String("java");
+        String b = "java";
+        System.out.println(a == b);
+        System.out.println(a.equals(b));
+    }
+}
+""",
+        question: "出力の組み合わせとして正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "false と true", correct: true, misconception: nil, explanation: "==は参照比較でfalse、equalsは内容比較でtrueです。"),
+            Choice(id: "b", text: "true と true", correct: false, misconception: "Stringは常に同一参照と誤解", explanation: "new Stringで別オブジェクトです。"),
+            Choice(id: "c", text: "false と false", correct: false, misconception: "equalsも参照比較と誤解", explanation: "String.equalsは文字列内容を比較します。"),
+            Choice(id: "d", text: "true と false", correct: false, misconception: "==とequalsの意味を逆に誤解", explanation: "意味が逆です。"),
+        ],
+        explanationRef: "explain-silver-string-009",
+        designIntent: "Stringの参照比較と内容比較を明確に区別させる。"
+    )
+
+    static let silverStringBuilder008 = Quiz(
+        id: "silver-stringbuilder-008",
+        level: .silver,
+        category: "string",
+        tags: ["StringBuilder", "reverse", "append"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder("ab");
+        sb.reverse().append("c");
+        System.out.println(sb);
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "bac", correct: true, misconception: nil, explanation: "reverseでba、続けてappendでbacになります。"),
+            Choice(id: "b", text: "abc", correct: false, misconception: "reverseが新オブジェクトを返すだけと誤解", explanation: "StringBuilderは同じオブジェクトを破壊的に変更します。"),
+            Choice(id: "c", text: "cab", correct: false, misconception: "append位置を先頭と誤解", explanation: "appendは末尾へ追加です。"),
+            Choice(id: "d", text: "ab", correct: false, misconception: "メソッドチェーンが反映されないと誤解", explanation: "reverseもappendも実行されています。"),
+        ],
+        explanationRef: "explain-silver-stringbuilder-008",
+        designIntent: "StringBuilderの破壊的更新とメソッドチェーンを確認する。"
+    )
+
+    static let silverArray014 = Quiz(
+        id: "silver-array-014",
+        level: .silver,
+        category: "data-types",
+        tags: ["多次元配列", "length"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int[][] a = {{1, 2}, {3, 4, 5}};
+        System.out.println(a.length + ":" + a[1].length);
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "2:3", correct: true, misconception: nil, explanation: "外側配列要素数は2、2行目配列の要素数は3です。"),
+            Choice(id: "b", text: "3:2", correct: false, misconception: "縦横を逆に誤解", explanation: "a.lengthは行数です。"),
+            Choice(id: "c", text: "2:2", correct: false, misconception: "二次元配列は常に矩形と誤解", explanation: "ジャグ配列なので行ごと長さが異なります。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "length参照を不正と誤解", explanation: "配列lengthは正しい参照です。"),
+        ],
+        explanationRef: "explain-silver-array-014",
+        designIntent: "ジャグ配列の外側lengthと内側lengthの違いを確認する。"
+    )
+
+    static let silverCollections012 = Quiz(
+        id: "silver-collections-012",
+        level: .silver,
+        category: "collections",
+        tags: ["Set", "HashSet", "重複"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Set<String> set = new HashSet<>();
+        set.add("A");
+        set.add("A");
+        System.out.println(set.size());
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "Setは重複要素を保持しないため、Aは1件だけです。"),
+            Choice(id: "b", text: "2", correct: false, misconception: "add回数で増えると誤解", explanation: "同値要素の再追加は無視されます。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "重複で両方消えると誤解", explanation: "最初のAは保持されます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Setにaddできないと誤解", explanation: "addは有効です。"),
+        ],
+        explanationRef: "explain-silver-collections-012",
+        designIntent: "Setの重複排除とsizeの結果を確認する。"
+    )
+
+    static let silverCollections013 = Quiz(
+        id: "silver-collections-013",
+        level: .silver,
+        category: "collections",
+        tags: ["Map", "put", "上書き"],
+        code: """
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("x", 1);
+        map.put("x", 2);
+        System.out.println(map.get("x"));
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "2", correct: true, misconception: nil, explanation: "同じキーxへのputは値を上書きするため最終値は2です。"),
+            Choice(id: "b", text: "1", correct: false, misconception: "最初のputが優先と誤解", explanation: "後のputで置き換わります。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "重複キーで削除されると誤解", explanation: "削除ではなく上書きです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "同じキーのputを不正と誤解", explanation: "Mapで同一キー再putは有効です。"),
+        ],
+        explanationRef: "explain-silver-collections-013",
+        designIntent: "Map.putの同一キー上書き動作を確認する。"
+    )
+
+    static let silverControlFlow015 = Quiz(
+        id: "silver-control-flow-015",
+        level: .silver,
+        category: "control-flow",
+        tags: ["switch", "break", "fall-through"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int n = 1;
+        switch (n) {
+            case 1:
+                System.out.print("A");
+            case 2:
+                System.out.print("B");
+                break;
+            default:
+                System.out.print("C");
+        }
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "AB", correct: true, misconception: nil, explanation: "case 1から始まりbreakまでfall-throughしてA,Bを出力します。"),
+            Choice(id: "b", text: "A", correct: false, misconception: "caseごと自動breakと誤解", explanation: "breakがないため次のcaseへ進みます。"),
+            Choice(id: "c", text: "ABC", correct: false, misconception: "defaultにも進むと誤解", explanation: "case 2でbreakされるのでdefaultへ行きません。"),
+            Choice(id: "d", text: "B", correct: false, misconception: "一致caseだけ実行と誤解", explanation: "一致後はbreakまで継続します。"),
+        ],
+        explanationRef: "explain-silver-control-flow-015",
+        designIntent: "switchのfall-throughとbreakの停止位置を確認する。"
+    )
+
+    static let silverClasses013 = Quiz(
+        id: "silver-classes-013",
+        level: .silver,
+        category: "classes",
+        tags: ["フィールド初期値", "インスタンス"],
+        code: """
+class A {
+    int x;
+}
+
+public class Test {
+    public static void main(String[] args) {
+        A a = new A();
+        System.out.println(a.x);
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "0", correct: true, misconception: nil, explanation: "intフィールドはデフォルト値0で初期化されます。"),
+            Choice(id: "b", text: "null", correct: false, misconception: "プリミティブもnull初期化と誤解", explanation: "nullは参照型のデフォルト値です。"),
+            Choice(id: "c", text: "未定義なのでコンパイルエラー", correct: false, misconception: "フィールド初期化必須と誤解", explanation: "フィールドにはデフォルト値が入ります。"),
+            Choice(id: "d", text: "ランダム値", correct: false, misconception: "C言語的未初期化を誤解", explanation: "Javaでは必ずデフォルト初期化されます。"),
+        ],
+        explanationRef: "explain-silver-classes-013",
+        designIntent: "インスタンスフィールドのデフォルト初期化を確認する。"
+    )
+
+    static let silverInheritance012 = Quiz(
+        id: "silver-inheritance-012",
+        level: .silver,
+        category: "inheritance",
+        tags: ["オーバーライド", "動的バインディング"],
+        code: """
+class Parent {
+    String name() { return "P"; }
+}
+class Child extends Parent {
+    String name() { return "C"; }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Parent p = new Child();
+        System.out.println(p.name());
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "C", correct: true, misconception: nil, explanation: "インスタンス実体がChildなのでオーバーライド先が呼ばれます。"),
+            Choice(id: "b", text: "P", correct: false, misconception: "参照型でメソッド決定と誤解", explanation: "インスタンスメソッドは実行時型で決まります。"),
+            Choice(id: "c", text: "PC", correct: false, misconception: "両方呼ばれると誤解", explanation: "name()は1つだけ呼ばれます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "親型参照へ子インスタンス代入不可と誤解", explanation: "これはアップキャストで有効です。"),
+        ],
+        explanationRef: "explain-silver-inheritance-012",
+        designIntent: "参照型ではなく実体型でオーバーライド先が決まることを確認する。"
+    )
+
+    static let silverException013 = Quiz(
+        id: "silver-exception-013",
+        level: .silver,
+        category: "exception-handling",
+        tags: ["try-catch-finally", "実行順"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        try {
+            System.out.print("T");
+            throw new RuntimeException();
+        } catch (RuntimeException e) {
+            System.out.print("C");
+        } finally {
+            System.out.print("F");
+        }
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "TCF", correct: true, misconception: nil, explanation: "tryでT、catchでC、finallyでFの順に出力されます。"),
+            Choice(id: "b", text: "TF", correct: false, misconception: "catchが実行されないと誤解", explanation: "RuntimeExceptionをthrowしているのでcatchに入ります。"),
+            Choice(id: "c", text: "TC", correct: false, misconception: "catch後finally不要と誤解", explanation: "finallyは必ず実行されます。"),
+            Choice(id: "d", text: "CTF", correct: false, misconception: "catchが先に走ると誤解", explanation: "try本体の実行が先です。"),
+        ],
+        explanationRef: "explain-silver-exception-013",
+        designIntent: "try/catch/finallyの実行順を追わせる。"
+    )
+
+    static let silverLambda009 = Quiz(
+        id: "silver-lambda-009",
+        level: .silver,
+        category: "lambda-streams",
+        tags: ["Predicate", "negate"],
+        code: """
+import java.util.function.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Predicate<String> p = s -> s.isEmpty();
+        System.out.println(p.negate().test(""));
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "false", correct: true, misconception: nil, explanation: "空文字に対してp.testはtrue、negateで反転されfalseです。"),
+            Choice(id: "b", text: "true", correct: false, misconception: "negateの効果を見落とし", explanation: "negateは真偽を反転します。"),
+            Choice(id: "c", text: "null", correct: false, misconception: "Predicate結果がnullと誤解", explanation: "testはbooleanを返します。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "negateを使えないと誤解", explanation: "Predicateのdefaultメソッドとして定義されています。"),
+        ],
+        explanationRef: "explain-silver-lambda-009",
+        designIntent: "Predicate.negateで判定結果が反転することを確認する。"
+    )
+
+    static let silverStatic006 = Quiz(
+        id: "silver-static-006",
+        level: .silver,
+        category: "classes",
+        tags: ["static", "インスタンス", "参照"],
+        code: """
+class A {
+    static int n = 1;
+}
+
+public class Test {
+    public static void main(String[] args) {
+        A a = null;
+        System.out.println(a.n);
+    }
+}
+""",
+        question: "このコードの実行結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "staticメンバアクセスは参照変数ではなく型Aに解決されるためNPEになりません。"),
+            Choice(id: "b", text: "NullPointerException", correct: false, misconception: "null参照経由アクセスは常にNPEと誤解", explanation: "インスタンスメンバならNPEですが、staticは型解決です。"),
+            Choice(id: "c", text: "0", correct: false, misconception: "static初期値を誤解", explanation: "nは1で明示初期化されています。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "null変数経由を禁止と誤解", explanation: "警告対象になり得ますがコンパイルは通ります。"),
+        ],
+        explanationRef: "explain-silver-static-006",
+        designIntent: "null参照経由でもstaticメンバアクセスは型に解決されることを確認する。"
+    )
+
+    static let silverFinal005 = Quiz(
+        id: "silver-final-005",
+        level: .silver,
+        category: "classes",
+        tags: ["final", "継承"],
+        code: """
+final class A {}
+class B extends A {}
+""",
+        question: "このコードをコンパイルした結果として正しいものはどれか？",
+        choices: [
+            Choice(id: "a", text: "class B extends A でコンパイルエラー", correct: true, misconception: nil, explanation: "finalクラスは継承できません。"),
+            Choice(id: "b", text: "正常にコンパイルできる", correct: false, misconception: "finalはインスタンス化不可だけと誤解", explanation: "finalは継承禁止です。"),
+            Choice(id: "c", text: "実行時にIllegalAccessError", correct: false, misconception: "継承制約を実行時と誤解", explanation: "これはコンパイル時制約です。"),
+            Choice(id: "d", text: "AだけがコンパイルされBは無視される", correct: false, misconception: "部分コンパイルを誤解", explanation: "不正な型定義があるためコンパイル失敗です。"),
+        ],
+        explanationRef: "explain-silver-final-005",
+        designIntent: "final classの継承禁止を確認する。"
+    )
+
+    static let silverEnum004 = Quiz(
+        id: "silver-enum-004",
+        level: .silver,
+        category: "classes",
+        tags: ["enum", "name", "ordinal"],
+        code: """
+enum Level { LOW, HIGH }
+
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(Level.HIGH.name() + ":" + Level.HIGH.ordinal());
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "HIGH:1", correct: true, misconception: nil, explanation: "nameは定数名、ordinalは0始まりでLOW=0、HIGH=1です。"),
+            Choice(id: "b", text: "HIGH:2", correct: false, misconception: "ordinalを1始まりと誤解", explanation: "ordinalは0始まりです。"),
+            Choice(id: "c", text: "Level.HIGH:1", correct: false, misconception: "nameが修飾名を返すと誤解", explanation: "nameは定数名のみ返します。"),
+            Choice(id: "d", text: "high:1", correct: false, misconception: "nameが小文字化されると誤解", explanation: "宣言どおりHIGHです。"),
+        ],
+        explanationRef: "explain-silver-enum-004",
+        designIntent: "enumのname()とordinal()の基本挙動を確認する。"
+    )
+
+    static let silverObject003 = Quiz(
+        id: "silver-object-003",
+        level: .silver,
+        category: "classes",
+        tags: ["Object", "toString", "print"],
+        code: """
+class A {
+}
+
+public class Test {
+    public static void main(String[] args) {
+        A a = new A();
+        System.out.println(a.toString() != null);
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "toStringはObjectから継承され、既定実装もnullではない文字列を返します。"),
+            Choice(id: "b", text: "false", correct: false, misconception: "toString未overrideだとnullと誤解", explanation: "Object.toStringが利用されます。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "toStringはObject専用で呼べないと誤解", explanation: "全クラスはObject継承なので呼べます。"),
+            Choice(id: "d", text: "NullPointerException", correct: false, misconception: "toString呼び出しでNPEと誤解", explanation: "aはnew済みでnullではありません。"),
+        ],
+        explanationRef: "explain-silver-object-003",
+        designIntent: "全クラスがObjectメソッドを継承する基本を確認する。"
+    )
+
+    static let silverOverload008 = Quiz(
+        id: "silver-overload-008",
+        level: .silver,
+        category: "overload-overwrite",
+        tags: ["オーバーロード", "varargs", "解決"],
+        code: """
+public class Test {
+    static void m(int x) { System.out.print("I"); }
+    static void m(Integer... x) { System.out.print("V"); }
+
+    public static void main(String[] args) {
+        m(1);
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "I", correct: true, misconception: nil, explanation: "固定引数m(int)がvarargsより優先して選択されます。"),
+            Choice(id: "b", text: "V", correct: false, misconception: "varargsが常に優先と誤解", explanation: "可変長は最後に検討されます。"),
+            Choice(id: "c", text: "IV", correct: false, misconception: "両方呼ばれると誤解", explanation: "オーバーロード解決で1つだけ選ばれます。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "曖昧になると誤解", explanation: "m(int)が最適一致です。"),
+        ],
+        explanationRef: "explain-silver-overload-008",
+        designIntent: "オーバーロード解決で固定引数がvarargsより優先されることを確認する。"
+    )
+
+    static let silverOperators003 = Quiz(
+        id: "silver-operators-003",
+        level: .silver,
+        category: "data-types",
+        tags: ["短絡評価", "&&", "インクリメント"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        int x = 0;
+        boolean r = (x > 0) && (++x > 0);
+        System.out.println(r + ":" + x);
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "false:0", correct: true, misconception: nil, explanation: "左辺x>0がfalseなので右辺は評価されず、xは増えません。"),
+            Choice(id: "b", text: "false:1", correct: false, misconception: "右辺も常に評価されると誤解", explanation: "&&は短絡評価です。"),
+            Choice(id: "c", text: "true:1", correct: false, misconception: "式全体がtrueになると誤解", explanation: "左辺false時点でfalseです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "boolean式が不正と誤解", explanation: "構文は正しいです。"),
+        ],
+        explanationRef: "explain-silver-operators-003",
+        designIntent: "&&の短絡評価で副作用式が実行されないケースを確認する。"
+    )
+
+    static let silverJavaBasics010 = Quiz(
+        id: "silver-java-basics-010",
+        level: .silver,
+        category: "java-basics",
+        tags: ["for", "continue", "出力"],
+        code: """
+public class Test {
+    public static void main(String[] args) {
+        for (int i = 0; i < 3; i++) {
+            if (i == 1) continue;
+            System.out.print(i);
+        }
+    }
+}
+""",
+        question: "このコードの出力はどれか？",
+        choices: [
+            Choice(id: "a", text: "02", correct: true, misconception: nil, explanation: "i=1のときcontinueでprintを飛ばすため0と2のみ出力されます。"),
+            Choice(id: "b", text: "012", correct: false, misconception: "continueを無視すると誤解", explanation: "continueでその回の残り処理をスキップします。"),
+            Choice(id: "c", text: "01", correct: false, misconception: "continueでループ終了と誤解", explanation: "continueは次の反復へ進むだけです。"),
+            Choice(id: "d", text: "2", correct: false, misconception: "i=0もスキップと誤解", explanation: "i=0ではif条件がfalseです。"),
+        ],
+        explanationRef: "explain-silver-java-basics-010",
+        designIntent: "continueがその反復の後続処理だけを飛ばすことを確認する。"
     )
 
     static let goldObject003 = Quiz(
