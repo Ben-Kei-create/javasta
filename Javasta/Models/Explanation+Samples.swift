@@ -7001,7 +7001,7 @@ public static void main(String[] args) {
 // 実行: java Test a b
 """,
         steps: [
-            Step(index: 0, narration: "実行引数はa,bの2つなので、args配列の長さは2です。", highlightLines: [1, 4], variables: [Variable(name: "args", type: "String[]", value: "["a", "b"]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 0, narration: "実行引数はa,bの2つなので、args配列の長さは2です。", highlightLines: [1, 4], variables: [Variable(name: "args", type: "String[]", value: "[\"a\", \"b\"]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
             Step(index: 1, narration: "`args.length` は2を返し、その値がprintlnされます。", highlightLines: [2], variables: [Variable(name: "args.length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
@@ -7055,8 +7055,8 @@ sb.reverse().append("c");
 System.out.println(sb);
 """,
         steps: [
-            Step(index: 0, narration: "初期値はabです。", highlightLines: [1], variables: [Variable(name: "sb", type: "StringBuilder", value: ""ab"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
-            Step(index: 1, narration: "reverseでba、そのままappendでbacになります。", highlightLines: [2], variables: [Variable(name: "sb", type: "StringBuilder", value: ""bac"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "初期値はabです。", highlightLines: [1], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"ab\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "reverseでba、そのままappendでbacになります。", highlightLines: [2], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"bac\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
             Step(index: 2, narration: "最終出力はbacです。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
         ]
     )
@@ -7097,7 +7097,7 @@ System.out.println(map.get("x"));
 """,
         steps: [
             Step(index: 0, narration: "同じキーxに対する2回目のputで値が上書きされます。", highlightLines: [2, 3], variables: [Variable(name: "map[x]", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
-            Step(index: 1, narration: "`map.get("x")` は2を返し、2が出力されます。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 1, narration: "`map.get(\"x\")` は2を返し、2が出力されます。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
         ]
     )
 
@@ -7172,7 +7172,7 @@ Predicate<String> p = s -> s.isEmpty();
 System.out.println(p.negate().test(""));
 """,
         steps: [
-            Step(index: 0, narration: "空文字に対する`p.test("")`はtrueです。", highlightLines: [1], variables: [Variable(name: "p.test("")", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 0, narration: "空文字に対する`p.test(\"\")`はtrueです。", highlightLines: [1], variables: [Variable(name: "p.test(\"\")", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
             Step(index: 1, narration: "negateで真偽が反転するため結果はfalseです。", highlightLines: [2], variables: [Variable(name: "result", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
@@ -7208,7 +7208,7 @@ enum Level { LOW, HIGH }
 System.out.println(Level.HIGH.name() + ":" + Level.HIGH.ordinal());
 """,
         steps: [
-            Step(index: 0, narration: "name()は定数名HIGHを返します。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.name()", type: "String", value: ""HIGH"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "name()は定数名HIGHを返します。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.name()", type: "String", value: "\"HIGH\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
             Step(index: 1, narration: "ordinal()は0始まりでLOW=0,HIGH=1なので出力はHIGH:1です。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.ordinal()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
