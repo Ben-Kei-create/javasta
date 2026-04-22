@@ -129,7 +129,7 @@ struct AllQuizzesView: View {
                 MockExamCard(
                     level: level,
                     version: version,
-                    count: quizzes.count,
+                    count: QuestionBank.mockExamEligibleCount(version: version, level: level),
                     onStart: { variant in
                         if let session = QuestionBank.makeMockExamSession(
                             variant: variant,
@@ -346,7 +346,7 @@ private struct MockExamCard: View {
                                 .font(.system(size: 12, weight: .bold).monospacedDigit())
                                 .foregroundStyle(isSelected ? .white : Color.jbText)
                                 .lineLimit(1)
-                            Text(spec.durationText(for: questionCount))
+                            Text(spec.durationText(for: variant, questionCount: questionCount))
                                 .font(.system(size: 9, weight: .semibold).monospacedDigit())
                                 .foregroundStyle(isSelected ? .white.opacity(0.82) : Color.jbSubtext)
                         }

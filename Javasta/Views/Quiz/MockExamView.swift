@@ -24,8 +24,9 @@ struct MockExamView: View {
 
         let start = Date()
         let spec = MockExamSpec.official(version: session.version, level: session.level)
+        let variant = session.mockExamVariant ?? .full
         let questionCount = max(session.quizzes.count, 1)
-        let timeLimit = spec.durationSeconds(for: questionCount)
+        let timeLimit = spec.durationSeconds(for: variant, questionCount: questionCount)
         let orders = Dictionary(uniqueKeysWithValues: session.quizzes.map { ($0.id, $0.choices.shuffled()) })
 
         self._startedAt = State(initialValue: start)
@@ -46,7 +47,7 @@ struct MockExamView: View {
     }
 
     private var timeLimitSeconds: Int {
-        spec.durationSeconds(for: max(session.quizzes.count, 1))
+        spec.durationSeconds(for: variant, questionCount: max(session.quizzes.count, 1))
     }
 
     var body: some View {

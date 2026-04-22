@@ -15,7 +15,7 @@ enum MockExamVariant: String, Codable, CaseIterable, Identifiable {
 
     var shortTitle: String {
         switch self {
-        case .small: return "20問"
+        case .small: return "20分"
         case .full: return "本番"
         }
     }
@@ -27,6 +27,7 @@ struct MockExamSpec: Hashable {
     let officialQuestionCount: Int
     let officialDurationSeconds: Int
     let passingScorePercent: Int
+    let smallDurationSeconds: Int = 20 * 60
 
     var examCode: String {
         version.examCode(for: level)
@@ -39,9 +40,18 @@ struct MockExamSpec: Hashable {
     func questionCount(for variant: MockExamVariant) -> Int {
         switch variant {
         case .small:
-            return min(20, officialQuestionCount)
+            return max(1, min(officialQuestionCount, Int((Double(smallDurationSeconds) / secondsPerQuestion).rounded(.down))))
         case .full:
             return officialQuestionCount
+        }
+    }
+
+    func durationSeconds(for variant: MockExamVariant, questionCount: Int) -> Int {
+        switch variant {
+        case .small:
+            return smallDurationSeconds
+        case .full:
+            return durationSeconds(for: questionCount)
         }
     }
 
@@ -49,8 +59,8 @@ struct MockExamSpec: Hashable {
         max(60, Int((Double(questionCount) * secondsPerQuestion).rounded()))
     }
 
-    func durationText(for questionCount: Int) -> String {
-        let minutes = durationSeconds(for: questionCount) / 60
+    func durationText(for variant: MockExamVariant, questionCount: Int) -> String {
+        let minutes = durationSeconds(for: variant, questionCount: questionCount) / 60
         return "\(minutes)分"
     }
 

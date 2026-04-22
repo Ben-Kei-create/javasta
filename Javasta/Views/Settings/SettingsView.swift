@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @State private var progress = ProgressStore.shared
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
+    @AppStorage(CodeSyntaxTheme.storageKey) private var codeSyntaxThemeRaw: String = CodeSyntaxTheme.classic.rawValue
     @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
     @State private var showResetConfirm = false
     @State private var showExamDatePicker = false
@@ -12,6 +13,10 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
 
     private let goalOptions = [3, 5, 10, 15]
+
+    private var codeSyntaxTheme: CodeSyntaxTheme {
+        CodeSyntaxTheme.value(for: codeSyntaxThemeRaw)
+    }
 
     private var examDate: Date? {
         examDateTimestamp > 0 ? Date(timeIntervalSince1970: examDateTimestamp) : nil
@@ -92,15 +97,23 @@ struct SettingsView: View {
 
                     // MARK: 表示
                     section(title: "表示") {
-                        SettingRow(
-                            icon: "textformat.size",
-                            title: "コード文字サイズ",
-                            value: "\(CodeZoom.percent(codeZoom))%",
-                            onTap: {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                codeZoom = CodeZoom.next(after: codeZoom)
-                            }
-                        )
+                        VStack(spacing: 0) {
+                            SettingRow(
+                                icon: "textformat.size",
+                                title: "コード文字サイズ",
+                                value: "\(CodeZoom.percent(codeZoom))%",
+                                onTap: {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    codeZoom = CodeZoom.next(after: codeZoom)
+                                }
+                            )
+
+                            Divider()
+                                .background(Color.jbBorder)
+                                .padding(.horizontal, Spacing.md)
+
+                            codeSyntaxThemeRow
+                        }
                     }
 
                     // MARK: データ
@@ -167,6 +180,43 @@ struct SettingsView: View {
         } message: {
             Text("正答数・連続日数・完了レッスンがすべて消去されます。")
         }
+    }
+
+    private var codeSyntaxThemeRow: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "paintpalette")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.jbAccent)
+                    .frame(width: 24)
+
+                Text("コード配色")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.jbText)
+
+                Spacer()
+
+                Text(codeSyntaxTheme.displayName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.jbSubtext)
+            }
+
+            HStack(spacing: Spacing.sm) {
+                ForEach(CodeSyntaxTheme.allCases) { theme in
+                    CodeSyntaxThemeButton(
+                        theme: theme,
+                        isSelected: theme == codeSyntaxTheme,
+                        action: {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            codeSyntaxThemeRaw = theme.rawValue
+                        }
+                    )
+                }
+            }
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, 12)
+        .background(Color.jbCard)
     }
 
     // MARK: - Exam date row (inline clear button)
@@ -411,5 +461,51 @@ struct SettingNavigationRow: View {
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, 12)
         .background(Color.jbCard)
+    }
+}
+
+private struct CodeSyntaxThemeButton: View {
+    let theme: CodeSyntaxTheme
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 3) {
+                    ForEach(Array(theme.palette.swatches.enumerated()), id: \.offset) { _, color in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(color)
+                            .frame(width: 10, height: 14)
+                    }
+                }
+
+                HStack(spacing: 4) {
+                    Text(theme.displayName)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(isSelected ? Color.jbText : Color.jbSubtext)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
+
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(Color.jbAccent)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: Radius.sm)
+                    .fill(isSelected ? Color.jbAccent.opacity(0.1) : Color.jbBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .stroke(isSelected ? Color.jbAccent.opacity(0.55) : Color.jbBorder, lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(JBScaledButtonStyle(scaleAmount: 0.97))
     }
 }

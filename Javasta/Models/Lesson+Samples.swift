@@ -303,7 +303,7 @@ sum(List.of(1.5, 2.5));       // OK: List<Double>
             .collect(Collectors.groupingBy(String::length));
         // 結果: {3=[Ali, Bob], 7=[Charlie]}
         """,
-            relatedQuizIds: ["gold-stream-003"]
+            relatedQuizIds: ["gold-stream-003", "gold-stream-029", "gold-stream-030", "gold-stream-031"]
         ),
 
         // ===== 以下、既存の全レッスン =====

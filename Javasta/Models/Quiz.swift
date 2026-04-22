@@ -11,6 +11,7 @@ struct Quiz: Codable, Identifiable {
     var validatedByJavac: Bool = true
     var reviewStatus: QuizReviewStatus = .draft
     var variantGroupId: String? = nil
+    var isMockExamOnly: Bool = false
     let category: String
     let tags: [String]
     let code: String
@@ -61,6 +62,7 @@ extension Quiz {
         case validatedByJavac
         case reviewStatus
         case variantGroupId
+        case isMockExamOnly
         case category
         case tags
         case code
@@ -83,6 +85,7 @@ extension Quiz {
         validatedByJavac = try container.decodeIfPresent(Bool.self, forKey: .validatedByJavac) ?? true
         reviewStatus = try container.decodeIfPresent(QuizReviewStatus.self, forKey: .reviewStatus) ?? .draft
         variantGroupId = try container.decodeIfPresent(String.self, forKey: .variantGroupId)
+        isMockExamOnly = try container.decodeIfPresent(Bool.self, forKey: .isMockExamOnly) ?? false
         category = try container.decode(String.self, forKey: .category)
         tags = try container.decode([String].self, forKey: .tags)
         code = try container.decode(String.self, forKey: .code)
@@ -105,6 +108,7 @@ extension Quiz {
         try container.encode(validatedByJavac, forKey: .validatedByJavac)
         try container.encode(reviewStatus, forKey: .reviewStatus)
         try container.encodeIfPresent(variantGroupId, forKey: .variantGroupId)
+        try container.encode(isMockExamOnly, forKey: .isMockExamOnly)
         try container.encode(category, forKey: .category)
         try container.encode(tags, forKey: .tags)
         try container.encode(code, forKey: .code)

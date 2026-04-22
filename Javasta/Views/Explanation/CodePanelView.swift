@@ -134,14 +134,13 @@ struct CodePanelView: View {
 
     /// ピンチ中の一時倍率。gesture 終了で永続ストレージへ。
     @State private var pinchLiveZoom: Double? = nil
+    @State private var pinchBaseZoom: Double? = nil
     @AppStorage("codeZoom") private var storedZoom: Double = CodeZoom.default
+    @AppStorage(CodeSyntaxTheme.storageKey) private var syntaxThemeRaw: String = CodeSyntaxTheme.classic.rawValue
 
-    private var effectiveZoom: Double { pinchLiveZoom ?? zoom }
+    private var effectiveZoom: Double { pinchLiveZoom ?? CodeZoom.clamped(zoom) }
+    private var syntaxTheme: CodeSyntaxTheme { CodeSyntaxTheme.value(for: syntaxThemeRaw) }
     private var lines: [[CodeToken]] { JavaTokenizer.tokenize(code) }
-
-    /// ピンチで許容するズーム範囲
-    private static let minZoom: Double = 0.5
-    private static let maxZoom: Double = 2.5
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -153,13 +152,15 @@ struct CodePanelView: View {
                             tokens: tokens,
                             isHighlighted: highlightLines.contains(idx + 1),
                             hasPredict: predictLines.contains(idx + 1),
-                            zoom: effectiveZoom
+                            zoom: effectiveZoom,
+                            theme: syntaxTheme
                         )
                         .id(idx + 1)
                     }
                 }
                 .padding(.vertical, Spacing.xs)
             }
+            .contentShape(Rectangle())
             .onChange(of: highlightLines) { _, newLines in
                 if let first = newLines.first {
                     withAnimation(.jbSpring) {
@@ -167,21 +168,26 @@ struct CodePanelView: View {
                     }
                 }
             }
-            .gesture(pinchGesture)
+            .simultaneousGesture(pinchGesture)
         }
     }
 
     private var pinchGesture: some Gesture {
         MagnificationGesture()
             .onChanged { value in
-                let candidate = zoom * Double(value)
-                pinchLiveZoom = min(max(candidate, Self.minZoom), Self.maxZoom)
+                let base = pinchBaseZoom ?? CodeZoom.clamped(zoom)
+                if pinchBaseZoom == nil {
+                    pinchBaseZoom = base
+                }
+
+                pinchLiveZoom = CodeZoom.clamped(base * Double(value))
             }
             .onEnded { _ in
                 if let live = pinchLiveZoom {
-                    storedZoom = (live * 100).rounded() / 100
+                    storedZoom = CodeZoom.rounded(live)
                 }
                 pinchLiveZoom = nil
+                pinchBaseZoom = nil
             }
     }
 }
@@ -194,6 +200,7 @@ private struct CodeLineView: View {
     let isHighlighted: Bool
     let hasPredict: Bool
     let zoom: Double
+    let theme: CodeSyntaxTheme
 
     var body: some View {
         HStack(spacing: 0) {
@@ -221,14 +228,15 @@ private struct CodeLineView: View {
     }
 
     private func tokenColor(_ kind: CodeToken.Kind) -> Color {
+        let palette = theme.palette
         switch kind {
-        case .keyword: return .jbSyntaxKeyword
-        case .type:    return .jbSyntaxType
-        case .method:  return .jbSyntaxMethod
-        case .string:  return .jbSyntaxString
-        case .number:  return .jbSyntaxNumber
-        case .comment: return .jbSyntaxComment
-        case .plain:   return .jbText
+        case .keyword: return palette.keyword
+        case .type:    return palette.type
+        case .method:  return palette.method
+        case .string:  return palette.string
+        case .number:  return palette.number
+        case .comment: return palette.comment
+        case .plain:   return palette.plain
         }
     }
 }

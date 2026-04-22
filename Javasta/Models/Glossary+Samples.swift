@@ -26,7 +26,7 @@ extension GlossaryTerm {
         genericsInvariance, rawTypeTerm, pecs,
         // 関数型・Stream
         lambdaTerm, functionalInterface, methodReference,
-        primitiveFunctionalInterfaceTerm, streamApi, intermediateOp, terminalOp, lazyEvaluation, optionalType,
+        primitiveFunctionalInterfaceTerm, streamApi, collectorsTerm, intermediateOp, terminalOp, lazyEvaluation, optionalType,
         // ローカライズ・フォーマット
         localeTerm, resourceBundleTerm, formattingTerm,
         // 制御フロー
@@ -559,6 +559,28 @@ int sum = List.of(1, 2, 3, 4, 5).stream()
         relatedTermIds: ["stream", "intermediate-operation", "lazy-evaluation"],
         relatedLessonIds: [],
         relatedQuizIds: []
+    )
+
+    static let collectorsTerm = GlossaryTerm(
+        id: "collectors",
+        term: "Collectors",
+        aliases: ["java.util.stream.Collectors", "Collector"],
+        summary: "collect()で使う集約処理の部品を提供するユーティリティクラス。",
+        body: """
+**Collectors** は [Stream](javasta://term/stream) の `collect()` に渡す集約処理を作るユーティリティクラスです。
+
+代表例:
+
+- `Collectors.toList()` — Listへ収集
+- `Collectors.joining("-")` — 文字列を区切り付きで連結
+- `Collectors.groupingBy(...)` — キーごとにグループ化
+- `Collectors.toMap(...)` — Mapへ変換
+
+試験では、`toMap` の重複キー、`groupingBy` の戻り値型、下流Collectorを指定したときの型をよく追います。
+""",
+        relatedTermIds: ["stream", "terminal-operation", "collections"],
+        relatedLessonIds: ["lesson-gold-stream-collectors"],
+        relatedQuizIds: ["gold-stream-029", "gold-stream-030", "gold-stream-031"]
     )
 
     static let lazyEvaluation = GlossaryTerm(

@@ -88,6 +88,8 @@ extension Explanation {
 
         return base
             .merging(generatedAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(streamApiAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldGeneralAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
     }
 

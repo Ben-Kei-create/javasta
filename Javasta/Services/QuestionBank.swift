@@ -36,7 +36,11 @@ struct ExplanationAuditIssue: Identifiable {
 }
 
 enum QuestionBank {
-    static var allQuizzes: [Quiz] { Quiz.samples }
+    static var practiceQuizzes: [Quiz] { Quiz.samples.filter { !$0.isMockExamOnly } }
+    static var mockExamOnlyQuizzes: [Quiz] { QuizExpansion.mockExamOnlyExpansion }
+    static var allQuizzes: [Quiz] {
+        deduplicated(Quiz.samples + mockExamOnlyQuizzes)
+    }
     static var lessons: [Lesson] { Lesson.samples }
 
     static func quiz(id: String) -> Quiz? {
@@ -48,11 +52,15 @@ enum QuestionBank {
         level: JavaLevel? = nil,
         category: QuizCategory? = nil
     ) -> [Quiz] {
-        self.allQuizzes.filter { quiz in
+        self.practiceQuizzes.filter { quiz in
             quiz.examVersion == version &&
             (level == nil || quiz.level == level) &&
             (category == nil || quiz.category == category?.rawValue)
         }
+    }
+
+    static func mockExamEligibleCount(version: JavaExamVersion, level: JavaLevel) -> Int {
+        mockExamPool(version: version, level: level).count
     }
 
     static func makeSession(
@@ -77,7 +85,7 @@ enum QuestionBank {
         case .unattempted:
             selected = unattempted(pool, progress: progress, limit: mode.limit)
         case .mockExam:
-            selected = Array(pool.shuffled().prefix(min(mode.limit, pool.count)))
+            return makeMockExamSession(variant: .full, version: version, level: level)
         }
 
         let fallback = balanced(pool, limit: mode.limit)
@@ -90,12 +98,16 @@ enum QuestionBank {
         version: JavaExamVersion,
         level: JavaLevel
     ) -> QuizSession? {
-        let pool = quizzes(version: version, level: level)
+        let pool = mockExamPool(version: version, level: level)
         guard !pool.isEmpty else { return nil }
 
         let spec = MockExamSpec.official(version: version, level: level)
         let limit = min(spec.questionCount(for: variant), pool.count)
-        let selected = Array(pool.shuffled().prefix(limit))
+        let selected = mixedMockExamSelection(
+            practicePool: quizzes(version: version, level: level),
+            exclusivePool: mockExamOnlyQuizzes.filter { $0.examVersion == version && $0.level == level },
+            limit: limit
+        )
 
         return QuizSession(
             mode: .mockExam,
@@ -271,6 +283,48 @@ enum QuestionBank {
         }
 
         return result
+    }
+
+    private static func mockExamPool(version: JavaExamVersion, level: JavaLevel) -> [Quiz] {
+        deduplicated(
+            quizzes(version: version, level: level) +
+            mockExamOnlyQuizzes.filter { $0.examVersion == version && $0.level == level }
+        )
+    }
+
+    private static func mixedMockExamSelection(
+        practicePool: [Quiz],
+        exclusivePool: [Quiz],
+        limit: Int
+    ) -> [Quiz] {
+        guard limit > 0 else { return [] }
+        guard !exclusivePool.isEmpty else {
+            return Array(practicePool.shuffled().prefix(min(limit, practicePool.count)))
+        }
+
+        let exclusiveTarget = min(exclusivePool.count, max(1, Int((Double(limit) * 0.25).rounded(.down))))
+        let exclusive = Array(exclusivePool.shuffled().prefix(exclusiveTarget))
+        let practiceTarget = max(0, limit - exclusive.count)
+        let practice = Array(practicePool.shuffled().prefix(min(practiceTarget, practicePool.count)))
+
+        var selected = deduplicated(exclusive + practice)
+        if selected.count < limit {
+            let selectedIds = Set(selected.map(\.id))
+            let fill = deduplicated(practicePool + exclusivePool)
+                .filter { !selectedIds.contains($0.id) }
+                .shuffled()
+                .prefix(limit - selected.count)
+            selected.append(contentsOf: fill)
+        }
+
+        return Array(selected.shuffled().prefix(limit))
+    }
+
+    private static func deduplicated(_ quizzes: [Quiz]) -> [Quiz] {
+        var seenIds = Set<String>()
+        return quizzes.filter { quiz in
+            seenIds.insert(quiz.id).inserted
+        }
     }
 
     private static func weak(_ pool: [Quiz], progress: ProgressStore, limit: Int) -> [Quiz] {

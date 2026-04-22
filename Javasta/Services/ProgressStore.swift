@@ -162,7 +162,7 @@ final class ProgressStore {
             )
 
             reviewQueueQuizIds.removeAll { $0 == quiz.id }
-            if !answer.correct {
+            if !answer.correct && !quiz.isMockExamOnly {
                 reviewQueueQuizIds.append(quiz.id)
             }
         }
