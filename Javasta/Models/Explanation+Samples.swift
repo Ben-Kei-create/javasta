@@ -88,10 +88,18 @@ extension Explanation {
 
         return base
             .merging(generatedAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(silverBalancedAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(silverFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(silverCapstoneAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(silverSprintAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(silverFinalPushAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(streamApiAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldGeneralAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldAdvancedAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldBalancedAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(mockExamOnlyAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(silverMockFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldMockAdditionalAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
     }
 

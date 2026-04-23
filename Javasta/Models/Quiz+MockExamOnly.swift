@@ -22,7 +22,11 @@ extension QuizExpansion {
         goldMockDateTimePeriodDuration001,
         goldMockPathNormalize001,
         goldMockAnnotationRetention001,
-    ]
+    ] + silverMockFurtherExpansion
+        + silverCapstoneMockExpansion
+        + silverSprintMockExpansion
+        + silverFinalPushMockExpansion
+        + goldMockAdditionalExpansion
 
     static let silverMockOverloadNull001 = Quiz(
         id: "silver-mock-overload-null-001",

@@ -92,10 +92,16 @@ extension Quiz {
             + generatedGoldQueue
             + QuizExpansion.goldExpansion
             + QuizExpansion.silverExpansion
+            + QuizExpansion.silverBalancedExpansion
+            + QuizExpansion.silverFurtherExpansion
+            + QuizExpansion.silverCapstoneExpansion
+            + QuizExpansion.silverSprintExpansion
+            + QuizExpansion.silverFinalPushExpansion
             + QuizExpansion.mixedExpansion
             + QuizExpansion.streamApiExpansion
             + QuizExpansion.goldGeneralExpansion
             + QuizExpansion.goldAdvancedExpansion
+            + QuizExpansion.goldBalancedExpansion
 
         var seenIds = Set<String>()
         return all.filter { quiz in

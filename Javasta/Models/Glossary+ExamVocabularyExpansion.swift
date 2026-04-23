@@ -46,6 +46,10 @@ extension GlossaryTerm {
         serviceLoaderTerm,
         executorServiceTerm,
         callableFutureTerm,
+        completableFutureTerm,
+        parallelStreamTerm,
+        volatileTerm,
+        concurrentHashMapTerm,
         synchronizedTerm,
         raceConditionTerm,
         filesLinesTerm,
@@ -905,6 +909,83 @@ es.shutdown();
 `Runnable` との違い、`submit` と `execute` の違いもよく問われます。
 """,
         relatedTermIds: ["executor-service", "exception-hierarchy"]
+    )
+
+    static let completableFutureTerm = examVocabulary(
+        id: "completable-future",
+        term: "CompletableFuture",
+        aliases: ["thenApply", "thenCompose", "allOf", "handle"],
+        summary: "非同期処理の結果を表し、完了後の処理をチェーンできるFuture。",
+        body: """
+`CompletableFuture` は非同期計算の結果を表し、完了後の処理をメソッドチェーンでつなげられます。
+
+```java
+CompletableFuture<Integer> f = CompletableFuture
+    .completedFuture(2)
+    .thenApply(n -> n + 3);
+```
+
+`thenApply` は値の変換、`thenCompose` はFutureを返す処理の平坦化、`allOf` は複数Futureの完了待ち、`handle` は正常時・例外時の両方を扱う処理です。
+""",
+        relatedTermIds: ["callable-future", "executor-service", "exception-hierarchy"],
+        relatedQuizIds: ["gold-balanced-concurrency-thenapplyasync-001", "gold-balanced-concurrency-allof-001", "gold-balanced-concurrency-handle-001"]
+    )
+
+    static let parallelStreamTerm = examVocabulary(
+        id: "parallel-stream",
+        term: "parallelStream",
+        aliases: ["並列ストリーム", "Stream.parallel", "forEachOrdered"],
+        summary: "Stream処理を複数スレッドで実行し得るAPI。順序と副作用に注意する。",
+        body: """
+`parallelStream()` は、Streamパイプラインを複数スレッドで処理し得る形にします。
+
+```java
+list.parallelStream()
+    .filter(n -> n > 0)
+    .findAny();
+```
+
+`findAny` や `forEach` は順序を強く保証しないため、順序が必要なら `findFirst` や `forEachOrdered` を検討します。並列 `reduce` ではidentityが単位元になっているかも重要です。
+""",
+        relatedTermIds: ["stream", "race-condition", "completable-future"],
+        relatedQuizIds: ["gold-balanced-concurrency-parallel-findany-001", "gold-balanced-concurrency-foreachordered-001", "gold-balanced-concurrency-parallel-reduce-001"]
+    )
+
+    static let volatileTerm = examVocabulary(
+        id: "volatile",
+        term: "volatile",
+        aliases: ["可視性", "visibility"],
+        summary: "フィールド値の可視性に関わる修飾子。複合操作の原子性は保証しない。",
+        body: """
+`volatile` は、あるスレッドの書き込みが他スレッドから見えることに関係する修飾子です。
+
+```java
+private volatile boolean running = true;
+```
+
+ただし `count++` のような「読む、計算する、書く」の複合操作は原子的になりません。原子的な更新には `AtomicInteger` や `synchronized` などを使います。
+""",
+        relatedTermIds: ["race-condition", "synchronized", "executor-service"],
+        relatedQuizIds: ["gold-balanced-concurrency-volatile-atomicity-001"]
+    )
+
+    static let concurrentHashMapTerm = examVocabulary(
+        id: "concurrent-hash-map",
+        term: "ConcurrentHashMap",
+        aliases: ["並行Map", "compute", "computeIfAbsent"],
+        summary: "並行アクセスを想定したMap実装。更新系メソッドのラムダ実行に注意する。",
+        body: """
+`ConcurrentHashMap` は、複数スレッドからのアクセスを想定したMap実装です。
+
+```java
+ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
+map.compute("a", (k, v) -> v == null ? 1 : v + 1);
+```
+
+`compute` では既存値があればその値、未存在なら `null` がラムダへ渡ります。通常の `HashMap` を外部同期なしに共有するより安全ですが、ラムダ内の副作用や重い処理には注意します。
+""",
+        relatedTermIds: ["race-condition", "executor-service", "collections"],
+        relatedQuizIds: ["gold-balanced-collections-concurrenthashmap-compute-001"]
     )
 
     static let synchronizedTerm = examVocabulary(
