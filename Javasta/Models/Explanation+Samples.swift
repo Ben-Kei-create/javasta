@@ -100,6 +100,7 @@ extension Explanation {
             .merging(mockExamOnlyAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(silverMockFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldMockAdditionalAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(mockCenturyAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
     }
 

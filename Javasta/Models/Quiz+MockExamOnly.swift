@@ -26,7 +26,9 @@ extension QuizExpansion {
         + silverCapstoneMockExpansion
         + silverSprintMockExpansion
         + silverFinalPushMockExpansion
+        + silverMockCenturyExpansion
         + goldMockAdditionalExpansion
+        + goldMockCenturyExpansion
 
     static let silverMockOverloadNull001 = Quiz(
         id: "silver-mock-overload-null-001",
