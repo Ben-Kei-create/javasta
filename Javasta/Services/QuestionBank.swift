@@ -50,6 +50,25 @@ struct QuestionCategoryDistribution: Identifiable {
     }
 }
 
+struct ContentQualityIssue: Identifiable {
+    enum Kind: String {
+        case duplicateDesignIntent
+        case duplicateCode
+        case repeatedQuestionStem
+        case repeatedChoiceSet
+        case repeatedExplanationNarration
+    }
+
+    let kind: Kind
+    let title: String
+    let quizIds: [String]
+    let detail: String
+
+    var id: String {
+        "\(kind.rawValue)-\(quizIds.joined(separator: "-"))-\(title)"
+    }
+}
+
 enum QuestionBank {
     static var practiceQuizzes: [Quiz] { Quiz.samples.filter { !$0.isMockExamOnly } }
     static var mockExamOnlyQuizzes: [Quiz] { QuizExpansion.mockExamOnlyExpansion }
@@ -182,8 +201,78 @@ enum QuestionBank {
         minimumPracticeCount: Int = 5
     ) -> [String] {
         categoryDistribution(version: version, level: level).compactMap { bucket in
-            guard bucket.practiceCount < minimumPracticeCount else { return nil }
+            guard bucket.practiceCount > 0 && bucket.practiceCount < minimumPracticeCount else { return nil }
             return "\(level.displayName) \(bucket.category.displayName): practice \(bucket.practiceCount), mock-only \(bucket.mockOnlyCount)"
+        }
+    }
+
+    static func contentQualityIssues() -> [ContentQualityIssue] {
+        var issues: [ContentQualityIssue] = []
+        let quizzes = allQuizzes
+
+        issues.append(
+            contentsOf: duplicateQuizGroups(
+                kind: .duplicateDesignIntent,
+                title: "designIntentが同一",
+                minimumCount: 2,
+                quizzes: quizzes,
+                key: { normalizedContentKey($0.designIntent) },
+                detail: { key, ids in
+                    "同じ狙いの問題が\(ids.count)件あります。意図が同じでも、片方は問う観点やコードをずらす候補です: \(key)"
+                }
+            )
+        )
+
+        issues.append(
+            contentsOf: duplicateQuizGroups(
+                kind: .duplicateCode,
+                title: "コードが同一",
+                minimumCount: 2,
+                quizzes: quizzes,
+                key: { normalizedContentKey($0.code) },
+                detail: { key, ids in
+                    "同じコードを使う問題が\(ids.count)件あります。通常問題と模試専用で丸かぶりしていないか確認します: \(String(key.prefix(120)))"
+                }
+            )
+        )
+
+        issues.append(
+            contentsOf: duplicateQuizGroups(
+                kind: .repeatedQuestionStem,
+                title: "問題文の言い回しが多用",
+                minimumCount: 10,
+                quizzes: quizzes,
+                key: { normalizedContentKey($0.question) },
+                detail: { key, ids in
+                    "同じ問題文が\(ids.count)件あります。出題の見え方が単調になるため、対象APIや判断ポイントを入れた文へ分散します: \(key)"
+                }
+            )
+        )
+
+        issues.append(
+            contentsOf: duplicateQuizGroups(
+                kind: .repeatedChoiceSet,
+                title: "選択肢セットが多用",
+                minimumCount: 8,
+                quizzes: quizzes,
+                key: { quiz in
+                    quiz.choices
+                        .map { normalizedContentKey($0.text) }
+                        .sorted()
+                        .joined(separator: " | ")
+                },
+                detail: { key, ids in
+                    "同じ選択肢セットが\(ids.count)件あります。正誤だけで解ける癖を避けるため、近い誤答を問題ごとに調整します: \(key)"
+                }
+            )
+        )
+
+        issues.append(contentsOf: repeatedNarrationIssues(quizzes: quizzes))
+        return issues.sorted { lhs, rhs in
+            if lhs.kind.rawValue == rhs.kind.rawValue {
+                return lhs.quizIds.count > rhs.quizIds.count
+            }
+            return lhs.kind.rawValue < rhs.kind.rawValue
         }
     }
 
@@ -452,6 +541,60 @@ enum QuestionBank {
         return quizzes.filter { quiz in
             seenIds.insert(quiz.id).inserted
         }
+    }
+
+    private static func duplicateQuizGroups(
+        kind: ContentQualityIssue.Kind,
+        title: String,
+        minimumCount: Int,
+        quizzes: [Quiz],
+        key: (Quiz) -> String,
+        detail: (String, [String]) -> String
+    ) -> [ContentQualityIssue] {
+        Dictionary(grouping: quizzes, by: key)
+            .filter { !$0.key.isEmpty && $0.value.count >= minimumCount }
+            .map { key, group in
+                let ids = group.map(\.id).sorted()
+                return ContentQualityIssue(
+                    kind: kind,
+                    title: title,
+                    quizIds: ids,
+                    detail: detail(key, ids)
+                )
+            }
+    }
+
+    private static func repeatedNarrationIssues(quizzes: [Quiz]) -> [ContentQualityIssue] {
+        var ownersByNarration: [String: Set<String>] = [:]
+
+        for quiz in quizzes {
+            guard let explanation = Explanation.sample(for: quiz.explanationRef) else { continue }
+            for step in explanation.steps {
+                let key = normalizedContentKey(step.narration)
+                guard key.count >= 20 else { continue }
+                ownersByNarration[key, default: []].insert(quiz.id)
+            }
+        }
+
+        return ownersByNarration
+            .filter { $0.value.count >= 3 }
+            .map { narration, ownerIds in
+                let ids = ownerIds.sorted()
+                return ContentQualityIssue(
+                    kind: .repeatedExplanationNarration,
+                    title: "解説文の同一フレーズが多用",
+                    quizIds: ids,
+                    detail: "同じ解説文が\(ids.count)問で使われています。コード固有の変数・分岐・出力理由へ寄せる候補です: \(narration)"
+                )
+            }
+    }
+
+    private static func normalizedContentKey(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "`", with: "")
+            .replacingOccurrences(of: "　", with: " ")
+            .replacingOccurrences(of: #"[\s\n\r\t]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func weak(_ pool: [Quiz], progress: ProgressStore, limit: Int) -> [Quiz] {

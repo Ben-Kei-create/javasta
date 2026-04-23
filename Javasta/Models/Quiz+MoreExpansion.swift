@@ -1410,7 +1410,7 @@ public class Test {
     static let goldFunctionalLambda039 = Quiz(
         id: "gold-functional-lambda-039",
         level: .gold,
-        category: "data-types",
+        category: "classes",
         tags: ["Integer", "ラッパークラス", "Boxing", "キャッシュ"],
         code: """
 public class Test {
@@ -1437,7 +1437,7 @@ public class Test {
     static let goldFunctionalLambda040 = Quiz(
         id: "gold-functional-lambda-040",
         level: .gold,
-        category: "data-types",
+        category: "classes",
         tags: ["Unboxing", "Integer", "NullPointerException", "ラッパークラス"],
         code: """
 public class Test {
@@ -4228,7 +4228,7 @@ public class Test {
     static let goldDateTime004 = Quiz(
         id: "gold-date-time-004",
         level: .gold,
-        category: "data-types",
+        category: "date-time",
         tags: ["LocalDate", "plusMonths", "月末"],
         code: """
 import java.time.*;
@@ -5325,7 +5325,7 @@ public class Test {
     static let goldDateTime005 = Quiz(
         id: "gold-date-time-005",
         level: .gold,
-        category: "data-types",
+        category: "date-time",
         tags: ["LocalTime", "plusMinutes", "日付時刻API"],
         code: """
 import java.time.*;
@@ -5837,7 +5837,7 @@ public class Test {
     static let goldEnum005 = Quiz(
         id: "gold-enum-005",
         level: .gold,
-        category: "control-flow",
+        category: "classes",
         tags: ["enum", "switch式", "網羅"],
         code: """
 enum Color {

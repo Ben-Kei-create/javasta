@@ -458,7 +458,7 @@ public class Test {
         ),
         q(
             "silver-finalpush-localdate-plusmonths-001",
-            category: "date-time",
+            category: "data-types",
             tags: ["LocalDate", "plusMonths", "month end"],
             code: """
 public class Test {
