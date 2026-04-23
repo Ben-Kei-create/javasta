@@ -4085,7 +4085,7 @@ public class Test {
 public class Test {
     public static void main(String[] args) {
         char c = 'A';
-        c++;
+        c++; // increments the underlying code point
         System.out.println(c);
     }
 }
@@ -6942,7 +6942,7 @@ public class Test {
 public class Test {
     static int value() {
         try {
-            return 1;
+            return 1; // try prepares this value first
         } finally {
             return 2;
         }
@@ -6973,7 +6973,7 @@ public class Test {
 public class Test {
     public static void main(String[] args) {
         try {
-            throw new RuntimeException();
+            throw new RuntimeException(); // compile fails before execution
         } catch (Exception e) {
             System.out.println("E");
         } catch (RuntimeException e) {
@@ -7207,7 +7207,7 @@ public class Test {
     public static void main(String[] args) {
         Set<String> set = new HashSet<>();
         set.add("A");
-        set.add("A");
+        set.add("A"); // duplicate element is ignored
         System.out.println(set.size());
     }
 }
@@ -7327,7 +7327,7 @@ class Child extends Parent {
 public class Test {
     public static void main(String[] args) {
         Parent p = new Child();
-        System.out.println(p.name());
+        System.out.println(p.name()); // method call uses runtime type
     }
 }
 """,
@@ -7355,7 +7355,7 @@ public class Test {
             throw new RuntimeException();
         } catch (RuntimeException e) {
             System.out.print("C");
-        } finally {
+        } finally { // finally runs after catch
             System.out.print("F");
         }
     }
@@ -9014,7 +9014,7 @@ import java.util.*;
 public class Test {
     public static void main(String[] args) {
         try {
-            List<String> list = List.of("A", null);
+            List<String> list = List.of("A", null); // immutable factory rejects null
             System.out.println(list.size());
         } catch (NullPointerException e) {
             System.out.println("NPE");

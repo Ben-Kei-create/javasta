@@ -48,7 +48,7 @@ public class Test {
         Integer a = 100;
         Integer b = 100;
         Integer c = 200;
-        Integer d = 200;
+        Integer d = 200; // outside cache range example
         System.out.println((a == b) + ":" + (c == d));
     }
 }
@@ -134,7 +134,7 @@ public class Test {
     static void call(Object o) { System.out.println("Object"); }
     static void call(String s) { System.out.println("String"); }
     public static void main(String[] args) {
-        call(null);
+        call(null); // String overload is more specific
     }
 }
 """,
@@ -299,7 +299,7 @@ public class Test {
         try {
             return 1;
         } finally {
-            return 2;
+            return 2; // finally return overrides earlier result
         }
     }
     public static void main(String[] args) {
@@ -486,7 +486,7 @@ public class Test {
             code: """
 public class Test {
     public static void main(String[] args) {
-        var value = null;
+        var value = null; // compiler cannot infer a concrete type
         System.out.println(value);
     }
 }

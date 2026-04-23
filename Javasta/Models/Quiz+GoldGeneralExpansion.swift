@@ -318,7 +318,7 @@ class R implements AutoCloseable {
 
 public class Test {
     public static void main(String[] args) {
-        try (R a = new R("A"); R b = new R("B")) {
+        try (R a = new R("A"); R b = new R("B")) { // close order is reverse of declaration
             System.out.print("T");
         }
     }

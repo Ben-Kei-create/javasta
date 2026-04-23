@@ -1180,7 +1180,7 @@ public class Test {
     public static void main(String[] args) {
         List<? super Integer> list = new ArrayList<Number>();
         list.add(10);
-        Object value = list.get(0);
+        Object value = list.get(0); // reading from ? super gives Object
         System.out.println(value.getClass().getSimpleName());
     }
 }
@@ -1248,7 +1248,7 @@ class Child extends Parent {}
 
 public class Test {
     public static void main(String[] args) {
-        System.out.println(Child.class.isAnnotationPresent(Mark.class));
+        System.out.println(Child.class.isAnnotationPresent(Mark.class)); // inherited at runtime
     }
 }
 """,

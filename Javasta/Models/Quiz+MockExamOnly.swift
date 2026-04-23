@@ -321,7 +321,7 @@ public class Test {
         int i = 0;
         do {
             System.out.print(i++);
-        } while (i < 0);
+        } while (i < 0); // do-body runs before condition
         System.out.println(":" + i);
     }
 }
@@ -424,7 +424,7 @@ public class Test {
         try {
             String result = service.invokeAny(List.of(
                 () -> { Thread.sleep(200); return "A"; },
-                () -> "B"
+                () -> "B" // fastest callable wins
             ));
             System.out.println(result);
         } finally {

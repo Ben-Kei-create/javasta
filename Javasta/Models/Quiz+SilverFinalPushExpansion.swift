@@ -372,7 +372,7 @@ public class Test {
     public static void main(String[] args) {
         try {
             throw new RuntimeException();
-        } catch (Exception e) {
+        } catch (Exception e) { // subtype catch below is unreachable
             System.out.println("E");
         } catch (RuntimeException e) {
             System.out.println("R");

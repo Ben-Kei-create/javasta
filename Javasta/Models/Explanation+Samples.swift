@@ -102,8 +102,40 @@ extension Explanation {
             .merging(silverMockFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldMockAdditionalAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(mockCenturyAuthoredSamples, uniquingKeysWith: { _, new in new })
-            .merging(goldMockTopupAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldMockTopupAuthoredSamplesResolved, uniquingKeysWith: { _, new in new })
             .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
+    }
+
+    private static var goldMockTopupAuthoredSamplesResolved: [String: Explanation] {
+        Dictionary(
+            uniqueKeysWithValues: GoldMockTopupQuestionData.specs.map { spec in
+                (
+                    spec.explanationRef,
+                    Explanation(
+                        id: spec.explanationRef,
+                        initialCode: spec.code,
+                        steps: spec.steps.enumerated().map { offset, step in
+                            Explanation.Step(
+                                index: offset,
+                                narration: step.narration,
+                                highlightLines: step.highlightLines,
+                                variables: step.variables.map {
+                                    Explanation.Variable(
+                                        name: $0.name,
+                                        type: $0.type,
+                                        value: $0.value,
+                                        scope: $0.scope
+                                    )
+                                },
+                                callStack: [],
+                                heap: [],
+                                predict: nil
+                            )
+                        }
+                    )
+                )
+            }
+        )
     }
 
     private static var auditBackfillSamples: [String: Explanation] {

@@ -286,7 +286,7 @@ public class Test {
             code: """
 public class Test {
     public static void main(String[] args) {
-        var value = null;
+        var value = null; // null alone gives no inferred type
         System.out.println(value);
     }
 }
@@ -314,7 +314,7 @@ public class Test {
     public static void main(String[] args) {
         Integer a = 127;
         Integer b = 127;
-        Integer c = 128;
+        Integer c = 128; // typical cache miss
         Integer d = 128;
         System.out.println((a == b) + ":" + (c == d));
     }
@@ -592,7 +592,7 @@ public class Test {
 public class Test {
     public static void main(String[] args) {
         int[] nums = {1, 2, 3};
-        for (int n : nums) {
+        for (int n : nums) { // loop variable is just a copy
             n *= 2;
         }
         System.out.println(nums[0] + ":" + nums[1] + ":" + nums[2]);
@@ -622,7 +622,7 @@ public class Test {
 public class Test {
     public static void main(String[] args) {
         boolean flag = false;
-        if (flag = true) {
+        if (flag = true) { // assignment result becomes condition
             System.out.println("T");
         } else {
             System.out.println("F");
@@ -688,7 +688,7 @@ class A {
 
 public class Test {
     public static void main(String[] args) {
-        new A();
+        new A(); // triggers class init once
         new A();
     }
 }
@@ -774,7 +774,7 @@ class A {
 public class Test {
     public static void main(String[] args) {
         final int x = 1;
-        x = 2;
+        x = 2; // final local cannot be reassigned
         System.out.println(x);
     }
 }
@@ -1003,7 +1003,7 @@ class Child extends Parent {
 public class Test {
     public static void main(String[] args) {
         Parent p = new Child();
-        System.out.println(p.name);
+        System.out.println(p.name); // field lookup uses reference type
     }
 }
 """,
@@ -1038,7 +1038,7 @@ class Child extends Parent {
 }
 public class Test {
     public static void main(String[] args) {
-        new Child();
+        new Child(); // implicit super() runs first
     }
 }
 """,
@@ -1257,7 +1257,7 @@ public class Test {
     public static void main(String[] args) {
         try {
             throw new RuntimeException();
-        } catch (Exception e) {
+        } catch (Exception e) { // broader catch first makes next one unreachable
             System.out.println("E");
         } catch (RuntimeException e) {
             System.out.println("R");
@@ -1352,7 +1352,7 @@ import java.util.*;
 public class Test {
     public static void main(String[] args) {
         List<Integer> list = new ArrayList<>(List.of(1, 2, 3));
-        list.remove(1);
+        list.remove(1); // int argument chooses remove(index)
         System.out.println(list);
     }
 }
@@ -1502,7 +1502,7 @@ public class Test {
     public static void main(String[] args) {
         int count = 0;
         Runnable r = () -> System.out.println(count);
-        count++;
+        count++; // reassignment breaks effectively final
         r.run();
     }
 }

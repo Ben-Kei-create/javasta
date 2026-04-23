@@ -234,7 +234,7 @@ public class Test {
 public class Test {
     public static void main(String[] args) {
         StringBuilder sb = new StringBuilder("ab");
-        sb.reverse().append("c");
+        sb.reverse().append("c"); // reverse mutates the same builder
         System.out.println(sb);
     }
 }
@@ -954,7 +954,7 @@ public class Test {
             code: """
 public class Test {
     public static void main(String[] args) {
-        System.out.println(1 + 2 + "A" + 3 + 4);
+        System.out.println(1 + 2 + "A" + 3 + 4); // left-to-right after String appears
     }
 }
 """,
@@ -1184,7 +1184,7 @@ public class Test {
     public static void main(String[] args) {
         try {
             throw new RuntimeException();
-        } catch (Exception e) {
+        } catch (Exception e) { // superclass catch before subclass
             System.out.println("E");
         } catch (RuntimeException e) {
             System.out.println("R");

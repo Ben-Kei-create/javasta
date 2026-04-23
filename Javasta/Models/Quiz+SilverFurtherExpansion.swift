@@ -101,7 +101,7 @@ public class Test {
 public class Test {
     public static void main(String[] args) {
         short s = 1;
-        s = s + 1;
+        s = s + 1; // arithmetic promotion yields int
         System.out.println(s);
     }
 }
@@ -399,7 +399,7 @@ public class Test {
 public class Test {
     public static void main(String[] args) {
         int[] a = {1, 2};
-        int[] b = a;
+        int[] b = a; // alias points to the same array
         b[0] = 9;
         System.out.println(a[0]);
     }

@@ -45,7 +45,7 @@ enum GoldMockTopupQuestionData {
             code: """
 public class Test {
     public static void main(String[] args) {
-        Integer a = 127;
+        Integer a = 127; // cached edge value
         Integer b = 127;
         Integer c = 128;
         Integer d = 128;
@@ -271,7 +271,7 @@ import java.util.*;
 public class Test {
     public static void main(String[] args) {
         try {
-            List<String> list = List.of("A", null);
+            List<String> list = List.of("A", null); // List.of rejects null elements
             System.out.println(list.size());
         } catch (NullPointerException e) {
             System.out.println("NPE");

@@ -375,7 +375,7 @@ import java.util.*;
 public class Test {
     public static void main(String[] args) {
         List<? super Integer> list = new ArrayList<Number>();
-        list.add(10);
+        list.add(10); // lower-bounded list accepts Integer
         Object value = list.get(0);
         System.out.println(value.getClass().getSimpleName());
     }

@@ -557,7 +557,7 @@ public class Test {
         Integer a = 127;
         Integer b = 127;
         Integer c = 128;
-        Integer d = 128;
+        Integer d = 128; // standard cache boundary example
         System.out.println((a == b) + ":" + (c == d));
     }
 }
@@ -586,7 +586,7 @@ public class Test {
     public static void main(String[] args) {
         Integer value = null;
         try {
-            int n = value;
+            int n = value; // null Integer cannot unbox
             System.out.println(n);
         } catch (NullPointerException e) {
             System.out.println("NPE");
@@ -720,7 +720,7 @@ public class Test {
     public static void main(String[] args) {
         int count = 0;
         Runnable r = () -> System.out.println(count);
-        count++;
+        count++; // local is no longer effectively final
         r.run();
     }
 }
@@ -1307,7 +1307,7 @@ class R implements AutoCloseable {
 
 public class Test {
     public static void main(String[] args) {
-        try (R a = new R("A"); R b = new R("B")) {
+        try (R a = new R("A"); R b = new R("B")) { // closes B then A
             System.out.print("T");
         }
     }
@@ -1343,7 +1343,7 @@ class R implements AutoCloseable {
 public class Test {
     public static void main(String[] args) {
         try (R r = new R()) {
-            throw new Exception("body");
+            throw new Exception("body"); // primary exception
         } catch (Exception e) {
             System.out.println(e.getMessage() + ":" + e.getSuppressed()[0].getMessage());
         }
@@ -1379,7 +1379,7 @@ class R implements AutoCloseable {
 public class Test {
     public static void main(String[] args) {
         R r = new R();
-        try (r) {
+        try (r) { // reusing effectively final resource
             System.out.print("T");
         }
     }
