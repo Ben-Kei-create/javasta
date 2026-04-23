@@ -1697,7 +1697,7 @@ public class Test {
             level: .gold,
             difficulty: .tricky,
             validatedByJavac: false,
-            category: "classes",
+            category: "inheritance",
             tags: ["模試専用", "sealed", "permits", "compile"],
             code: """
 sealed class Base permits Allowed {}

@@ -347,7 +347,7 @@ struct MockExamView: View {
             let correctChoice = quiz.choices.first { $0.correct }
             return MockExamAnswer(
                 quizId: quiz.id,
-                category: quiz.category,
+                category: quiz.canonicalCategoryRawValue,
                 tags: quiz.tags,
                 selectedChoiceId: selectedId,
                 correctChoiceId: correctChoice?.id ?? "",

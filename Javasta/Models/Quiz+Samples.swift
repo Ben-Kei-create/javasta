@@ -102,6 +102,7 @@ extension Quiz {
             + QuizExpansion.goldGeneralExpansion
             + QuizExpansion.goldAdvancedExpansion
             + QuizExpansion.goldBalancedExpansion
+            + QuizExpansion.goldInheritanceBalanceExpansion
 
         var seenIds = Set<String>()
         return all.filter { quiz in
@@ -1987,7 +1988,7 @@ public class Test {
     static let goldClasses002 = Quiz(
         id: "gold-classes-002",
         level: .gold,
-        category: "classes",
+        category: "inheritance",
         tags: ["sealed", "permits", "Java 17"],
         code: """
 sealed interface Service permits FileService {}

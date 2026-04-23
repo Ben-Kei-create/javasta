@@ -35,6 +35,21 @@ struct ExplanationAuditIssue: Identifiable {
     }
 }
 
+struct QuestionCategoryDistribution: Identifiable {
+    let level: JavaLevel
+    let category: QuizCategory
+    let practiceCount: Int
+    let mockOnlyCount: Int
+
+    var id: String {
+        "\(level.rawValue)-\(category.rawValue)"
+    }
+
+    var totalCount: Int {
+        practiceCount + mockOnlyCount
+    }
+}
+
 enum QuestionBank {
     static var practiceQuizzes: [Quiz] { Quiz.samples.filter { !$0.isMockExamOnly } }
     static var mockExamOnlyQuizzes: [Quiz] { QuizExpansion.mockExamOnlyExpansion }
@@ -55,7 +70,7 @@ enum QuestionBank {
         self.practiceQuizzes.filter { quiz in
             quiz.examVersion == version &&
             (level == nil || quiz.level == level) &&
-            (category == nil || quiz.category == category?.rawValue)
+            (category == nil || quiz.canonicalCategory == category)
         }
     }
 
@@ -128,11 +143,47 @@ enum QuestionBank {
             let categories = coverageCategories(for: objective.category)
             let count = quizzes(version: version, level: level)
                 .filter { quiz in
-                    guard let category = QuizCategory(rawValue: quiz.category) else { return false }
+                    guard let category = quiz.canonicalCategory else { return false }
                     return categories.contains(category)
                 }
                 .count
             return (objective, count)
+        }
+    }
+
+    static func categoryDistribution(
+        version: JavaExamVersion = .se17,
+        level: JavaLevel
+    ) -> [QuestionCategoryDistribution] {
+        let practice = quizzes(version: version, level: level)
+        let mockOnly = mockExamOnlyQuizzes.filter { $0.examVersion == version && $0.level == level }
+        let categories = Set((practice + mockOnly).compactMap(\.canonicalCategory))
+
+        return categories
+            .map { category in
+                QuestionCategoryDistribution(
+                    level: level,
+                    category: category,
+                    practiceCount: practice.filter { $0.canonicalCategory == category }.count,
+                    mockOnlyCount: mockOnly.filter { $0.canonicalCategory == category }.count
+                )
+            }
+            .sorted { lhs, rhs in
+                if lhs.category.displayName == rhs.category.displayName {
+                    return lhs.totalCount > rhs.totalCount
+                }
+                return lhs.category.displayName < rhs.category.displayName
+            }
+    }
+
+    static func contentBalanceIssues(
+        version: JavaExamVersion = .se17,
+        level: JavaLevel,
+        minimumPracticeCount: Int = 5
+    ) -> [String] {
+        categoryDistribution(version: version, level: level).compactMap { bucket in
+            guard bucket.practiceCount < minimumPracticeCount else { return nil }
+            return "\(level.displayName) \(bucket.category.displayName): practice \(bucket.practiceCount), mock-only \(bucket.mockOnlyCount)"
         }
     }
 
@@ -149,6 +200,25 @@ enum QuestionBank {
             if Explanation.sample(for: quiz.explanationRef) == nil {
                 issues.append("\(quiz.id): unresolved explanation \(quiz.explanationRef)")
             }
+            if quiz.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                issues.append("Quiz id must not be empty")
+            }
+            if quiz.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                issues.append("\(quiz.id): question must not be empty")
+            }
+            if quiz.choices.isEmpty {
+                issues.append("\(quiz.id): choices must not be empty")
+            }
+            if quiz.estimatedSeconds <= 0 {
+                issues.append("\(quiz.id): estimatedSeconds must be positive")
+            }
+            let choiceIds = quiz.choices.map(\.id)
+            let duplicateChoiceIds = Dictionary(grouping: choiceIds, by: { $0 })
+                .filter { $0.value.count > 1 }
+                .keys
+            for choiceId in duplicateChoiceIds {
+                issues.append("\(quiz.id): duplicate choice id \(choiceId)")
+            }
             let correctCount = quiz.choices.filter(\.correct).count
             if quiz.isMultipleSelect {
                 if correctCount < 2 {
@@ -157,8 +227,24 @@ enum QuestionBank {
             } else if correctCount != 1 {
                 issues.append("\(quiz.id): single-select needs exactly one correct choice")
             }
-            if QuizCategory(rawValue: quiz.category) == nil {
+            if quiz.canonicalCategory == nil {
                 issues.append("\(quiz.id): unknown category \(quiz.category)")
+            }
+            if let codeTabs = quiz.codeTabs {
+                let tabIds = codeTabs.map(\.id)
+                let duplicateTabIds = Dictionary(grouping: tabIds, by: { $0 })
+                    .filter { $0.value.count > 1 }
+                    .keys
+                for tabId in duplicateTabIds {
+                    issues.append("\(quiz.id): duplicate code tab id \(tabId)")
+                }
+                let filenames = codeTabs.map(\.filename)
+                let duplicateFilenames = Dictionary(grouping: filenames, by: { $0 })
+                    .filter { $0.value.count > 1 }
+                    .keys
+                for filename in duplicateFilenames {
+                    issues.append("\(quiz.id): duplicate code tab filename \(filename)")
+                }
             }
         }
 
@@ -180,6 +266,7 @@ enum QuestionBank {
             }
         }
 
+        issues.append(contentsOf: boundaryValidationIssues())
         return issues
     }
 
@@ -264,7 +351,7 @@ enum QuestionBank {
     }
 
     private static func balanced(_ pool: [Quiz], limit: Int) -> [Quiz] {
-        let grouped = Dictionary(grouping: pool) { $0.category }
+        let grouped = Dictionary(grouping: pool) { $0.canonicalCategoryRawValue }
         let orderedGroups = grouped.keys.sorted()
         var result: [Quiz] = []
         var cursors = Dictionary(uniqueKeysWithValues: orderedGroups.map { ($0, 0) })
@@ -294,6 +381,42 @@ enum QuestionBank {
             quizzes(version: version, level: level) +
             mockExamOnlyQuizzes.filter { $0.examVersion == version && $0.level == level }
         )
+    }
+
+    private static func boundaryValidationIssues() -> [String] {
+        var issues: [String] = []
+
+        for version in JavaExamVersion.allCases {
+            for level in JavaLevel.allCases {
+                let poolCount = mockExamPool(version: version, level: level).count
+                guard poolCount > 0 else { continue }
+
+                let spec = MockExamSpec.official(version: version, level: level)
+                for variant in MockExamVariant.allCases {
+                    let requested = spec.questionCount(for: variant)
+                    if requested <= 0 {
+                        issues.append("\(version.displayName) \(level.displayName) \(variant.displayName): requested question count must be positive")
+                    }
+
+                    guard let session = makeMockExamSession(variant: variant, version: version, level: level) else {
+                        issues.append("\(version.displayName) \(level.displayName) \(variant.displayName): session could not be created")
+                        continue
+                    }
+
+                    let expected = min(requested, poolCount)
+                    if session.quizzes.count != expected {
+                        issues.append("\(version.displayName) \(level.displayName) \(variant.displayName): expected \(expected) questions, got \(session.quizzes.count)")
+                    }
+
+                    let selectedIds = session.quizzes.map(\.id)
+                    if Set(selectedIds).count != selectedIds.count {
+                        issues.append("\(version.displayName) \(level.displayName) \(variant.displayName): duplicate quiz selected")
+                    }
+                }
+            }
+        }
+
+        return issues
     }
 
     private static func mixedMockExamSelection(

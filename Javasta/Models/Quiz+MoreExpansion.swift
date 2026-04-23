@@ -4,6 +4,8 @@ extension QuizExpansion {
     static let mixedExpansion: [Quiz] = [
         goldGenerics005,
         goldGenerics006,
+        goldLambdaMethodReference001,
+        goldLambdaConstructorRef001,
         goldStream008,
         goldOptional005,
         goldConcurrency007,
@@ -2279,7 +2281,7 @@ public class Test {
     static let goldClasses005 = Quiz(
         id: "gold-classes-005",
         level: .gold,
-        category: "classes",
+        category: "inheritance",
         tags: ["sealed", "permits", "Java17"],
         code: """
 sealed class Parent permits Child {}

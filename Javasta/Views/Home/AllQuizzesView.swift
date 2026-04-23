@@ -49,7 +49,7 @@ struct AllQuizzesView: View {
 
     private var grouped: [(category: QuizCategory, quizzes: [Quiz])] {
         let dict = Dictionary(grouping: quizzes) { quiz in
-            QuizCategory(rawValue: quiz.category) ?? .controlFlow
+            quiz.canonicalCategory ?? .controlFlow
         }
         return dict
             .map { ($0.key, $0.value.sorted { $0.id < $1.id }) }

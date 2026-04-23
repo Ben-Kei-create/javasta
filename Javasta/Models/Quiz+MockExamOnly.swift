@@ -519,7 +519,7 @@ public class Test {
         difficulty: .exam,
         validatedByJavac: false,
         isMockExamOnly: true,
-        category: "classes",
+        category: "inheritance",
         tags: ["模試専用", "sealed", "permits", "compile error"],
         code: """
 sealed interface Shape permits Circle {}

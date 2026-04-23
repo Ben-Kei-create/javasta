@@ -97,6 +97,7 @@ extension Explanation {
             .merging(goldGeneralAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldAdvancedAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldBalancedAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldInheritanceBalanceAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(mockExamOnlyAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(silverMockFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldMockAdditionalAuthoredSamples, uniquingKeysWith: { _, new in new })

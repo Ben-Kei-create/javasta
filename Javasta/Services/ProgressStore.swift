@@ -120,7 +120,7 @@ final class ProgressStore {
         let record = QuizAnswerRecord(
             quizId: quiz.id,
             level: quiz.level,
-            category: quiz.category,
+            category: quiz.canonicalCategoryRawValue,
             tags: quiz.tags,
             selectedChoiceId: choice.id,
             correct: choice.correct,
@@ -152,7 +152,7 @@ final class ProgressStore {
                 QuizAnswerRecord(
                     quizId: quiz.id,
                     level: quiz.level,
-                    category: quiz.category,
+                    category: quiz.canonicalCategoryRawValue,
                     tags: quiz.tags,
                     selectedChoiceId: answer.selectedChoiceId ?? "",
                     correct: answer.correct,

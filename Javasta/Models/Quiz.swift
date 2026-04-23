@@ -21,8 +21,16 @@ struct Quiz: Codable, Identifiable {
     let explanationRef: String
     let designIntent: String
 
+    var canonicalCategory: QuizCategory? {
+        QuizCategory.canonical(rawValue: category)
+    }
+
+    var canonicalCategoryRawValue: String {
+        canonicalCategory?.rawValue ?? category
+    }
+
     var categoryDisplayName: String {
-        QuizCategory(rawValue: category)?.displayName ?? category
+        canonicalCategory?.displayName ?? category
     }
 
     var examCode: String {

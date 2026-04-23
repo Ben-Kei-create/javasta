@@ -169,6 +169,14 @@ enum ExamObjectiveCatalog {
             priority: 3
         ),
         ExamObjective(
+            id: "se17-gold-date-time",
+            version: .se17,
+            level: .gold,
+            category: .dateTime,
+            title: "日付・時刻API",
+            priority: 3
+        ),
+        ExamObjective(
             id: "se17-gold-localization",
             version: .se17,
             level: .gold,
