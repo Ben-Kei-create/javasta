@@ -104,6 +104,7 @@ extension Quiz {
             + QuizExpansion.goldBalancedExpansion
             + QuizExpansion.goldInheritanceBalanceExpansion
             + QuizExpansion.goldNonLambdaExpansion
+            + QuizExpansion.goldNonLambdaFurtherExpansion
 
         var seenIds = Set<String>()
         return all.filter { quiz in

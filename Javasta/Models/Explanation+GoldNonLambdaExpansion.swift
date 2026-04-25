@@ -6,6 +6,12 @@ extension Explanation {
             (spec.explanationRef, spec.explanation)
         }
     )
+
+    static let goldNonLambdaFurtherAuthoredSamples: [String: Explanation] = Dictionary(
+        uniqueKeysWithValues: GoldNonLambdaFurtherQuestionData.specs.map { spec in
+            (spec.explanationRef, spec.explanation)
+        }
+    )
 }
 
 extension GoldNonLambdaQuestionData.Spec {
