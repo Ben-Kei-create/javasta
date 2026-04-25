@@ -284,7 +284,7 @@ public class Test {
                 choice("c", "PC", misconception: "両方のprintが呼ばれると誤解", explanation: "run内の呼び出しは1回だけです。"),
                 choice("d", "コンパイルエラー", misconception: "Childで同名メソッドを定義できないと誤解", explanation: "privateメソッドとは別メソッドとして定義できます。"),
             ],
-            intent: "privateメソッドはオーバーライドされないことを確認する。",
+            intent: "new Child().run() でも、Parent.run内のprivate `print()` は親クラス版に束縛されることを確認する。",
             steps: [
                 step("ChildはParentを継承していますが、Parent.printはprivateです。", [1, 2, 10], [variable("Parent.print", "private method", "not inherited", "class Parent")]),
                 step("new Child().run()で実行されるrunはParentのメソッドです。run内のprintはParent.printへ静的に結びつきます。", [5, 6, 17], [variable("called method", "method", "Parent.print", "runtime")]),
@@ -320,7 +320,7 @@ public class Test {
                 choice("c", "コンパイルエラー", correct: true, explanation: "Parent.runはfinalなので、Childで同じシグネチャのrunを定義してオーバーライドできません。"),
                 choice("d", "実行時例外", misconception: "final違反が実行時に検出されると誤解", explanation: "finalメソッドのオーバーライド禁止はコンパイル時に検出されます。"),
             ],
-            intent: "finalメソッドはサブクラスでオーバーライドできないことを確認する。",
+            intent: "final `run()` を持つ親クラスに対し、子クラスで同シグネチャを宣言するとコンパイルエラーになることを確認する。",
             steps: [
                 step("Parent.runはfinal付きのインスタンスメソッドです。", [1, 2], [variable("Parent.run", "final method", "cannot override", "class Parent")]),
                 step("Child.runは同じシグネチャで定義され、Parent.runをオーバーライドしようとします。", [5, 6], [variable("Child.run", "method", "invalid override", "class Child")]),
@@ -605,7 +605,7 @@ public class Test {
             steps: [
                 step("valueはnullのInteger参照です。", [3], [variable("value", "Integer", "null", "main")]),
                 step("`int n = value;` ではIntegerからintへのunboxingが必要です。nullなのでNullPointerExceptionが発生します。", [5], [variable("result", "exception", "NullPointerException", "runtime")]),
-                step("catch節で `NPE` が出力されます。", [7, 8], [variable("output", "String", "NPE", "stdout")]),
+                step("Integerのアンボクシング失敗をcatchし、`NPE` が出力されます。", [7, 8], [variable("output", "String", "NPE", "stdout")]),
             ]
         ),
         q(
@@ -1194,7 +1194,7 @@ public class Test {
             steps: [
                 step("空のConcurrentHashMapを作成します。", [3], [variable("map", "ConcurrentHashMap<String,String>", "{}", "main")]),
                 step("`put(\"a\", null)` でnull値を入れようとします。ConcurrentHashMapはnull値を許可しません。", [5], [variable("result", "exception", "NullPointerException", "runtime")]),
-                step("catch節で `NPE` が出力されます。", [7, 8], [variable("output", "String", "NPE", "stdout")]),
+                step("ConcurrentHashMapのnull拒否をcatchし、`NPE` が出力されます。", [7, 8], [variable("output", "String", "NPE", "stdout")]),
             ]
         ),
         q(

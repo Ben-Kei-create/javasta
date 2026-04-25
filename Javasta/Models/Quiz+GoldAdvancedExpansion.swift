@@ -704,7 +704,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "@Retentionを指定しない場合、実行時リフレクションでは取得できません。getAnnotationはnullを返します。"),
             Choice(id: "b", text: "false", correct: false, misconception: "デフォルトでRUNTIME保持だと誤解", explanation: "実行時に取得したい場合は@Retention(RetentionPolicy.RUNTIME)が必要です。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "配列要素のアノテーション値を書けないと誤解", explanation: "value要素が配列の場合、@Tags({\"a\", \"b\"})は有効です。"),
+            Choice(id: "c", text: "コンパイルエラー（Retention未指定）", correct: false, misconception: "配列要素のアノテーション値を書けないと誤解", explanation: "value要素が配列の場合、@Tags({\"a\", \"b\"})は有効です。"),
             Choice(id: "d", text: "NullPointerException", correct: false, misconception: "null比較で例外になると誤解", explanation: "== null の比較では例外は発生しません。"),
         ],
         explanationRef: "explain-gold-advanced-annotation-default-retention-001",
@@ -746,7 +746,7 @@ public class Test {
             Choice(id: "a", text: "0", correct: false, misconception: "繰り返しアノテーションがリフレクションで読めないと誤解", explanation: "RetentionPolicy.RUNTIMEなので実行時に読めます。"),
             Choice(id: "b", text: "1", correct: false, misconception: "コンテナアノテーションだけが1つ見えると誤解", explanation: "getAnnotationsByType(Role.class)は繰り返されたRoleを展開して返します。"),
             Choice(id: "c", text: "2", correct: true, misconception: nil, explanation: "@Roleが2回付いているため、Role.classで取得すると2件です。"),
-            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "@Repeatableのコンテナを正しく定義できていないと誤解", explanation: "RolesはRole[] value()を持つため、コンテナとして有効です。"),
+            Choice(id: "d", text: "コンパイルエラー（@Repeatable定義）", correct: false, misconception: "@Repeatableのコンテナを正しく定義できていないと誤解", explanation: "RolesはRole[] value()を持つため、コンテナとして有効です。"),
         ],
         explanationRef: "explain-gold-advanced-annotation-repeatable-001",
         designIntent: "繰り返し可能アノテーションのコンテナとgetAnnotationsByTypeの動作を確認する。"

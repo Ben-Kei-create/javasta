@@ -699,7 +699,7 @@ ResultSet rs = ps.executeQuery();
                 choice("c", "`setString(2, \"A\")` は3つ目の `?` を表す", misconception: "0始まりで読んでいる", explanation: "1始まりなので2は2つ目のプレースホルダです。"),
                 choice("d", "SELECT文なので `executeUpdate()` を使う", misconception: "JDBCの実行メソッドを混同", explanation: "SELECTは通常 `executeQuery()` で `ResultSet` を受け取ります。"),
             ],
-            intent: "PreparedStatementのパラメータ番号が1始まりであることを確認する。",
+            intent: "PreparedStatementで複数プレースホルダへ1番・2番の順に値が対応することを確認する。",
             steps: [
                 step("SQLには2つの `?` プレースホルダがあります。JDBCではこれらを1始まりの番号で指定します。", [1, 2], [variable("placeholders", "int", "2", "SQL")]),
                 step("`ps.setInt(1, 10)` は1つ目の `?`、`ps.setString(2, \"A\")` は2つ目の `?` に値を設定します。", [4, 5], [variable("param1", "int", "10", "PreparedStatement"), variable("param2", "String", "A", "PreparedStatement")]),
@@ -752,7 +752,7 @@ System.out.println(name);
                 choice("c", "`getString` は列名では呼べない", misconception: "ResultSet APIを誤解", explanation: "列名でも列番号でも取得できます。"),
                 choice("d", "SELECT文には `executeUpdate` が必要", misconception: "JDBCメソッドを混同", explanation: "SELECT文には `executeQuery` が適切です。問題はカーソル移動です。"),
             ],
-            intent: "ResultSetのカーソル初期位置とnext()の必要性を確認する。",
+            intent: "ResultSet取得直後はbefore firstにあり、列名取得前にも `next()` が必要なことを確認する。",
             steps: [
                 step("`executeQuery` で `ResultSet` を取得した直後、カーソルは最初の行そのものではなく、最初の行の前にあります。", [1], [variable("cursor", "ResultSet cursor", "before first row", "rs")]),
                 step("値を読むには、通常 `rs.next()` を呼んで次の行へ移動し、戻り値で行が存在することを確認します。", [2], [variable("required call", "boolean", "rs.next()", "ResultSet")]),
@@ -1256,7 +1256,7 @@ public class Test {
             choices: [
                 choice("a", "true", correct: true, explanation: "`@Inherited` が付いたクラス用アノテーションは、サブクラスの `Class` からも見えるようになります。"),
                 choice("b", "false", misconception: "@Inheritedの効果を見落とし", explanation: "`@Inherited` と `RUNTIME` があるため、Child.classから確認できます。"),
-                choice("c", "コンパイルエラー", misconception: "@Inheritedをカスタムアノテーションに付けられないと誤解", explanation: "`@Inherited` はアノテーション型に付けるメタアノテーションです。"),
+                choice("c", "コンパイルエラー（@Inherited）", misconception: "@Inheritedをカスタムアノテーションに付けられないと誤解", explanation: "`@Inherited` はアノテーション型に付けるメタアノテーションです。"),
                 choice("d", "NullPointerException", misconception: "アノテーション未検出時の挙動を誤解", explanation: "`isAnnotationPresent` はbooleanを返します。"),
             ],
             intent: "@Inheritedがクラス継承時のアノテーション参照に影響することを確認する。",
@@ -1455,7 +1455,7 @@ public class Test {
             choices: [
                 choice("a", "true", misconception: "Stringと同じ内容比較だと誤解", explanation: "StringBuilderはequalsを内容比較としてオーバーライドしていません。"),
                 choice("b", "false", correct: true, explanation: "2つは別インスタンスであり、StringBuilderのequalsはObject由来の参照比較です。"),
-                choice("c", "コンパイルエラー", misconception: "StringBuilder同士をequalsできないと誤解", explanation: "`equals` はObjectのメソッドなので呼び出せます。"),
+                choice("c", "コンパイルエラー（equals呼び出し）", misconception: "StringBuilder同士をequalsできないと誤解", explanation: "`equals` はObjectのメソッドなので呼び出せます。"),
                 choice("d", "NullPointerException", misconception: "どちらかがnullだと誤解", explanation: "どちらもnewされたオブジェクトです。"),
             ],
             intent: "Object.equalsの既定実装とStringBuilderの参照比較を確認する。",

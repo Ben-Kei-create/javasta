@@ -503,7 +503,7 @@ public class Test {
                 choice("c", "コンパイルエラーになる", correct: true, explanation: "5行目の `i` はスコープ外なので解決できません。"),
                 choice("d", "実行時にNullPointerExceptionになる", misconception: "スコープエラーを実行時問題と誤解", explanation: "コンパイル時に検出されます。"),
             ],
-            intent: "for文の初期化部で宣言した変数のスコープを確認する。",
+            intent: "for初期化部の `i` がループ後の `System.out.println(i)` では参照できないことを確認する。",
             steps: [
                 step("`int i = 0` はfor文の初期化部で宣言されています。", [3], [variable("i", "int", "for-scope variable", "for")]),
                 step("このiのスコープはfor文の本体と更新式・条件式までです。for文の外へ出ると見えません。", [3, 4, 5], [variable("i visible after loop", "boolean", "false", "compiler")]),
@@ -652,7 +652,7 @@ public class Test {
                 choice("a", "1", misconception: "フィールド初期化だけで止まると誤解", explanation: "インスタンス初期化ブロックがその後に実行されます。"),
                 choice("b", "2", correct: true, explanation: "フィールド初期化で1になった後、インスタンス初期化ブロックで2に更新され、コンストラクタで出力されます。"),
                 choice("c", "0", misconception: "明示初期化がコンストラクタ後だと誤解", explanation: "明示初期化と初期化ブロックはコンストラクタ本体より前です。"),
-                choice("d", "コンパイルエラー", misconception: "初期化ブロックでフィールドを書き換えられないと誤解", explanation: "インスタンス初期化ブロックからインスタンスフィールドへ代入できます。"),
+                choice("d", "コンパイルエラー（初期化ブロック）", misconception: "初期化ブロックでフィールドを書き換えられないと誤解", explanation: "インスタンス初期化ブロックからインスタンスフィールドへ代入できます。"),
             ],
             intent: "フィールド初期化、インスタンス初期化ブロック、コンストラクタ本体の順序を確認する。",
             steps: [
@@ -685,7 +685,7 @@ public class Test {
                 choice("c", "コンパイルエラー", misconception: "privateコンストラクタは常に呼べないと誤解", explanation: "privateは同じクラス内からアクセス可能です。"),
                 choice("d", "IllegalAccessError", misconception: "アクセス制御を実行時エラーと誤解", explanation: "このアクセスはコンパイル時にも実行時にも有効です。"),
             ],
-            intent: "privateコンストラクタのアクセス範囲を確認する。",
+            intent: "privateコンストラクタでも、同一クラス内の `create()` からは呼び出せることを確認する。",
             steps: [
                 step("`main` は同じクラス内のstaticメソッド `create()` を呼びます。", [8, 9], [variable("method", "String", "create", "main")]),
                 step("`create()` もTestクラス内にあるため、privateコンストラクタ `new Test()` を呼び出せます。", [2, 5, 6], [variable("access", "boolean", "allowed", "Test")]),
@@ -745,7 +745,7 @@ public class Test {
                 choice("c", "コンパイルエラー", misconception: "byteへのキャストが無効と誤解", explanation: "`(byte) 1` は有効です。"),
                 choice("d", "実行時にClassCastException", misconception: "プリミティブキャストを参照型キャストと混同", explanation: "これはコンパイル時に解決されるプリミティブのオーバーロードです。"),
             ],
-            intent: "オーバーロード解決で完全一致が優先されることを確認する。",
+            intent: "byteへキャストした実引数では、shortへの拡大より `call(byte)` の完全一致が優先されることを確認する。",
             steps: [
                 step("実引数 `(byte) 1` の型はbyteです。", [5], [variable("argument", "byte", "1", "main")]),
                 step("候補は `call(byte)` と `call(short)` です。byteはshortへ拡大できますが、byte完全一致の方がより適合します。", [2, 3], [variable("selected method", "String", "call(byte)", "compiler")]),
@@ -1388,7 +1388,7 @@ public class Test {
                 choice("c", "C:C", misconception: "フィールドもポリモーフィックに選ばれると誤解", explanation: "フィールドは隠蔽であり、参照型に基づきます。"),
                 choice("d", "コンパイルエラー", misconception: "同名フィールドをサブクラスに宣言できないと誤解", explanation: "フィールドは隠蔽できます。"),
             ],
-            intent: "フィールド隠蔽とメソッドオーバーライドの違いを確認する。",
+            intent: "同じ参照 `p` でも `p.name` はParent、`p.getName()` はChildで解決されることを確認する。",
             steps: [
                 step("`Parent p = new Child();` で、参照型はParent、実体はChildです。", [11], [variable("p compile/runtime", "type", "Parent / Child", "main")]),
                 step("`p.name` はフィールド参照なので参照型Parentに基づき、Parentの `name = \"P\"` が使われます。", [2, 12], [variable("p.name", "String", "P", "main")]),

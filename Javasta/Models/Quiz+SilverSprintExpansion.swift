@@ -974,7 +974,7 @@ public class Test {
             steps: [
                 step("`values` はint[]型の変数ですが、値はnullです。", [3], [variable("values", "int[]", "null", "main")]),
                 step("`values.length` は配列オブジェクトのlengthを読もうとしますが、参照先がないためNullPointerExceptionです。", [5], [variable("exception", "NullPointerException", "thrown", "try")]),
-                step("catchで捕捉され、`NPE` が出力されます。", [6, 7], [variable("output", "String", "NPE", "stdout")]),
+                step("null配列参照のlengthアクセスで発生した例外がcatchで捕捉され、`NPE` が出力されます。", [6, 7], [variable("output", "String", "NPE", "stdout")]),
             ]
         ),
         q(

@@ -86,7 +86,7 @@ public class Test {
                 choice("c", "コンパイルエラーになる", correct: true, explanation: "doubleリテラルをfloatへ暗黙に縮小変換できません。`1.0f` かキャストが必要です。"),
                 choice("d", "実行時にClassCastExceptionになる", misconception: "プリミティブ変換を実行時キャストと混同", explanation: "これはコンパイル時の型チェックです。"),
             ],
-            intent: "小数リテラルのデフォルト型がdoubleであることを確認する。",
+            intent: "float変数へ `1.0` を代入すると、doubleリテラルの縮小変換不足でコンパイルエラーになることを確認する。",
             steps: [
                 step("`1.0` はサフィックスなしの小数リテラルなのでdouble型です。", [3], [variable("1.0", "double literal", "1.0", "compiler")]),
                 step("doubleからfloatへの代入は縮小変換であり、明示キャストなしではできません。", [3], [variable("assignment", "double -> float", "not allowed", "compiler")]),
@@ -333,7 +333,7 @@ public class Test {
                 choice("a", "1", correct: true, explanation: "`List.of` のリストは変更不可なのでaddで例外になり、元のサイズ1を出力します。"),
                 choice("b", "2", misconception: "addが成功すると誤解", explanation: "`List.of` の戻り値は変更不可です。"),
                 choice("c", "0", misconception: "例外時にリストが空になると誤解", explanation: "元の要素Aは残っています。"),
-                choice("d", "コンパイルエラー", misconception: "List.ofをList<String>へ代入できないと誤解", explanation: "代入は可能です。変更操作が実行時例外になります。"),
+                choice("d", "コンパイルエラー（List.of）", misconception: "List.ofをList<String>へ代入できないと誤解", explanation: "代入は可能です。変更操作が実行時例外になります。"),
             ],
             intent: "List.ofの変更不可リストを確認する。",
             steps: [
@@ -566,7 +566,7 @@ public class Test {
                 choice("c", "実行時にIllegalAccessErrorになる", misconception: "アクセス制御を実行時まで遅らせると誤解", explanation: "ソースからの不正アクセスはコンパイル時に検出されます。"),
                 choice("d", "nullが代入される", misconception: "new失敗時にnullになると誤解", explanation: "new式はアクセス不可ならコンパイルできません。"),
             ],
-            intent: "privateコンストラクタのアクセス範囲を確認する。",
+            intent: "privateコンストラクタは別トップレベルクラスの `new Box()` から呼べないことを確認する。",
             steps: [
                 step("Boxのコンストラクタはprivateです。", [1, 2], [variable("Box()", "constructor", "private", "Box")]),
                 step("`new Box()` はTestクラスのmainから呼ばれています。TestはBoxとは別のトップレベルクラスです。", [5, 6, 7], [variable("access allowed", "boolean", "false", "compiler")]),
@@ -942,7 +942,7 @@ public class Test {
             steps: [
                 step("`value` はInteger型ですが値はnullです。", [3], [variable("value", "Integer", "null", "main")]),
                 step("`int n = value;` ではIntegerからintへのアンボクシングが必要です。nullから値を取り出せないためNullPointerExceptionになります。", [5], [variable("exception", "NullPointerException", "thrown", "try")]),
-                step("catchで捕捉され、`NPE` が出力されます。", [7, 8], [variable("output", "String", "NPE", "stdout")]),
+                step("アンボクシング時のNullPointerExceptionがcatchで捕捉され、`NPE` が出力されます。", [7, 8], [variable("output", "String", "NPE", "stdout")]),
             ]
         ),
         q(
@@ -1031,11 +1031,11 @@ public class Test {
                 choice("c", "NPE", correct: true, explanation: "`List.of(\"A\", null)` の時点でNullPointerExceptionが発生します。"),
                 choice("d", "コンパイルエラー", misconception: "nullをString要素として書けないと誤解", explanation: "コンパイルは可能ですが、List.ofが実行時に拒否します。"),
             ],
-            intent: "List.ofがnull要素を許可しないことを確認する。",
+            intent: "List.ofに `\"A\", null` を渡した時点でNullPointerExceptionが発生することを確認する。",
             steps: [
                 step("`List.of(\"A\", null)` を呼び出しています。nullはString参照としては書けます。", [6], [variable("argument", "String", "null", "main")]),
                 step("しかしList.ofはnull要素を禁止しているため、作成時にNullPointerExceptionが発生します。", [6], [variable("exception", "NullPointerException", "thrown", "List.of")]),
-                step("catchで捕捉され、`NPE` が出力されます。", [8, 9], [variable("output", "String", "NPE", "stdout")]),
+                step("List.ofのnull拒否で発生した例外がcatchで捕捉され、`NPE` が出力されます。", [8, 9], [variable("output", "String", "NPE", "stdout")]),
             ]
         ),
         q(
@@ -1199,7 +1199,7 @@ public class Test {
                 choice("c", "コンパイルエラーになる", correct: true, explanation: "Exceptionを先にcatchすると、その後のRuntimeException catchは到達不能になります。"),
                 choice("d", "ERと出力される", misconception: "複数catchが連続実行されると誤解", explanation: "catchは1つだけ実行されます。今回はコンパイル不可です。"),
             ],
-            intent: "catchブロックはサブクラスから先に書く必要があることを確認する。",
+            intent: "catch(Exception) を先に置くと、後続の RuntimeException catch が到達不能になることを確認する。",
             steps: [
                 step("`Exception` は `RuntimeException` の親クラスです。", [5, 7], [variable("relationship", "String", "RuntimeException extends Exception", "compiler")]),
                 step("先にExceptionをcatchすると、RuntimeExceptionもそこで必ず捕捉されるため、後続のRuntimeException catchには到達できません。", [5, 7], [variable("second catch reachable", "boolean", "false", "compiler")]),
@@ -1263,7 +1263,7 @@ public class Test {
                 choice("c", "false:false", misconception: "String.equalsも参照比較だと誤解", explanation: "String.equalsは内容比較です。"),
                 choice("d", "コンパイルエラー", misconception: "StringBuilderにtoStringがないと誤解", explanation: "Object由来のtoStringがあり、StringBuilderは内容文字列を返します。"),
             ],
-            intent: "StringBuilder.equalsとString.equalsの違いを確認する。",
+            intent: "StringBuilder同士のequalsはfalseでも、toString後のString.equalsはtrueになることを確認する。",
             steps: [
                 step("aとbはどちらも内容はxですが、別々にnewされたStringBuilderです。", [3, 4], [variable("a/b", "StringBuilder", "different objects", "main")]),
                 step("`a.equals(b)` は内容比較ではないためfalseです。一方、toString後のString同士は内容比較になります。", [5], [variable("first", "boolean", "false", "main"), variable("second", "boolean", "true", "main")]),

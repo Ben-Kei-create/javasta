@@ -219,7 +219,7 @@ public class Test {
             Choice(id: "d", text: "aXYef", correct: false, misconception: "reverseを見落とし", explanation: "最後にreverse()を呼んでいます。"),
         ],
         explanationRef: "explain-silver-mock-string-builder-001",
-        designIntent: "StringBuilderの破壊的変更とメソッドチェーンの順序を確認する。"
+        designIntent: "delete・insert・reverseを連結したとき、各操作が同じStringBuilderへ順番に反映されることを確認する。"
     )
 
     static let silverMockPrimitiveCast001 = Quiz(
@@ -334,7 +334,7 @@ public class Test {
             Choice(id: "d", text: "無限ループ", correct: false, misconception: "i<0がtrueになると誤解", explanation: "本体後のiは1なので条件はfalseです。"),
         ],
         explanationRef: "explain-silver-mock-do-while-001",
-        designIntent: "do-whileの最低1回実行と後置インクリメントを確認する。"
+        designIntent: "条件が最初からfalseでも、do-while本体が1回実行されてから `i++` が反映されることを確認する。"
     )
 
     static let goldMockCollectorsToMap001 = Quiz(
@@ -506,7 +506,7 @@ public class Test {
         question: "このコードを実行したとき、出力されるのはどれか？",
         choices: [
             Choice(id: "a", text: "false:true", correct: true, misconception: nil, explanation: "recordの自動equalsは配列コンポーネントに対して配列内容比較ではなく配列オブジェクトのequalsを使います。別配列なのでfalse、Arrays.equalsは内容比較なのでtrueです。"),
-            Choice(id: "b", text: "true:true", correct: false, misconception: "recordのequalsが配列内容まで比較すると誤解", explanation: "recordが特別に配列内容比較へ変換するわけではありません。"),
+            Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "recordが配列コンポーネントを持てないと誤解", explanation: "recordのコンポーネントに配列型を使うこと自体は可能です。"),
             Choice(id: "c", text: "false:false", correct: false, misconception: "Arrays.equalsも参照比較と誤解", explanation: "Arrays.equals(int[], int[])は要素内容を比較します。"),
             Choice(id: "d", text: "true:false", correct: false, misconception: "recordとArrays.equalsの比較方法を逆に理解", explanation: "recordのequalsは配列参照比較相当、Arrays.equalsは内容比較です。"),
         ],

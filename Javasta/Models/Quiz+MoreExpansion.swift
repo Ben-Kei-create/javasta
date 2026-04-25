@@ -470,7 +470,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "Predicate<String>の抽象メソッドはboolean test(String)です。空文字にisEmpty()を呼ぶためtrueです。"),
             Choice(id: "b", text: "false", correct: false, misconception: "空文字のisEmpty判定を誤解", explanation: "\"\".isEmpty()はtrueです。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "引数1つの括弧省略を不可と誤解", explanation: "引数が1つで型を明示しない場合、括弧は省略できます。"),
+            Choice(id: "c", text: "コンパイルエラー（ラムダ省略記法）", correct: false, misconception: "引数1つの括弧省略を不可と誤解", explanation: "引数が1つで型を明示しない場合、括弧は省略できます。"),
             Choice(id: "d", text: "NullPointerException", correct: false, misconception: "空文字とnullを混同", explanation: "渡しているのはnullではなく空文字です。"),
         ],
         explanationRef: "explain-gold-functional-lambda-003",
@@ -1620,7 +1620,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "baseは各実行経路で一度だけ代入され、その後変更されません。実質的finalなのでラムダから参照できます。引数なしならbaseは1です。"),
             Choice(id: "b", text: "2", correct: false, misconception: "else側が実行されると誤解", explanation: "引数なしなのでargs.length == 0がtrueです。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "宣言時finalでないと参照できないと誤解", explanation: "明示的finalでなくても、実質的finalなら参照できます。"),
+            Choice(id: "c", text: "コンパイルエラー（実質的final）", correct: false, misconception: "宣言時finalでないと参照できないと誤解", explanation: "明示的finalでなくても、実質的finalなら参照できます。"),
             Choice(id: "d", text: "0", correct: false, misconception: "ローカル変数にデフォルト値があると誤解", explanation: "ローカル変数にデフォルト値はありませんが、このコードでは全経路で代入済みです。"),
         ],
         explanationRef: "explain-gold-functional-lambda-046",
@@ -1862,7 +1862,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "String::isBlankは\"Java\"でfalse、Predicate.notで反転してtrueになります。"),
             Choice(id: "b", text: "false", correct: false, misconception: "notによる反転を見落としている", explanation: "isBlankの結果falseが反転されます。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "Predicate.notを知らない", explanation: "Java 11以降、Predicate.notでPredicateを反転できます。"),
+            Choice(id: "c", text: "コンパイルエラー（Predicate.not）", correct: false, misconception: "Predicate.notを知らない", explanation: "Java 11以降、Predicate.notでPredicateを反転できます。"),
             Choice(id: "d", text: "NullPointerException", correct: false, misconception: nil, explanation: "テスト対象はnullではありません。"),
         ],
         explanationRef: "explain-gold-functional-lambda-055",
@@ -7769,7 +7769,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "true", correct: false, misconception: "全アノテーションが実行時に反射で読めると誤解", explanation: "Retentionを指定しない場合、実行時反射では取得できません。"),
             Choice(id: "b", text: "false", correct: true, misconception: nil, explanation: "デフォルトのRetentionPolicyはCLASSです。RUNTIMEを指定していないため、isAnnotationPresentはfalseになります。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "カスタムアノテーションにはRetentionが必須と誤解", explanation: "Retention指定は任意です。省略時はCLASSです。"),
+            Choice(id: "c", text: "コンパイルエラー（Retention未指定）", correct: false, misconception: "カスタムアノテーションにはRetentionが必須と誤解", explanation: "Retention指定は任意です。省略時はCLASSです。"),
             Choice(id: "d", text: "NullPointerException", correct: false, misconception: "Info.classがnullになると誤解", explanation: "クラスリテラルはnullではありません。反射で見えないだけです。"),
         ],
         explanationRef: "explain-gold-annotations-006",
@@ -7893,7 +7893,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "@Inheritedが付いたクラスアノテーションは、サブクラス側の反射取得でも継承されたものとして見えます。"),
             Choice(id: "b", text: "false", correct: false, misconception: "アノテーションは絶対に継承されないと誤解", explanation: "@InheritedとRUNTIME保持があるため、Childからも見えます。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "@Inheritedをカスタムアノテーションに付けられないと誤解", explanation: "@Inheritedはアノテーション型に付けるメタアノテーションです。"),
+            Choice(id: "c", text: "コンパイルエラー（@Inherited）", correct: false, misconception: "@Inheritedをカスタムアノテーションに付けられないと誤解", explanation: "@Inheritedはアノテーション型に付けるメタアノテーションです。"),
             Choice(id: "d", text: "NullPointerException", correct: false, misconception: "Child.classがnullになると誤解", explanation: "クラスリテラルは常にClassオブジェクトを表します。"),
         ],
         explanationRef: "explain-gold-annotations-010",
@@ -7933,7 +7933,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "1", correct: false, misconception: "同じアノテーションは1つにまとめられて数えられると誤解", explanation: "getAnnotationsByType(Tag.class)は繰り返し付与されたTagを展開して返します。"),
             Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "@RepeatableとコンテナTagsにより、Tagを2回付けられ、反射でも2件取得できます。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "同じアノテーションを複数回付けられないと誤解", explanation: "@Repeatableを正しく宣言しているため有効です。"),
+            Choice(id: "c", text: "コンパイルエラー（@Repeatable設定）", correct: false, misconception: "同じアノテーションを複数回付けられないと誤解", explanation: "@Repeatableを正しく宣言しているため有効です。"),
             Choice(id: "d", text: "0", correct: false, misconception: "RUNTIME保持がないと誤解", explanation: "TagとTagsの両方にRUNTIME保持があります。"),
         ],
         explanationRef: "explain-gold-annotations-011",

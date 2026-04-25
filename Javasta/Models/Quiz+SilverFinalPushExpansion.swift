@@ -316,7 +316,7 @@ public class Test {
                 choice("c", "2:2", misconception: "フィールドもポリモーフィックに解決されると誤解", explanation: "フィールドは隠蔽であり、参照型に基づいて解決されます。"),
                 choice("d", "コンパイルエラー", misconception: "Parent型変数にChildを代入できないと誤解", explanation: "継承関係があるため、Parent型参照でChildインスタンスを保持できます。"),
             ],
-            intent: "フィールド隠蔽とメソッドオーバーライドの解決タイミングの違いを確認する。",
+            intent: "同じ式でも `p.value` は参照型、`p.get()` は実体型で解決されることを確認する。",
             steps: [
                 step("pの参照型はParentですが、実体はChildです。", [13], [variable("p", "Parent", "Child instance", "main")]),
                 step("`p.value` はフィールド参照なので参照型Parentに基づき、Parent.valueの1になります。", [14], [variable("p.value", "int", "1", "main")]),
@@ -704,11 +704,11 @@ public class Test {
                 choice("c", "NPE", correct: true, explanation: "`List.of(\"A\", null)` の評価中にNullPointerExceptionが発生し、catchでNPEが出力されます。"),
                 choice("d", "UnsupportedOperationException", misconception: "不変リストの変更時例外と混同", explanation: "今回は変更前の作成時にnullで失敗します。"),
             ],
-            intent: "List.ofがnull要素を許可しないことを確認する。",
+            intent: "java.util.List.of の評価中にnull要素でNullPointerExceptionが発生することを確認する。",
             steps: [
                 step("try内でList.ofにAとnullを渡しています。", [3, 4], [variable("arguments", "String...", "A, null", "main")]),
                 step("List.ofはnull要素を検出するとNullPointerExceptionを投げ、list変数への代入は完了しません。", [4], [variable("result", "exception", "NullPointerException", "runtime")]),
-                step("catch節で `NPE` が出力されます。", [6, 7], [variable("output", "String", "NPE", "stdout")]),
+                step("List.ofの作成時に発生したNullPointerExceptionをcatchし、`NPE` が出力されます。", [6, 7], [variable("output", "String", "NPE", "stdout")]),
             ]
         ),
         q(
@@ -761,7 +761,7 @@ public class Test {
                 choice("c", "true:false", misconception: "toStringで別参照になるとequalsもfalseだと誤解", explanation: "String.equalsは参照ではなく内容を比較します。"),
                 choice("d", "false:false", misconception: "どちらも参照比較だと誤解", explanation: "toString後のString同士は内容比較されます。"),
             ],
-            intent: "StringBuilder.equalsとString.equalsの違いを確認する。",
+            intent: "StringBuilderのequals結果と、toString後のString.equals結果が食い違うことを確認する。",
             steps: [
                 step("aとbはどちらも内容xですが、別々のStringBuilderインスタンスです。", [3, 4], [variable("a == b", "boolean", "false", "heap")]),
                 step("StringBuilderはequalsを内容比較としてオーバーライドしないため、`a.equals(b)` はfalseです。", [5], [variable("a.equals(b)", "boolean", "false", "main")]),

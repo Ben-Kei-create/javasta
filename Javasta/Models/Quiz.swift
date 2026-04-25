@@ -16,7 +16,7 @@ struct Quiz: Codable, Identifiable {
     let tags: [String]
     let code: String
     var codeTabs: [CodeFile]? = nil
-    let question: String
+    var question: String
     let choices: [Choice]
     let explanationRef: String
     let designIntent: String
@@ -98,7 +98,12 @@ extension Quiz {
         tags = try container.decode([String].self, forKey: .tags)
         code = try container.decode(String.self, forKey: .code)
         codeTabs = try container.decodeIfPresent([CodeFile].self, forKey: .codeTabs)
-        question = try container.decode(String.self, forKey: .question)
+        let rawQuestion = try container.decode(String.self, forKey: .question)
+        question = Self.contextualizedQuestion(
+            rawQuestion,
+            category: category,
+            tags: tags
+        )
         choices = try container.decode([Choice].self, forKey: .choices)
         explanationRef = try container.decode(String.self, forKey: .explanationRef)
         designIntent = try container.decode(String.self, forKey: .designIntent)
@@ -125,5 +130,79 @@ extension Quiz {
         try container.encode(choices, forKey: .choices)
         try container.encode(explanationRef, forKey: .explanationRef)
         try container.encode(designIntent, forKey: .designIntent)
+    }
+
+    func contextualizedForPresentation() -> Quiz {
+        var quiz = self
+        quiz.question = Self.contextualizedQuestion(
+            question,
+            category: category,
+            tags: tags
+        )
+        return quiz
+    }
+
+    private static func contextualizedQuestion(
+        _ question: String,
+        category: String,
+        tags: [String]
+    ) -> String {
+        let genericTemplates: [String: (String) -> String] = [
+            "このコードを実行したとき、出力されるのはどれか？": {
+                "この\($0)を扱うコードを実行したとき、出力されるのはどれか？"
+            },
+            "このコードをコンパイルしたときの結果として正しいものはどれか？": {
+                "この\($0)を扱うコードをコンパイルしたときの結果として正しいものはどれか？"
+            },
+            "このコードを実行したとき、出力される結果はどれか？": {
+                "この\($0)を扱うコードを実行したとき、出力される結果はどれか？"
+            },
+            "このコードの出力はどれか？": {
+                "この\($0)を扱うコードの出力はどれか？"
+            },
+            "このコードについて正しい説明はどれか？": {
+                "この\($0)を扱うコードについて正しい説明はどれか？"
+            },
+            "このコードの出力として正しいものはどれか？": {
+                "この\($0)を扱うコードの出力として正しいものはどれか？"
+            }
+        ]
+
+        guard let template = genericTemplates[question] else {
+            return question
+        }
+
+        let focus = questionFocus(category: category, tags: tags)
+        guard !focus.isEmpty else {
+            return question
+        }
+
+        return template(focus)
+    }
+
+    private static func questionFocus(category: String, tags: [String]) -> String {
+        let ignoredTags: Set<String> = [
+            "模試専用",
+            "compile",
+            "exam",
+            "standard",
+            "tricky",
+            "basic",
+            "application"
+        ]
+
+        var parts: [String] = []
+        let categoryLabel = QuizCategory.canonical(rawValue: category)?.displayName ?? category
+        if !categoryLabel.isEmpty {
+            parts.append(categoryLabel)
+        }
+
+        for tag in tags where !ignoredTags.contains(tag) && !tag.isEmpty {
+            if parts.contains(tag) { continue }
+            parts.append(tag)
+            if parts.count == 3 { break }
+        }
+
+        return parts.joined(separator: "・")
     }
 }

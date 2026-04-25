@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 struct SettingsView: View {
@@ -11,6 +12,7 @@ struct SettingsView: View {
     @State private var pickerDate: Date = Date().addingTimeInterval(60 * 60 * 24 * 30)
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.requestReview) private var requestReview
 
     private let goalOptions = [3, 5, 10, 15]
 
@@ -129,10 +131,47 @@ struct SettingsView: View {
                         )
                     }
 
+#if DEBUG
+                    // MARK: 販売準備
+                    section(title: "販売準備") {
+                        NavigationLink {
+                            LaunchReadinessView()
+                        } label: {
+                            SettingNavigationRow(
+                                icon: "checklist.checked",
+                                title: "リリース品質チェック",
+                                value: launchReadinessSummary
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+#endif
+
                     // MARK: アプリについて
                     section(title: "アプリについて") {
                         VStack(spacing: 0) {
                             SettingRow(icon: "info.circle", title: "バージョン", value: appVersion, onTap: nil)
+                            Divider()
+                                .background(Color.jbBorder)
+                                .padding(.horizontal, Spacing.md)
+                            ShareLink(item: JavastaShare.appInviteText) {
+                                SettingNavigationRow(
+                                    icon: "square.and.arrow.up",
+                                    title: "Javastaを紹介"
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            Divider()
+                                .background(Color.jbBorder)
+                                .padding(.horizontal, Spacing.md)
+                            SettingRow(
+                                icon: "star.bubble",
+                                title: "レビューを書く",
+                                onTap: {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    requestReview()
+                                }
+                            )
                             Divider()
                                 .background(Color.jbBorder)
                                 .padding(.horizontal, Spacing.md)
@@ -181,6 +220,15 @@ struct SettingsView: View {
             Text("正答数・連続日数・完了レッスンがすべて消去されます。")
         }
     }
+
+#if DEBUG
+    private var launchReadinessSummary: String {
+        let issueCount = QuestionBank.explanationAuditReport().needsAttentionCount +
+            QuestionBank.contentQualityIssues().count +
+            QuestionBank.validationIssues().count
+        return issueCount == 0 ? "OK" : "\(issueCount)件"
+    }
+#endif
 
     private var codeSyntaxThemeRow: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {

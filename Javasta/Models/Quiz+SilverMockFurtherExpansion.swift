@@ -591,7 +591,7 @@ public class Test {
                 choice("c", "PC", misconception: "両方のrunが呼ばれると誤解", explanation: "call内の呼び出しは1回だけです。"),
                 choice("d", "コンパイルエラー", misconception: "Childに同名publicメソッドを書けないと誤解", explanation: "別メソッドとして宣言できます。"),
             ],
-            intent: "privateメソッドはオーバーライドされないことを確認する。",
+            intent: "Parent.call内のprivate `run()` がChildのpublic `run()` へ動的ディスパッチされないことを確認する。",
             steps: [
                 step("Parentの `run()` はprivateなので、Childへ継承されず、オーバーライド対象にもなりません。", [1, 2, 5, 6], [variable("Parent.run", "private method", "not overridden", "Parent")]),
                 step("`p.call()` はParentで定義されたcallを実行し、その中の `run()` はParent自身のprivate runへ束縛されます。", [3, 10, 11], [variable("called method", "String", "Parent.run", "call")]),
@@ -660,7 +660,7 @@ public class Test {
             steps: [
                 step("`s` はnullです。String型ですが、参照先オブジェクトはありません。", [3], [variable("s", "String", "null", "main")]),
                 step("`switch (s)` の評価時にnullが渡されるため、case/defaultの照合前にNullPointerExceptionが発生します。", [5], [variable("exception", "NullPointerException", "thrown", "switch")]),
-                step("catchで捕捉され、`NPE` が出力されます。", [9, 10], [variable("output", "String", "NPE", "stdout")]),
+                step("nullをswitch対象にした例外がcatchで捕捉され、`NPE` が出力されます。", [9, 10], [variable("output", "String", "NPE", "stdout")]),
             ]
         ),
         q(

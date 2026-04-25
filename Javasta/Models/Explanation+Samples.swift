@@ -98,6 +98,7 @@ extension Explanation {
             .merging(goldAdvancedAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldBalancedAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldInheritanceBalanceAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldNonLambdaAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(mockExamOnlyAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(silverMockFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldMockAdditionalAuthoredSamples, uniquingKeysWith: { _, new in new })
@@ -237,7 +238,7 @@ extension Explanation {
                 ),
                 Step(
                     index: 2,
-                    narration: "したがって正解は「\(correctChoice?.text ?? "該当なし")」です。コードの評価結果と選択肢の説明が一致するかを最後に確認します。",
+                    narration: "したがって正解は「\(correctChoice?.text ?? "該当なし")」です。`\(focus)` の評価結果と、\(quiz.categoryDisplayName)の判断ポイントが一致するかを最後に確認します。",
                     highlightLines: [decisionLine],
                     variables: [],
                     callStack: [CallStackFrame(method: "main", line: decisionLine)],

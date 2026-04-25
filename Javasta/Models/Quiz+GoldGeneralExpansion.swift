@@ -167,7 +167,7 @@ public class Test {
             Choice(id: "d", text: "InvalidPathException", correct: false, misconception: "絶対パスをresolveできないと誤解", explanation: "絶対パスをresolveすること自体は可能です。結果が右辺になるだけです。"),
         ],
         explanationRef: "explain-gold-io-007",
-        designIntent: "Path.resolveで右辺が絶対パスの場合の挙動を確認する。"
+        designIntent: "Path.resolveの結果にnormalizeを続けても、右辺が絶対パスならその右辺が結果になることを確認する。"
     )
 
     static let goldIo008 = Quiz(
@@ -246,7 +246,7 @@ ResultSet rs = ps.executeQuery();
             Choice(id: "d", text: "プレースホルダは名前で指定するため番号は使えない", correct: false, misconception: "標準JDBCに名前付きパラメータがあると誤解", explanation: "標準のPreparedStatementは番号でパラメータを指定します。"),
         ],
         explanationRef: "explain-gold-jdbc-005",
-        designIntent: "PreparedStatementのパラメータ番号が1始まりであることを確認する。"
+        designIntent: "PreparedStatementで `setInt(0, ...)` が誤りで、最初の `?` は1番として指定することを確認する。"
     )
 
     static let goldDateTime006 = Quiz(

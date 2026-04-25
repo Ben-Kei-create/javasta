@@ -103,11 +103,13 @@ extension Quiz {
             + QuizExpansion.goldAdvancedExpansion
             + QuizExpansion.goldBalancedExpansion
             + QuizExpansion.goldInheritanceBalanceExpansion
+            + QuizExpansion.goldNonLambdaExpansion
 
         var seenIds = Set<String>()
         return all.filter { quiz in
             seenIds.insert(quiz.id).inserted
         }
+        .map { $0.contextualizedForPresentation() }
     }()
     
     

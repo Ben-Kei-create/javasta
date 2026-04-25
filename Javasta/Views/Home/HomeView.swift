@@ -1015,6 +1015,32 @@ private struct QuizSessionResultView: View {
                         )
                 )
 
+                ShareLink(
+                    item: JavastaShare.practiceResult(
+                        level: session.level,
+                        version: session.version,
+                        title: session.title,
+                        correctCount: correctCount,
+                        totalCount: session.quizzes.count,
+                        scorePercent: scorePercent
+                    )
+                ) {
+                    Label("結果を共有", systemImage: "square.and.arrow.up")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.jbText)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .fill(Color.jbCard)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.md)
+                                        .stroke(Color.jbBorder, lineWidth: 1)
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+
                 Button(action: onClose) {
                     HStack {
                         Text("閉じる")

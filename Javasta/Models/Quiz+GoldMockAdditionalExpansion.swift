@@ -786,7 +786,7 @@ public class Test {
                 choice("a", "0", misconception: "繰り返しアノテーションが実行時に見えないと誤解", explanation: "TagとコンテナTagsの両方にRUNTIMEが付いています。"),
                 choice("b", "1", misconception: "コンテナアノテーション1個だけを数えると誤解", explanation: "`getAnnotationsByType(Tag.class)` は繰り返されたTagを展開して返します。"),
                 choice("c", "2", correct: true, explanation: "`@Tag(\"A\")` と `@Tag(\"B\")` の2つが取得されます。"),
-                choice("d", "コンパイルエラー", misconception: "@Repeatableの基本形を誤解", explanation: "コンテナ `Tags` が `Tag[] value()` を持つため、正しい定義です。"),
+                choice("d", "コンパイルエラー（コンテナ定義）", misconception: "@Repeatableの基本形を誤解", explanation: "コンテナ `Tags` が `Tag[] value()` を持つため、正しい定義です。"),
             ],
             intent: "RepeatableアノテーションとgetAnnotationsByTypeの取得件数を確認する。",
             steps: [

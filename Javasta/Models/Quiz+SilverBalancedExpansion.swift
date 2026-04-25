@@ -1049,7 +1049,7 @@ public class Test {
                 choice("c", "C", misconception: "親コンストラクタ呼び出しを見落とし", explanation: "明示しなくても `super()` が暗黙に呼ばれます。"),
                 choice("d", "コンパイルエラー", misconception: "super()を明示しないと不可と誤解", explanation: "親に引数なしコンストラクタがあるため、暗黙のsuper()でコンパイルできます。"),
             ],
-            intent: "サブクラス生成時の暗黙super()とコンストラクタ実行順を確認する。",
+            intent: "Child生成時に明示 `super()` がなくても、ParentからChildの順でコンストラクタが動くことを確認する。",
             steps: [
                 step("`new Child()` によりChildコンストラクタが呼ばれますが、その先頭では暗黙に `super()` が実行されます。", [7, 13], [variable("implicit call", "String", "super()", "Child constructor")]),
                 step("Parentコンストラクタが先に実行され、`P` を出力します。", [2, 3], [variable("output so far", "String", "P", "stdout")]),
@@ -1304,7 +1304,7 @@ public class Test {
                 choice("a", "1", correct: true, explanation: "`return x` の戻り値1が先に評価されます。finallyでxを2にしても戻り値は変わりません。"),
                 choice("b", "2", misconception: "finallyでローカル変数を書き換えると戻り値も変わると誤解", explanation: "return式の値はfinally実行前に評価済みです。"),
                 choice("c", "0", misconception: "intのデフォルト値に戻ると誤解", explanation: "xは明示的に1で初期化されています。"),
-                choice("d", "コンパイルエラー", misconception: "finallyで代入できないと誤解", explanation: "finally内でローカル変数を変更すること自体は可能です。"),
+                choice("d", "コンパイルエラー（finally代入）", misconception: "finallyで代入できないと誤解", explanation: "finally内でローカル変数を変更すること自体は可能です。"),
             ],
             intent: "return式評価後にfinallyが実行されても、プリミティブ戻り値は変わらないことを確認する。",
             steps: [

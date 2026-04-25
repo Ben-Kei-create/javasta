@@ -677,23 +677,52 @@ private struct MockExamResultView: View {
     }
 
     private var reviewActions: some View {
-        HStack(spacing: Spacing.sm) {
-            Button(action: onReviewWrong) {
-                Label("間違いを解き直す", systemImage: "arrow.counterclockwise")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(wrongCount == 0 ? Color.jbSubtext.opacity(0.5) : .white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(
-                        RoundedRectangle(cornerRadius: Radius.md)
-                            .fill(wrongCount == 0 ? Color.jbCard : Color.jbAccent)
-                    )
-            }
-            .disabled(wrongCount == 0)
-            .buttonStyle(.plain)
+        VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                Button(action: onReviewWrong) {
+                    Label("間違いを解き直す", systemImage: "arrow.counterclockwise")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(wrongCount == 0 ? Color.jbSubtext.opacity(0.5) : .white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .fill(wrongCount == 0 ? Color.jbCard : Color.jbAccent)
+                        )
+                }
+                .disabled(wrongCount == 0)
+                .buttonStyle(.plain)
 
-            Button(action: onReviewAll) {
-                Label("全問を復習", systemImage: "book.closed.fill")
+                Button(action: onReviewAll) {
+                    Label("全問を復習", systemImage: "book.closed.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Color.jbText)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .fill(Color.jbCard)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.md)
+                                        .stroke(Color.jbBorder, lineWidth: 1)
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+
+            ShareLink(
+                item: JavastaShare.mockExamResult(
+                    level: session.level,
+                    version: session.version,
+                    variant: attempt.variant,
+                    correctCount: attempt.correctCount,
+                    totalCount: attempt.questionCount,
+                    scorePercent: attempt.scorePercent,
+                    isPassing: attempt.isPassing
+                )
+            ) {
+                Label("結果を共有", systemImage: "square.and.arrow.up")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Color.jbText)
                     .frame(maxWidth: .infinity)
