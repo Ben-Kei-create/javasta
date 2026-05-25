@@ -478,3 +478,25 @@ struct WeakTagSummary: Identifiable, Hashable {
         Int((missRate * 100).rounded())
     }
 }
+
+struct ObjectiveProgressSummary: Identifiable, Hashable {
+    let objective: ExamObjective
+    let attempts: Int
+    let correct: Int
+
+    var id: String { objective.id }
+    var misses: Int { attempts - correct }
+
+    var accuracy: Double {
+        guard attempts > 0 else { return 0 }
+        return Double(correct) / Double(attempts)
+    }
+
+    var accuracyPercent: Int {
+        Int((accuracy * 100).rounded())
+    }
+
+    var displayTitle: String {
+        objective.title
+    }
+}

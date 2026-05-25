@@ -266,13 +266,23 @@ struct HomeView: View {
         let levelRecords = progress.answerHistory.filter { $0.level == selectedLevel }
         let levelCorrect = levelRecords.filter(\.correct).count
         let levelQuizCount = QuestionBank.quizzes(version: selectedVersion, level: selectedLevel).count
+        let weakestObjective = progress.weakestObjective(version: selectedVersion, level: selectedLevel)
+        let weakestObjectiveText = weakestObjective.map { summary in
+            let rawTitle = summary.displayTitle
+            let title = rawTitle.count > 8 ? String(rawTitle.prefix(8)) + "..." : rawTitle
+            return "\(title) \(summary.accuracyPercent)%"
+        } ?? "—"
 
         switch metric {
         case .accuracy:
             return [
                 MetricDetailItem(label: "総回答数", value: "\(progress.totalAnswered)回"),
                 MetricDetailItem(label: "総正解数", value: "\(progress.totalCorrect)回"),
-                MetricDetailItem(label: selectedLevel.displayName, value: "\(levelCorrect)/\(levelRecords.count)")
+                MetricDetailItem(label: selectedLevel.displayName, value: "\(levelCorrect)/\(levelRecords.count)"),
+                MetricDetailItem(
+                    label: "弱点範囲",
+                    value: weakestObjectiveText
+                )
             ]
         case .streak:
             return [

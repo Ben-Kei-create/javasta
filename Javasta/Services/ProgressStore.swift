@@ -243,6 +243,55 @@ final class ProgressStore {
             .map { $0 }
     }
 
+    func objectiveProgress(version: JavaExamVersion, level: JavaLevel) -> [ObjectiveProgressSummary] {
+        let objectives = ExamObjectiveCatalog.objectives(for: version, level: level)
+        let objectiveIds = Set(objectives.map(\.id))
+        let quizById = Dictionary(
+            uniqueKeysWithValues: QuestionBank
+                .quizzes(version: version, level: level)
+                .map { ($0.id, $0) }
+        )
+        var attemptsByObjective: [String: Int] = [:]
+        var correctByObjective: [String: Int] = [:]
+
+        for record in answerHistory where record.level == level {
+            guard
+                let quiz = quizById[record.quizId],
+                let objective = QuestionBank.objective(for: quiz),
+                objectiveIds.contains(objective.id)
+            else { continue }
+
+            attemptsByObjective[objective.id, default: 0] += 1
+            if record.correct {
+                correctByObjective[objective.id, default: 0] += 1
+            }
+        }
+
+        return objectives.map { objective in
+            ObjectiveProgressSummary(
+                objective: objective,
+                attempts: attemptsByObjective[objective.id, default: 0],
+                correct: correctByObjective[objective.id, default: 0]
+            )
+        }
+    }
+
+    func weakestObjective(
+        version: JavaExamVersion,
+        level: JavaLevel,
+        minimumAttempts: Int = 2
+    ) -> ObjectiveProgressSummary? {
+        objectiveProgress(version: version, level: level)
+            .filter { $0.attempts >= minimumAttempts && $0.misses > 0 }
+            .sorted {
+                if $0.accuracy == $1.accuracy {
+                    return $0.attempts > $1.attempts
+                }
+                return $0.accuracy < $1.accuracy
+            }
+            .first
+    }
+
     func answeredCount(level: JavaLevel? = nil) -> Int {
         let ids = answerHistory
             .filter { level == nil || $0.level == level }

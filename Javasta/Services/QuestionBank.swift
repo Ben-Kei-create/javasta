@@ -181,6 +181,18 @@ enum QuestionBank {
         }
     }
 
+    static func objective(for quiz: Quiz) -> ExamObjective? {
+        let objectives = ExamObjectiveCatalog.objectives(for: quiz.examVersion, level: quiz.level)
+        if let directObjective = objectives.first(where: { $0.id == quiz.examObjectiveId }) {
+            return directObjective
+        }
+
+        guard let category = quiz.canonicalCategory else { return nil }
+        return objectives.first { objective in
+            coverageCategories(for: objective.category).contains(category)
+        }
+    }
+
     static func categoryDistribution(
         version: JavaExamVersion = .se17,
         level: JavaLevel

@@ -82,6 +82,25 @@ final class ContentQualityTests: XCTestCase {
         }
     }
 
+    func testObjectiveProgressFindsWeakestExamArea() {
+        let suiteName = "ContentQualityTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let store = ProgressStore(defaults: defaults)
+        let quiz = QuestionBank.quizzes(version: .se11, level: .gold)
+            .first { $0.examObjectiveId != "unmapped" }!
+        let wrongChoice = quiz.choices.first { !$0.correct }!
+
+        store.recordAnswer(quiz: quiz, choice: wrongChoice, elapsedSeconds: 30)
+
+        let weakest = store.weakestObjective(version: .se11, level: .gold, minimumAttempts: 1)
+        XCTAssertEqual(weakest?.objective.id, quiz.examObjectiveId)
+        XCTAssertEqual(weakest?.attempts, 1)
+        XCTAssertEqual(weakest?.correct, 0)
+    }
+
     private func formattedExplanationIssues(_ issues: [ExplanationAuditIssue]) -> String {
         issues
             .prefix(20)
