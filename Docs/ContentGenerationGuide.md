@@ -4,12 +4,18 @@
 
 ## 追加先ファイル
 
-- 問題: `Javasta/Models/Quiz+Samples.swift`
-- 問題の実行トレース解説: `Javasta/Models/Explanation+Samples.swift`
-- 学習レッスン: `Javasta/Models/Lesson+Samples.swift`
+`Quiz+Samples.swift` と `Explanation+Samples.swift` は既存コンテンツの集約点として残す。新規の大量追加では、ここへ直接数百行を足し続けない。
+
+- Silver通常問題: `Javasta/Models/Quiz+Silver*Expansion.swift`
+- Gold通常問題: `Javasta/Models/Quiz+Gold*Expansion.swift`
+- 模試専用問題: `Javasta/Models/Quiz+Mock*Expansion.swift` または級別の専用Expansion
+- 実行トレース解説: 問題ファイルに対応する `Explanation+*Expansion.swift`
+- 学習レッスン: `Javasta/Models/Lesson+Samples.swift` または範囲別の `Lesson+*Expansion.swift`
 - カテゴリ追加: `Javasta/Models/AppModels.swift`
 - 試験範囲マッピング追加: `Javasta/Models/StudyModels.swift`
-- 用語リンク追加: `Javasta/Models/Glossary+Samples.swift`
+- 用語リンク追加: `Javasta/Models/Glossary+Samples.swift` または範囲別の用語Expansion
+
+目安として、1ファイルが2,000行を超える追加になる場合は、試験区分・範囲・目的ごとに新しいExpansionファイルへ分ける。
 
 ## 問題データの形式
 
@@ -64,6 +70,8 @@ public class Test {
 - `Path` の区切り文字など環境差が出るものは、`getNameCount()` のように安定した値で問う。
 - ランダム、現在日時、スレッドの実行順など、結果が不定になる問題は避ける。
 - コンパイルエラー問題を作る場合は、どの行・なぜエラーかを `explanation` に明記する。
+- 新規追加後は、Xcodeの `ContentQualityTests` を実行する。`QuestionBank.contentQualityIssues()` / `validationIssues()` / `explanationAuditReport()` が1件でも出た状態でリリースしない。
+- 新しい試験範囲を追加した場合は、`examObjectiveId` を埋め、販売準備画面の出題範囲カバレッジで未カバーが残らないことを確認する。
 
 ## 複数ファイル問題
 
