@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct QuizView: View {
     @State var vm: QuizViewModel
@@ -309,6 +310,7 @@ private struct QuizIssueReportSheet: View {
     @Environment(\.openURL) private var openURL
     @State private var issueType: QuizIssueType = .wrongAnswer
     @State private var detail = ""
+    @State private var didCopyFallback = false
 
     var body: some View {
         NavigationStack {
@@ -374,6 +376,24 @@ private struct QuizIssueReportSheet: View {
                         )
                     }
 
+                    if didCopyFallback {
+                        HStack(alignment: .top, spacing: Spacing.xs) {
+                            Image(systemName: "doc.on.clipboard.fill")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Color.jbWarning)
+                                .padding(.top, 1)
+                            Text("メールを開けなかったため、報告内容をクリップボードへコピーしました。")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color.jbSubtext)
+                                .lineSpacing(3)
+                        }
+                        .padding(Spacing.sm)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.sm)
+                                .fill(Color.jbWarning.opacity(0.08))
+                        )
+                    }
+
                     Spacer(minLength: 0)
                 }
                 .padding(Spacing.lg)
@@ -393,10 +413,17 @@ private struct QuizIssueReportSheet: View {
     private func sendReport() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         let subject = "Javasta 問題報告: \(report.quiz.id)"
+        let body = reportBody()
+        openMail(subject: subject, body: body)
+    }
+
+    private func reportBody() -> String {
         var body = """
 問題ID: \(report.quiz.id)
 級: \(report.quiz.level.displayName)
+試験: \(report.quiz.examCode)
 カテゴリ: \(report.quiz.categoryDisplayName)
+出題範囲ID: \(report.quiz.examObjectiveId)
 報告種別: \(issueType.rawValue)
 選択肢: \(report.selectedChoice?.id ?? "未選択")
 
@@ -404,7 +431,10 @@ private struct QuizIssueReportSheet: View {
 \(detail)
 """
         body += "\n\n---\n問題文:\n\(report.quiz.question)\n"
-        openMail(subject: subject, body: body)
+        if let selectedChoice = report.selectedChoice {
+            body += "\n選択肢本文:\n\(selectedChoice.text)\n"
+        }
+        return body
     }
 
     private func openMail(subject: String, body: String) {
@@ -415,9 +445,24 @@ private struct QuizIssueReportSheet: View {
             URLQueryItem(name: "subject", value: subject),
             URLQueryItem(name: "body", value: body),
         ]
-        if let url = components.url {
-            openURL(url)
-            dismiss()
+        guard let url = components.url else {
+            copyFallback(body)
+            return
+        }
+
+        openURL(url) { accepted in
+            if accepted {
+                dismiss()
+            } else {
+                copyFallback(body)
+            }
+        }
+    }
+
+    private func copyFallback(_ body: String) {
+        UIPasteboard.general.string = body
+        withAnimation(.jbFast) {
+            didCopyFallback = true
         }
     }
 }
