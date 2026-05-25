@@ -331,7 +331,7 @@ public class Test {
             question: "このコードを実行したとき、出力されるのはどれか？",
             choices: [
                 choice("a", "afalsebc", correct: true, explanation: "インデックス1、つまりaの後ろに文字列 `false` が挿入されます。"),
-                choice("b", "falseabc", misconception: "先頭に挿入されると誤解", explanation: "挿入位置は1です。"),
+                choice("b", "falseabc", misconception: "先頭に挿入されると誤解", explanation: "`insert(1, false)` はインデックス1、つまり先頭aの後ろに挿入します。先頭挿入なら0です。"),
                 choice("c", "abcfalse", misconception: "末尾に追加されると誤解", explanation: "`append` ではなく `insert(1, ...)` です。"),
                 choice("d", "コンパイルエラー", misconception: "booleanをStringBuilderへinsertできないと誤解", explanation: "StringBuilderにはbooleanを受け取るinsertオーバーロードがあります。"),
             ],
@@ -936,7 +936,7 @@ public class Test {
                 choice("a", "0", correct: true, explanation: "`i++` は古い値0を式の値として返し、代入でその0がiへ戻されます。"),
                 choice("b", "1", misconception: "インクリメント結果が最終的に残ると誤解", explanation: "一度iは1になりますが、式の値0が代入され直します。"),
                 choice("c", "2", misconception: "インクリメントと代入で2回増えると誤解", explanation: "代入は増加ではありません。"),
-                choice("d", "コンパイルエラー", misconception: "同じ変数へi++を代入できないと誤解", explanation: "式としては有効です。"),
+                choice("d", "コンパイルエラー", misconception: "同じ変数へi++を代入できないと誤解", explanation: "`i++` はint値を返す式なので、同じint変数iへ代入する文としてはコンパイル可能です。"),
             ],
             intent: "`i = i++` の評価順を模試レベルで確認する。",
             steps: [

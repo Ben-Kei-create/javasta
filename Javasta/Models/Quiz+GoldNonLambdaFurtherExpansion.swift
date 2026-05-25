@@ -545,4 +545,321 @@ System.out.println("after");
 
 extension QuizExpansion {
     static let goldNonLambdaFurtherExpansion: [Quiz] = GoldNonLambdaFurtherQuestionData.specs.map(\.quiz)
+
+    static let goldSE11CompatibilitySourceExpansion: [Quiz] = {
+        let source = GoldSE11QuestionSupport.deduplicatedById(
+            goldExpansion
+                + streamApiExpansion
+                + goldGeneralExpansion
+                + goldAdvancedExpansion
+                + goldBalancedExpansion
+                + goldInheritanceBalanceExpansion
+                + goldNonLambdaExpansion
+                + goldNonLambdaFurtherExpansion
+                + mixedExpansion
+        )
+        let compatible = source.filter(GoldSE11QuestionSupport.isSE11GoldCompatible)
+        return GoldSE11QuestionSupport
+            .balancedSelection(from: compatible, limit: 80)
+    }()
+
+    static let goldSE11CompatibilityExpansion: [Quiz] =
+        goldSE11CompatibilitySourceExpansion.map { $0.retargetedForSE11Gold() }
+}
+
+private enum GoldSE11QuestionSupport {
+    nonisolated static let categoryOrder = [
+        "java-basics",
+        "classes",
+        "exception-handling",
+        "collections",
+        "generics",
+        "lambda-streams",
+        "optional-api",
+        "module-system",
+        "concurrency",
+        "io",
+        "secure-coding",
+        "jdbc",
+        "localization",
+        "annotations",
+        "data-types",
+        "inheritance",
+    ]
+
+    nonisolated private static let allowedCategories = Set(categoryOrder)
+
+    nonisolated private static let se11ExcludedNeedles = [
+        "record",
+        "sealed",
+        "permits",
+        "non-sealed",
+        "java17",
+        "java 17",
+        "files.mismatch",
+        "mismatch(",
+        "teeing",
+        "mapmulti",
+        "switch式",
+        "switch expression",
+        "yield",
+        "text block",
+        "テキストブロック",
+    ]
+
+    nonisolated private static let requiredObjectiveIds = [
+        "se11-gold-java-basics",
+        "se11-gold-exception-assertion",
+        "se11-gold-interfaces",
+        "se11-gold-generics-collections",
+        "se11-gold-functional-lambda",
+        "se11-gold-stream-api",
+        "se11-gold-builtin-functional",
+        "se11-gold-stream-operations",
+        "se11-gold-module-migration",
+        "se11-gold-module-services",
+        "se11-gold-concurrency",
+        "se11-gold-parallel-streams",
+        "se11-gold-io-nio",
+        "se11-gold-secure-coding",
+        "se11-gold-jdbc",
+        "se11-gold-localization",
+        "se11-gold-annotations",
+    ]
+
+    nonisolated static func isSE11GoldCompatible(_ quiz: Quiz) -> Bool {
+        guard quiz.level == .gold else { return false }
+        guard allowedCategories.contains(canonicalCategoryRawValue(for: quiz.category)) else { return false }
+
+        let haystack = ([quiz.id, quiz.category, quiz.question, quiz.designIntent] + quiz.tags + [quiz.code])
+            .joined(separator: " ")
+            .lowercased()
+
+        return !se11ExcludedNeedles.contains { haystack.contains($0) }
+    }
+
+    nonisolated static func deduplicatedById(_ quizzes: [Quiz]) -> [Quiz] {
+        var seen = Set<String>()
+        return quizzes.filter { quiz in
+            seen.insert(quiz.id).inserted
+        }
+    }
+
+    nonisolated static func balancedSelection(from quizzes: [Quiz], limit: Int) -> [Quiz] {
+        let sorted = quizzes.sorted { lhs, rhs in
+            let lhsCategory = canonicalCategoryRawValue(for: lhs.category)
+            let rhsCategory = canonicalCategoryRawValue(for: rhs.category)
+            if lhsCategory == rhsCategory {
+                return lhs.id < rhs.id
+            }
+            return categoryRank(lhsCategory) < categoryRank(rhsCategory)
+        }
+        let grouped = Dictionary(grouping: sorted) { canonicalCategoryRawValue(for: $0.category) }
+        let orderedCategories = categoryOrder.filter { grouped[$0] != nil }
+        var cursors = Dictionary(uniqueKeysWithValues: orderedCategories.map { ($0, 0) })
+        var selected: [Quiz] = []
+
+        while selected.count < min(limit, sorted.count) {
+            var added = false
+            for category in orderedCategories {
+                guard
+                    let items = grouped[category],
+                    let cursor = cursors[category],
+                    cursor < items.count
+                else { continue }
+
+                selected.append(items[cursor])
+                cursors[category] = cursor + 1
+                added = true
+
+                if selected.count == limit { break }
+            }
+            if !added { break }
+        }
+
+        return selectionCoveringObjectives(
+            selected,
+            candidates: sorted,
+            limit: limit
+        )
+    }
+
+    nonisolated static func objectiveId(for quiz: Quiz) -> String {
+        let text = (quiz.tags + [quiz.id, quiz.question, quiz.designIntent, quiz.code])
+            .joined(separator: " ")
+            .lowercased()
+
+        switch canonicalCategoryRawValue(for: quiz.category) {
+        case "java-basics":
+            return "se11-gold-java-basics"
+        case "exception-handling":
+            return "se11-gold-exception-assertion"
+        case "classes", "inheritance":
+            return text.contains("interface") || text.contains("インタフェース")
+                ? "se11-gold-interfaces"
+                : "se11-gold-java-basics"
+        case "collections", "generics", "data-types":
+            return "se11-gold-generics-collections"
+        case "lambda-streams", "optional-api":
+            if text.contains("parallelstream") || text.contains("parallel") || text.contains("並列") {
+                return "se11-gold-parallel-streams"
+            }
+            if text.contains("lambda")
+                || text.contains("ラムダ")
+                || text.contains("method reference")
+                || text.contains("メソッド参照")
+                || text.contains("constructor reference")
+                || text.contains("effectively final") {
+                return "se11-gold-functional-lambda"
+            }
+            if text.contains("predicate")
+                || text.contains("consumer")
+                || text.contains("function")
+                || text.contains("supplier")
+                || text.contains("binary")
+                || text.contains("toint")
+                || text.contains("operator") {
+                return "se11-gold-builtin-functional"
+            }
+            if text.contains("collect")
+                || text.contains("optional")
+                || text.contains("map")
+                || text.contains("flatmap")
+                || text.contains("reduce")
+                || text.contains("find")
+                || text.contains("match")
+                || text.contains("count")
+                || text.contains("sum")
+                || text.contains("average")
+                || text.contains("groupingby")
+                || text.contains("partitioningby")
+                || text.contains("sort") {
+                return "se11-gold-stream-operations"
+            }
+            if text.contains("stream") || text.contains("pipeline") {
+                return "se11-gold-stream-api"
+            }
+            return "se11-gold-functional-lambda"
+        case "module-system":
+            return text.contains("service")
+                || text.contains("serviceloader")
+                || text.contains("uses")
+                || text.contains("provides")
+                ? "se11-gold-module-services"
+                : "se11-gold-module-migration"
+        case "concurrency":
+            return "se11-gold-concurrency"
+        case "io":
+            return "se11-gold-io-nio"
+        case "secure-coding":
+            return "se11-gold-secure-coding"
+        case "jdbc":
+            return "se11-gold-jdbc"
+        case "localization":
+            return "se11-gold-localization"
+        case "annotations":
+            return "se11-gold-annotations"
+        default:
+            return "se11-gold-java-basics"
+        }
+    }
+
+    nonisolated private static func canonicalCategoryRawValue(for rawValue: String) -> String {
+        switch rawValue {
+        case "arrays":
+            return "data-types"
+        case "strings":
+            return "string"
+        case "exceptions":
+            return "exception-handling"
+        case "lambda", "streams":
+            return "lambda-streams"
+        case "optional":
+            return "optional-api"
+        case "collections-generics":
+            return "collections"
+        case "io-nio":
+            return "io"
+        case "localization-formatting":
+            return "localization"
+        case "overload-overwrite":
+            return "overload-resolution"
+        default:
+            return rawValue
+        }
+    }
+
+    nonisolated private static func selectionCoveringObjectives(
+        _ selected: [Quiz],
+        candidates: [Quiz],
+        limit: Int
+    ) -> [Quiz] {
+        var result = selected
+        var selectedIds = Set(result.map(\.id))
+
+        for targetObjectiveId in requiredObjectiveIds where !result.contains(where: { objectiveId(for: $0) == targetObjectiveId }) {
+            guard let candidate = candidates.first(where: {
+                objectiveId(for: $0) == targetObjectiveId && !selectedIds.contains($0.id)
+            }) else { continue }
+
+            if result.count < limit {
+                result.append(candidate)
+                selectedIds.insert(candidate.id)
+                continue
+            }
+
+            let counts = Dictionary(grouping: result, by: objectiveId(for:))
+                .mapValues(\.count)
+            guard let replacementIndex = result.lastIndex(where: { quiz in
+                (counts[objectiveId(for: quiz)] ?? 0) > 1
+            }) else { continue }
+
+            selectedIds.remove(result[replacementIndex].id)
+            result[replacementIndex] = candidate
+            selectedIds.insert(candidate.id)
+        }
+
+        return result
+    }
+
+    nonisolated private static func categoryRank(_ category: String) -> Int {
+        categoryOrder.firstIndex(of: category) ?? categoryOrder.count
+    }
+}
+
+private extension Quiz {
+    func retargetedForSE11Gold() -> Quiz {
+        Quiz(
+            id: "se11-\(id)",
+            level: level,
+            examVersion: .se11,
+            examObjectiveId: GoldSE11QuestionSupport.objectiveId(for: self),
+            difficulty: difficulty,
+            estimatedSeconds: estimatedSeconds,
+            isMultipleSelect: isMultipleSelect,
+            validatedByJavac: validatedByJavac,
+            reviewStatus: reviewStatus,
+            variantGroupId: variantGroupId.map { "se11-\($0)" },
+            isMockExamOnly: false,
+            category: category,
+            tags: tags.appendingUnique(["SE11 Gold", "1Z0-816"]),
+            code: code,
+            codeTabs: codeTabs,
+            question: question,
+            choices: choices,
+            explanationRef: "explain-se11-\(id)",
+            designIntent: "Java SE 11 Gold範囲の補完問題。\(designIntent)"
+        )
+    }
+}
+
+private extension Array where Element == String {
+    func appendingUnique(_ values: [String]) -> [String] {
+        var seen = Set(self)
+        var result = self
+        for value in values where seen.insert(value).inserted {
+            result.append(value)
+        }
+        return result
+    }
 }

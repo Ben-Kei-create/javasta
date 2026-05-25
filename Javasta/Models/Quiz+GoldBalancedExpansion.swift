@@ -1219,7 +1219,7 @@ public class Test {
             choices: [
                 choice("a", "[a, aa, bb]", correct: true, explanation: "まず長さ順でaが先、長さ2同士のaaとbbは自然順でaa,bbになります。"),
                 choice("b", "[a, bb, aa]", misconception: "thenComparingを見落とし", explanation: "長さ2の要素は `thenComparing` により自然順で並びます。"),
-                choice("c", "[aa, a, bb]", misconception: "自然順だけで並べていると誤解", explanation: "主キーは長さです。"),
+                choice("c", "[aa, a, bb]", misconception: "自然順だけで並べていると誤解", explanation: "主キーは文字列長です。自然順だけならa,aa,bbですが、このComparatorでは長さ1のaが先頭です。"),
                 choice("d", "[bb, a, aa]", misconception: "sortが元順を保持すると誤解", explanation: "Comparatorに従って並び替えられます。"),
             ],
             intent: "Comparator.comparingIntとthenComparingによる複合順序を確認する。",

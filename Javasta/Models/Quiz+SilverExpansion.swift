@@ -1119,7 +1119,7 @@ public class Test {
                    explanation: "xが初期化されない可能性があるため、ローカル変数を読み出す行でコンパイルエラーになります。"),
             Choice(id: "d", text: "実行時にNullPointerException",
                    correct: false, misconception: nil,
-                   explanation: "intはプリミティブ型でnullにはなりません。問題は未初期化のローカル変数です。"),
+                   explanation: "intはプリミティブ型なのでnull参照にはなりません。実行前に、未初期化ローカル変数としてコンパイルで拒否されます。"),
         ],
         explanationRef: "explain-silver-data-types-008",
         designIntent: "フィールドのデフォルト値とローカル変数の初期化ルールを区別できるか確認する。"
@@ -1154,7 +1154,7 @@ public class Test {
                    explanation: "replace自体は一致する文字をすべて置換しますが、このコードでは戻り値を捨てています。"),
             Choice(id: "d", text: "コンパイルエラー",
                    correct: false, misconception: "char引数のreplaceが存在しないと誤解",
-                   explanation: "replace(char oldChar, char newChar)は有効なメソッドです。"),
+                   explanation: "`String.replace(char, char)` は有効なメソッドです。問題は戻り値を代入していない点です。"),
         ],
         explanationRef: "explain-silver-string-004",
         designIntent: "Stringの不変性と、戻り値を代入しないメソッド呼び出しの結果を確認する。"

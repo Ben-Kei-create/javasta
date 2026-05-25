@@ -130,7 +130,7 @@ public class Test {
         question: "このコードを実行したとき、出力されるのはどれか？",
         choices: [
             Choice(id: "a", text: "24", correct: true, misconception: nil, explanation: "identityの1から始めて、1*2*3*4を計算するため24です。"),
-            Choice(id: "b", text: "9", correct: false, misconception: "reduceが加算になると誤解", explanation: "ラムダは掛け算です。"),
+            Choice(id: "b", text: "9", correct: false, misconception: "reduceが加算になると誤解", explanation: "accumulatorは `(a, b) -> a * b` なので加算ではありません。1から始めて2,3,4を掛けます。"),
             Choice(id: "c", text: "10", correct: false, misconception: "identityが最後に加算されると誤解", explanation: "identityは初期値であり、今回は掛け算の初期値1です。"),
             Choice(id: "d", text: "Optional[24]", correct: false, misconception: "identityありreduceもOptionalを返すと誤解", explanation: "identityありのreduceはTを返します。Optionalではありません。"),
         ],

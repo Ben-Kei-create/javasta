@@ -57,6 +57,10 @@ struct ContentQualityIssue: Identifiable {
         case repeatedQuestionStem
         case repeatedChoiceSet
         case repeatedExplanationNarration
+        case genericExplanationNarration
+        case invalidExplanationHighlight
+        case lowExplanationStepCount
+        case weakChoiceExplanation
     }
 
     let kind: Kind
@@ -229,7 +233,7 @@ enum QuestionBank {
                 title: "コードが同一",
                 minimumCount: 2,
                 quizzes: quizzes,
-                key: { normalizedContentKey($0.code) },
+                key: { "\($0.examVersion.rawValue):\(normalizedContentKey($0.code))" },
                 detail: { key, ids in
                     "同じコードを使う問題が\(ids.count)件あります。通常問題と模試専用で丸かぶりしていないか確認します: \(String(key.prefix(120)))"
                 }
@@ -268,6 +272,8 @@ enum QuestionBank {
         )
 
         issues.append(contentsOf: repeatedNarrationIssues(quizzes: quizzes))
+        issues.append(contentsOf: explanationTraceQualityIssues(quizzes: quizzes))
+        issues.append(contentsOf: choiceExplanationQualityIssues(quizzes: quizzes))
         return issues.sorted { lhs, rhs in
             if lhs.kind.rawValue == rhs.kind.rawValue {
                 return lhs.quizIds.count > rhs.quizIds.count
@@ -587,6 +593,83 @@ enum QuestionBank {
                     detail: "同じ解説文が\(ids.count)問で使われています。コード固有の変数・分岐・出力理由へ寄せる候補です: \(narration)"
                 )
             }
+    }
+
+    private static func explanationTraceQualityIssues(quizzes: [Quiz]) -> [ContentQualityIssue] {
+        let genericNeedles = [
+            "このコードを上から順に",
+            "出力またはコンパイル結果を判断します",
+            "型・参照・APIの評価順序を確認します",
+            "まずコード上の宣言",
+            "選択肢の正誤は",
+            "判断に効く行"
+        ]
+        var issues: [ContentQualityIssue] = []
+
+        for quiz in quizzes {
+            guard let explanation = Explanation.sample(for: quiz.explanationRef) else { continue }
+
+            if explanation.steps.count < 2 {
+                issues.append(
+                    ContentQualityIssue(
+                        kind: .lowExplanationStepCount,
+                        title: "解説ステップ不足",
+                        quizIds: [quiz.id],
+                        detail: "実行の起点と判断結果を追うには最低2ステップ必要です。現在は\(explanation.steps.count)ステップです。"
+                    )
+                )
+            }
+
+            let lineCount = max(quiz.code.components(separatedBy: .newlines).count, 1)
+            let invalidLines = explanation.steps
+                .flatMap(\.highlightLines)
+                .filter { $0 < 1 || $0 > lineCount }
+            if !invalidLines.isEmpty {
+                issues.append(
+                    ContentQualityIssue(
+                        kind: .invalidExplanationHighlight,
+                        title: "解説ハイライト行が範囲外",
+                        quizIds: [quiz.id],
+                        detail: "コードは\(lineCount)行ですが、解説が範囲外の行 \(invalidLines.map(String.init).joined(separator: ", ")) を参照しています。"
+                    )
+                )
+            }
+
+            let genericSteps = explanation.steps.filter { step in
+                genericNeedles.contains { step.narration.contains($0) }
+            }
+            if !genericSteps.isEmpty {
+                issues.append(
+                    ContentQualityIssue(
+                        kind: .genericExplanationNarration,
+                        title: "解説文が汎用的",
+                        quizIds: [quiz.id],
+                        detail: "コード固有の値・分岐・API名に寄せた説明へ更新します: \(genericSteps.map(\.narration).joined(separator: " / "))"
+                    )
+                )
+            }
+        }
+
+        return issues
+    }
+
+    private static func choiceExplanationQualityIssues(quizzes: [Quiz]) -> [ContentQualityIssue] {
+        quizzes.compactMap { quiz in
+            let weakChoices = quiz.choices.filter {
+                $0.explanation.trimmingCharacters(in: .whitespacesAndNewlines).count < 12
+            }
+            guard !weakChoices.isEmpty else { return nil }
+
+            let detail = weakChoices
+                .map { "\($0.id): \($0.text) -> \($0.explanation)" }
+                .joined(separator: " / ")
+            return ContentQualityIssue(
+                kind: .weakChoiceExplanation,
+                title: "選択肢説明が短すぎる",
+                quizIds: [quiz.id],
+                detail: "誤答を消す理由まで書きます: \(detail)"
+            )
+        }
     }
 
     private static func normalizedContentKey(_ text: String) -> String {

@@ -1131,7 +1131,7 @@ public class Test {
             choices: [
                 choice("a", "[1, 3]", correct: true, explanation: "`Integer.valueOf(2)` を渡しているため、値2の要素が削除されます。"),
                 choice("b", "[1, 2]", misconception: "インデックス2の要素が削除されると誤解", explanation: "引数型がIntegerなので `remove(Object)` が選ばれます。"),
-                choice("c", "[2, 3]", misconception: "インデックス0が削除されると誤解", explanation: "削除対象は値2です。"),
+                choice("c", "[2, 3]", misconception: "インデックス0が削除されると誤解", explanation: "`Integer.valueOf(2)` を渡しているため、インデックスではなく値2の要素が削除対象です。"),
                 choice("d", "IndexOutOfBoundsException", misconception: "remove(int)が選ばれると誤解", explanation: "`Integer.valueOf(2)` はObjectとして扱われ、値削除です。"),
             ],
             intent: "List.removeのint版とObject版の違いを確認する。",
@@ -1214,7 +1214,7 @@ public class Test {
             question: "このコードを実行したとき、出力されるのはどれか？",
             choices: [
                 choice("a", "01", correct: true, explanation: "`var i = 0` はintと推論され、iが0,1の2回出力されます。"),
-                choice("b", "12", misconception: "iの初期値を1と誤解", explanation: "初期値は0です。"),
+                choice("b", "12", misconception: "iの初期値を1と誤解", explanation: "for初期化部は `var i = 0` なので、最初に出力される値は1ではなく0です。"),
                 choice("c", "0", misconception: "ループが1回だけと誤解", explanation: "i=0とi=1で条件 `i < 2` を満たします。"),
                 choice("d", "コンパイルエラー", misconception: "for初期化部でvarを使えないと誤解", explanation: "ローカル変数宣言としてのfor初期化部ではvarを使えます。"),
             ],

@@ -100,6 +100,7 @@ extension Explanation {
             .merging(goldInheritanceBalanceAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldNonLambdaAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldNonLambdaFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
+            .merging(goldSE11CompatibilityAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(mockExamOnlyAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(silverMockFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldMockAdditionalAuthoredSamples, uniquingKeysWith: { _, new in new })
@@ -140,7 +141,7 @@ extension Explanation {
         )
     }
 
-    private static var auditBackfillSamples: [String: Explanation] {
+    static var auditBackfillSamples: [String: Explanation] {
         var samples: [String: Explanation] = [:]
         for quiz in Quiz.samples where auditBackfillRefs.contains(quiz.explanationRef) {
             samples[quiz.explanationRef] = focusedBackfillTrace(for: quiz, ref: quiz.explanationRef)
@@ -207,6 +208,20 @@ extension Explanation {
         let decisionLine = bestDecisionLine(in: lines)
         let correctChoice = quiz.choices.first { $0.correct }
         let focus = focusSnippet(from: lines, at: decisionLine)
+        let setupLines = setupLineSnippets(in: lines, excluding: decisionLine)
+        let setupText = setupLines.isEmpty
+            ? "事前状態はほぼなく、L\(decisionLine) の式そのものを評価します。"
+            : "先に \(setupLines.joined(separator: "、")) が実行され、その状態でL\(decisionLine)へ進みます。"
+        let wrongHints = quiz.choices
+            .filter { !$0.correct }
+            .compactMap { choice -> String? in
+                guard let misconception = choice.misconception, !misconception.isEmpty else {
+                    return nil
+                }
+                return "「\(choice.text)」は\(misconception)"
+            }
+            .prefix(2)
+            .joined(separator: "。")
 
         return Explanation(
             id: ref,
@@ -215,7 +230,7 @@ extension Explanation {
             steps: [
                 Step(
                     index: 0,
-                    narration: "この問題は「\(quiz.designIntent)」を確認します。まず `main` から実行を開始し、判断に効く行 `\(focus)` に注目します。",
+                    narration: "`main` に入ると、\(setupText) 注目する評価行は `\(focus)` です。",
                     highlightLines: Array(Set([mainLine, decisionLine])).sorted(),
                     variables: [],
                     callStack: [CallStackFrame(method: "main", line: mainLine)],
@@ -239,7 +254,12 @@ extension Explanation {
                 ),
                 Step(
                     index: 2,
-                    narration: "したがって正解は「\(correctChoice?.text ?? "該当なし")」です。`\(focus)` の評価結果と、\(quiz.categoryDisplayName)の判断ポイントが一致するかを最後に確認します。",
+                    narration: [
+                        "L\(decisionLine) の `\(focus)` まで追うと、正解は「\(correctChoice?.text ?? "該当なし")」です。",
+                        wrongHints.isEmpty ? nil : "誤答を消すなら、\(wrongHints)。"
+                    ]
+                    .compactMap { $0 }
+                    .joined(separator: " "),
                     highlightLines: [decisionLine],
                     variables: [],
                     callStack: [CallStackFrame(method: "main", line: decisionLine)],
@@ -258,6 +278,25 @@ extension Explanation {
             return index + 1
         }
         return max(lines.count, 1)
+    }
+
+    private static func setupLineSnippets(in lines: [String], excluding excludedLine: Int) -> [String] {
+        let setupTokens = [
+            "=", "new ", ".add", ".put", ".set", ".append", ".delete",
+            "try", "catch", "for", "if", "switch", "List.of", "Map.of",
+            "Arrays.", "Stream.", "Optional.", "Files.", "Paths."
+        ]
+
+        return lines.enumerated().compactMap { offset, line -> String? in
+            let lineNumber = offset + 1
+            guard lineNumber != excludedLine else { return nil }
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty, !trimmed.hasPrefix("//") else { return nil }
+            guard setupTokens.contains(where: { trimmed.contains($0) }) else { return nil }
+            return "L\(lineNumber) `\(focusSnippet(from: lines, at: lineNumber))`"
+        }
+        .prefix(3)
+        .map { $0 }
     }
 
     private static func focusSnippet(from lines: [String], at line: Int) -> String {
@@ -4925,9 +4964,9 @@ AtomicInteger n = new AtomicInteger(1);
 System.out.println(n.getAndIncrement() + " " + n.get());
 """,
         steps: [
-            Step(index: 0, narration: "getAndIncrementは現在値を返してから内部値を+1します。", highlightLines: [2], variables: [Variable(name: "n", type: "AtomicInteger", value: "2(呼び出し後)", scope: "main")], callStack: [], heap: [], predict: nil),
-            Step(index: 1, narration: "返り値は1、続くgetは2です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: PredictPrompt(question: "出力は？", choices: ["1 2", "2 2", "1 1"], answerIndex: 0, hint: "後置increment相当", afterExplanation: "正解です。1 2です。")),
-            Step(index: 2, narration: "最終出力は `1 2` です。", highlightLines: [2], variables: [], callStack: [], heap: [], predict: nil),
+            Step(index: 0, narration: "AtomicIntegerは整数値を原子的に更新するクラスです。ここでは初期値1を保持したnを作成します。", highlightLines: [1], variables: [Variable(name: "n", type: "AtomicInteger", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`getAndIncrement()`は現在値を返してから内部値を1増やします。返り値は1ですが、呼び出し後のnの中身は2です。", highlightLines: [2], variables: [Variable(name: "getAndIncrement()", type: "int", value: "1", scope: "main"), Variable(name: "n", type: "AtomicInteger", value: "2(呼び出し後)", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: PredictPrompt(question: "getAndIncrementの返り値は？", choices: ["1", "2", "0"], answerIndex: 0, hint: "後置increment相当", afterExplanation: "正解です。返してから増やすので1です。")),
+            Step(index: 2, narration: "続く`n.get()`は更新後の値2を返します。2つの値が文字列連結され、最終出力は`1 2`です。", highlightLines: [2], variables: [Variable(name: "n.get()", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
 
@@ -7050,8 +7089,9 @@ public static void main(String[] args) {
 // 実行: java Test a b
 """,
         steps: [
-            Step(index: 0, narration: "実行引数はa,bの2つなので、args配列の長さは2です。", highlightLines: [1, 4], variables: [Variable(name: "args", type: "String[]", value: "[\"a\", \"b\"]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
-            Step(index: 1, narration: "`args.length` は2を返し、その値がprintlnされます。", highlightLines: [2], variables: [Variable(name: "args.length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "`java Test a b` の実行では、クラス名Testは実行対象の指定であり、mainの引数には入りません。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "mainに渡されるargs配列の中身は`\"a\"`, `\"b\"`の2つです。そのため`args.length`は2です。", highlightLines: [1, 2], variables: [Variable(name: "args", type: "String[]", value: "[\"a\", \"b\"]", scope: "main"), Variable(name: "args.length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "printlnには長さ2が渡されるため、出力は2です。", highlightLines: [2], variables: [Variable(name: "args.length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
 
@@ -7063,9 +7103,9 @@ int i = (int) d;
 System.out.println(i);
 """,
         steps: [
-            Step(index: 0, narration: "dは9.8です。", highlightLines: [1], variables: [Variable(name: "d", type: "double", value: "9.8", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
-            Step(index: 1, narration: "`(int)d` は小数部を切り捨てて9になります。", highlightLines: [2], variables: [Variable(name: "i", type: "int", value: "9", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
-            Step(index: 2, narration: "出力は9です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 0, narration: "dにはdouble値9.8が入り、この時点では小数部も保持されています。", highlightLines: [1], variables: [Variable(name: "d", type: "double", value: "9.8", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`(int) d` の明示的なキャストは四捨五入ではなく、0方向へ小数部を捨てます。そのためiは9です。", highlightLines: [2], variables: [Variable(name: "i", type: "int", value: "9", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "printlnにはint値9が渡されるため、出力は9です。", highlightLines: [3], variables: [Variable(name: "i", type: "int", value: "9", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
         ]
     )
 
@@ -7104,9 +7144,9 @@ sb.reverse().append("c");
 System.out.println(sb);
 """,
         steps: [
-            Step(index: 0, narration: "初期値はabです。", highlightLines: [1], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"ab\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
-            Step(index: 1, narration: "reverseでba、そのままappendでbacになります。", highlightLines: [2], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"bac\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
-            Step(index: 2, narration: "最終出力はbacです。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 0, narration: "sbは可変なStringBuilderとして\"ab\"を保持します。Stringとは違い、後続の操作は同じインスタンスを変更します。", highlightLines: [1], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"ab\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`reverse()` は同じsbを\"ba\"へ反転し、その戻り値に続けて`append(\"c\")`が呼ばれます。", highlightLines: [2], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"bac\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "連続呼び出しの後も参照先は同じsbなので、中身は\"bac\"です。printlnはbacを出力します。", highlightLines: [3], variables: [Variable(name: "sb", type: "StringBuilder", value: "\"bac\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
         ]
     )
 
@@ -7117,8 +7157,9 @@ int[][] a = {{1, 2}, {3, 4, 5}};
 System.out.println(a.length + ":" + a[1].length);
 """,
         steps: [
-            Step(index: 0, narration: "aは2行のジャグ配列です。", highlightLines: [1], variables: [Variable(name: "a.length", type: "int", value: "2", scope: "main"), Variable(name: "a[1].length", type: "int", value: "3", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
-            Step(index: 1, narration: "式の評価結果は`2:3`です。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "右辺は2行のジャグ配列です。1行目は2要素、2行目は3要素で、行ごとに長さが異なります。", highlightLines: [1], variables: [Variable(name: "a[0].length", type: "int", value: "2", scope: "main"), Variable(name: "a[1].length", type: "int", value: "3", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`a.length` は外側の配列の長さなので、要素そのものの個数ではなく行数の2を返します。", highlightLines: [2], variables: [Variable(name: "a.length", type: "int", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "`a[1].length` は2行目の長さを返すため3です。文字列連結され、出力は`2:3`です。", highlightLines: [2], variables: [Variable(name: "a[1].length", type: "int", value: "3", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
 
@@ -7131,8 +7172,9 @@ set.add("A");
 System.out.println(set.size());
 """,
         steps: [
-            Step(index: 0, narration: "HashSetは重複を許しません。", highlightLines: [1, 2, 3], variables: [Variable(name: "set", type: "Set<String>", value: "[A]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
-            Step(index: 1, narration: "同じAを2回addしても要素数は1です。", highlightLines: [4], variables: [Variable(name: "set.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 0, narration: "new HashSetで空のSetが作られます。HashSetはequals上同じ要素を重複して保持しません。", highlightLines: [1], variables: [Variable(name: "set", type: "Set<String>", value: "[]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "1回目の`add(\"A\")`でAが要素として追加され、setの中身は[A]になります。", highlightLines: [2], variables: [Variable(name: "set", type: "Set<String>", value: "[A]", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "2回目の`add(\"A\")`は既存要素と重複するため、サイズは増えません。`set.size()`は1を返します。", highlightLines: [3, 4], variables: [Variable(name: "set.size()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
         ]
     )
 
@@ -7145,8 +7187,9 @@ map.put("x", 2);
 System.out.println(map.get("x"));
 """,
         steps: [
-            Step(index: 0, narration: "同じキーxに対する2回目のputで値が上書きされます。", highlightLines: [2, 3], variables: [Variable(name: "map[x]", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
-            Step(index: 1, narration: "`map.get(\"x\")` は2を返し、2が出力されます。", highlightLines: [4], variables: [], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
+            Step(index: 0, narration: "空のHashMapを作成します。Mapはキーごとに1つの値を対応付けます。", highlightLines: [1], variables: [Variable(name: "map", type: "Map<String, Integer>", value: "{}", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "最初の`put(\"x\", 1)`でキーxの値は1になりますが、続く`put(\"x\", 2)`は同じキーなので値を2へ上書きします。", highlightLines: [2, 3], variables: [Variable(name: "map[x]", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 2, narration: "`map.get(\"x\")` は現在の対応値2を返します。古い値1は残らないため、出力は2です。", highlightLines: [4], variables: [Variable(name: "map.get(\"x\")", type: "Integer", value: "2", scope: "main")], callStack: [CallStackFrame(method: "main", line: 4)], heap: [], predict: nil),
         ]
     )
 
@@ -7165,8 +7208,9 @@ switch (n) {
 }
 """,
         steps: [
-            Step(index: 0, narration: "n=1なのでcase1から開始します。", highlightLines: [1, 2, 3], variables: [Variable(name: "n", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
-            Step(index: 1, narration: "case1にbreakがないためcase2へfall-throughし、A,Bを出力してbreakします。", highlightLines: [4, 5, 6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
+            Step(index: 0, narration: "nは1なので、switchは`case 1`のラベルに一致します。defaultからではなく、case 1の本体から実行が始まります。", highlightLines: [1, 2, 3], variables: [Variable(name: "n", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "`case 1`ではAを出力しますが、その直後にbreakがありません。Javaのswitch文では、breakまで次のcaseへ処理が流れます。", highlightLines: [4, 5], variables: [], callStack: [CallStackFrame(method: "main", line: 5)], heap: [], predict: nil),
+            Step(index: 2, narration: "`case 2`のBも出力し、その後のbreakでswitchを抜けます。defaultには進まないため、全体の出力はABです。", highlightLines: [6, 7], variables: [], callStack: [CallStackFrame(method: "main", line: 7)], heap: [], predict: nil),
         ]
     )
 
@@ -7178,8 +7222,9 @@ A a = new A();
 System.out.println(a.x);
 """,
         steps: [
-            Step(index: 0, narration: "intフィールドxはデフォルト値0で初期化されます。", highlightLines: [1, 2], variables: [Variable(name: "a.x", type: "int", value: "0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
-            Step(index: 1, narration: "出力は0です。", highlightLines: [3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 0, narration: "クラスAにはインスタンスフィールドxがありますが、明示的な初期値は指定されていません。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`new A()`でオブジェクトを作ると、intフィールドはデフォルト値0で初期化されます。", highlightLines: [2], variables: [Variable(name: "a.x", type: "int", value: "0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "`a.x` を読むとその0が取得されるため、printlnの出力は0です。", highlightLines: [3], variables: [Variable(name: "a.x", type: "int", value: "0", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
         ]
     )
 
@@ -7221,8 +7266,9 @@ Predicate<String> p = s -> s.isEmpty();
 System.out.println(p.negate().test(""));
 """,
         steps: [
-            Step(index: 0, narration: "空文字に対する`p.test(\"\")`はtrueです。", highlightLines: [1], variables: [Variable(name: "p.test(\"\")", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
-            Step(index: 1, narration: "negateで真偽が反転するため結果はfalseです。", highlightLines: [2], variables: [Variable(name: "result", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "pは、受け取ったStringに対して`isEmpty()`を返すPredicateです。空文字ならtrueになります。", highlightLines: [1], variables: [Variable(name: "p", type: "Predicate<String>", value: "s -> s.isEmpty()", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`p.test(\"\")`であれば空文字なのでtrueですが、このコードでは先に`negate()`で反転したPredicateを作ります。", highlightLines: [2], variables: [Variable(name: "p.test(\"\")", type: "boolean", value: "true", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "反転後のPredicateに空文字を渡すため結果はfalseです。printlnはfalseを出力します。", highlightLines: [2], variables: [Variable(name: "result", type: "boolean", value: "false", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
 
@@ -7233,8 +7279,9 @@ A a = null;
 System.out.println(a.n);
 """,
         steps: [
-            Step(index: 0, narration: "aはnullですが、nはstaticフィールドです。", highlightLines: [1, 2], variables: [Variable(name: "a", type: "A", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
-            Step(index: 1, narration: "staticアクセスは型Aに解決されるためNPEは発生せず、nの値1が出力されます。", highlightLines: [2], variables: [Variable(name: "A.n", type: "int", value: "1", scope: "class")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "変数aの値はnullです。通常のインスタンスフィールドやインスタンスメソッドをここから使うとNullPointerExceptionの対象になります。", highlightLines: [1], variables: [Variable(name: "a", type: "A", value: "null", scope: "main")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "ただしnはstaticフィールドです。`a.n`と書いていても、アクセスはコンパイル時の型Aに解決され、実際にはA.nを読む形になります。", highlightLines: [2], variables: [Variable(name: "A.n", type: "int", value: "1", scope: "class")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "null参照先を読み取っているわけではないためNPEは発生せず、staticフィールドnの値1が出力されます。", highlightLines: [2], variables: [Variable(name: "A.n", type: "int", value: "1", scope: "class")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
 
@@ -7245,8 +7292,9 @@ final class A {}
 class B extends A {}
 """,
         steps: [
-            Step(index: 0, narration: "Aはfinal classなので継承禁止です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
-            Step(index: 1, narration: "`class B extends A` が規則違反となりコンパイルエラーです。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "`final class A` は、Aを継承元として使うことを禁止する宣言です。メソッドのオーバーライド禁止ではなく、クラス継承そのものが対象です。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "次の行では`class B extends A`として、finalなAを継承しようとしています。これはコンパイル時に検査されます。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "finalクラスはサブクラスを作れないため、このコードは実行前にコンパイルエラーになります。", highlightLines: [2], variables: [], callStack: [CallStackFrame(method: "compile", line: 2)], heap: [], predict: nil),
         ]
     )
 
@@ -7257,8 +7305,9 @@ enum Level { LOW, HIGH }
 System.out.println(Level.HIGH.name() + ":" + Level.HIGH.ordinal());
 """,
         steps: [
-            Step(index: 0, narration: "name()は定数名HIGHを返します。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.name()", type: "String", value: "\"HIGH\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
-            Step(index: 1, narration: "ordinal()は0始まりでLOW=0,HIGH=1なので出力はHIGH:1です。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.ordinal()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 0, narration: "enum定数は宣言順に並びます。この例ではLOWが先、HIGHが次です。", highlightLines: [1], variables: [Variable(name: "Level values", type: "Level[]", value: "[LOW, HIGH]", scope: "enum")], callStack: [CallStackFrame(method: "main", line: 1)], heap: [], predict: nil),
+            Step(index: 1, narration: "`name()`は定数の識別子そのものを文字列で返すため、`Level.HIGH.name()`は\"HIGH\"です。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.name()", type: "String", value: "\"HIGH\"", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
+            Step(index: 2, narration: "`ordinal()`は0始まりの宣言順なのでLOW=0、HIGH=1です。`:`で連結され、出力はHIGH:1です。", highlightLines: [2], variables: [Variable(name: "Level.HIGH.ordinal()", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 2)], heap: [], predict: nil),
         ]
     )
 
@@ -7282,8 +7331,9 @@ static void m(Integer... x) { System.out.print("V"); }
 m(1);
 """,
         steps: [
-            Step(index: 0, narration: "m(1)はint固定引数に完全一致します。", highlightLines: [1, 3], variables: [], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
-            Step(index: 1, narration: "固定引数メソッドがvarargsより優先されるためm(int)が選ばれ、Iを出力します。", highlightLines: [1, 2], variables: [], callStack: [CallStackFrame(method: "m(int)", line: 1)], heap: [], predict: nil),
+            Step(index: 0, narration: "`m(1)`の引数1はintリテラルです。候補には固定引数の`m(int)`と、可変長引数の`m(Integer...)`があります。", highlightLines: [1, 2, 3], variables: [Variable(name: "argument", type: "int", value: "1", scope: "main")], callStack: [CallStackFrame(method: "main", line: 3)], heap: [], predict: nil),
+            Step(index: 1, narration: "オーバーロード解決では、完全一致する固定引数メソッドが可変長引数メソッドより先に選ばれます。", highlightLines: [1], variables: [Variable(name: "selected", type: "method", value: "m(int)", scope: "compile")], callStack: [CallStackFrame(method: "compile", line: 1)], heap: [], predict: nil),
+            Step(index: 2, narration: "したがって`m(int)`が呼び出され、メソッド本体の`System.out.print(\"I\")`によりIが出力されます。", highlightLines: [1], variables: [], callStack: [CallStackFrame(method: "m(int)", line: 1)], heap: [], predict: nil),
         ]
     )
 

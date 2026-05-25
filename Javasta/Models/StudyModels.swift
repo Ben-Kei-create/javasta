@@ -184,6 +184,142 @@ enum ExamObjectiveCatalog {
             title: "ローカライズ",
             priority: 3
         ),
+        ExamObjective(
+            id: "se11-gold-java-basics",
+            version: .se11,
+            level: .gold,
+            category: .javaBasics,
+            title: "Javaの基礎",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-exception-assertion",
+            version: .se11,
+            level: .gold,
+            category: .exceptionHandling,
+            title: "例外処理とアサーション",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-interfaces",
+            version: .se11,
+            level: .gold,
+            category: .classes,
+            title: "Javaのインタフェース",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-generics-collections",
+            version: .se11,
+            level: .gold,
+            category: .collections,
+            title: "汎用とコレクション",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-functional-lambda",
+            version: .se11,
+            level: .gold,
+            category: .lambdaStreams,
+            title: "関数型インタフェースとラムダ式",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-stream-api",
+            version: .se11,
+            level: .gold,
+            category: .lambdaStreams,
+            title: "JavaストリームAPI",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-builtin-functional",
+            version: .se11,
+            level: .gold,
+            category: .lambdaStreams,
+            title: "組込み関数型インタフェース",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-stream-operations",
+            version: .se11,
+            level: .gold,
+            category: .lambdaStreams,
+            title: "ストリームに対するラムダ演算",
+            priority: 1
+        ),
+        ExamObjective(
+            id: "se11-gold-module-migration",
+            version: .se11,
+            level: .gold,
+            category: .moduleSystem,
+            title: "モジュール型アプリケーションに移行する",
+            priority: 2
+        ),
+        ExamObjective(
+            id: "se11-gold-module-services",
+            version: .se11,
+            level: .gold,
+            category: .moduleSystem,
+            title: "モジュール型アプリケーションにおけるサービス",
+            priority: 2
+        ),
+        ExamObjective(
+            id: "se11-gold-concurrency",
+            version: .se11,
+            level: .gold,
+            category: .concurrency,
+            title: "並列処理",
+            priority: 2
+        ),
+        ExamObjective(
+            id: "se11-gold-parallel-streams",
+            version: .se11,
+            level: .gold,
+            category: .lambdaStreams,
+            title: "並列ストリーム",
+            priority: 2
+        ),
+        ExamObjective(
+            id: "se11-gold-io-nio",
+            version: .se11,
+            level: .gold,
+            category: .io,
+            title: "I/O（基本およびNIO2）",
+            priority: 2
+        ),
+        ExamObjective(
+            id: "se11-gold-secure-coding",
+            version: .se11,
+            level: .gold,
+            category: .secureCoding,
+            title: "Java SEアプリケーションにおけるセキュア・コーディング",
+            priority: 3
+        ),
+        ExamObjective(
+            id: "se11-gold-jdbc",
+            version: .se11,
+            level: .gold,
+            category: .jdbc,
+            title: "JDBCによるデータベース・アプリケーション",
+            priority: 3
+        ),
+        ExamObjective(
+            id: "se11-gold-localization",
+            version: .se11,
+            level: .gold,
+            category: .localization,
+            title: "ローカライズ",
+            priority: 3
+        ),
+        ExamObjective(
+            id: "se11-gold-annotations",
+            version: .se11,
+            level: .gold,
+            category: .annotations,
+            title: "アノテーション",
+            priority: 3
+        ),
     ]
 
     static func objectives(for version: JavaExamVersion, level: JavaLevel) -> [ExamObjective] {

@@ -362,7 +362,7 @@ public class Test {
                 choice("a", "true", misconception: "StringBuilder.equalsが内容比較だと誤解", explanation: "StringBuilderはequalsを内容比較としてオーバーライドしていません。"),
                 choice("b", "false", correct: true, explanation: "containsはequalsで比較しますが、別のStringBuilder同士は参照が違うためfalseです。"),
                 choice("c", "A", misconception: "要素そのものが出力されると誤解", explanation: "出力しているのはcontainsのboolean結果です。"),
-                choice("d", "コンパイルエラー", misconception: "List<StringBuilder>にStringBuilderを追加できないと誤解", explanation: "型は一致しています。"),
+                choice("d", "コンパイルエラー", misconception: "List<StringBuilder>にStringBuilderを追加できないと誤解", explanation: "`list.add(new StringBuilder(\"A\"))` は要素型StringBuilderと一致するためコンパイルできます。問題はcontains時のequals比較です。"),
             ],
             intent: "containsがequalsを使うこととStringBuilder.equalsの挙動を確認する。",
             steps: [
@@ -1161,7 +1161,7 @@ public class Test {
             question: "このコードをコンパイルしたときの結果として正しいものはどれか？",
             choices: [
                 choice("a", "2と出力される", misconception: "戻り値だけlongへ変えられると誤解", explanation: "同じ引数リストのオーバーライドで、プリミティブ戻り値を別型に変更できません。"),
-                choice("b", "1と出力される", misconception: "Child.valueが無視されると誤解", explanation: "宣言自体が不正です。"),
+                choice("b", "1と出力される", misconception: "Child.valueが無視されると誤解", explanation: "Child.valueはParent.valueと同じ引数リストで戻り値だけlongにしており、宣言時点で不正です。"),
                 choice("c", "コンパイルエラーになる", correct: true, explanation: "戻り値型intとlongは共変戻り値の関係ではないため、Child.valueは不正です。"),
                 choice("d", "ClassCastExceptionになる", misconception: "戻り値型違いを実行時キャストと混同", explanation: "コンパイル時に検出されます。"),
             ],

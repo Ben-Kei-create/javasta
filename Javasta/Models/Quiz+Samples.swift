@@ -105,6 +105,7 @@ extension Quiz {
             + QuizExpansion.goldInheritanceBalanceExpansion
             + QuizExpansion.goldNonLambdaExpansion
             + QuizExpansion.goldNonLambdaFurtherExpansion
+            + QuizExpansion.goldSE11CompatibilityExpansion
 
         var seenIds = Set<String>()
         return all.filter { quiz in
@@ -3470,7 +3471,7 @@ public class Test {
 """,
         question: "このコードを実行したとき、出力されるのはどれか？",
         choices: [
-            Choice(id: "a", text: "true true", correct: false, misconception: "==が内容比較だと誤解", explanation: "==は参照比較です。"),
+            Choice(id: "a", text: "true true", correct: false, misconception: "==が内容比較だと誤解", explanation: "`==` は参照比較です。`new String(\"java\")` と文字列リテラルは別参照なので最初はfalseです。"),
             Choice(id: "b", text: "false true", correct: true, misconception: nil, explanation: "new Stringで別参照になるため==はfalse、内容は同じなのでequalsはtrueです。"),
             Choice(id: "c", text: "true false", correct: false, misconception: nil, explanation: "内容は同じなのでequalsはtrueになります。"),
             Choice(id: "d", text: "false false", correct: false, misconception: nil, explanation: "equalsは文字列内容を比較するためtrueです。"),
@@ -3562,9 +3563,9 @@ public class Test {
         question: "このコードについて正しい説明はどれか？",
         choices: [
             Choice(id: "a", text: "出力は6で、List<Integer>を渡せる", correct: true, misconception: nil, explanation: "`? extends Number` はNumberサブタイプの読み取りに適しています。"),
-            Choice(id: "b", text: "出力は0で、要素は読めない", correct: false, misconception: "extendsで読み取り不可と誤解", explanation: "読み取りは可能です。"),
-            Choice(id: "c", text: "コンパイルエラー（IntegerはNumberでない）", correct: false, misconception: nil, explanation: "IntegerはNumberのサブクラスです。"),
-            Choice(id: "d", text: "実行時ClassCastException", correct: false, misconception: nil, explanation: "このコードに危険キャストはありません。"),
+            Choice(id: "b", text: "出力は0で、要素は読めない", correct: false, misconception: "extendsで読み取り不可と誤解", explanation: "`? extends Number` は読み取り側ではNumberとして安全に扱えるため、for文で1,2,3を合計できます。"),
+            Choice(id: "c", text: "コンパイルエラー（IntegerはNumberでない）", correct: false, misconception: "IntegerとNumberの継承関係を取り違えている", explanation: "IntegerはNumberのサブクラスなので、`List<? extends Number>` の引数として `List<Integer>` を渡せます。"),
+            Choice(id: "d", text: "実行時ClassCastException", correct: false, misconception: "ワイルドカード読み取りで危険キャストが起こると誤解", explanation: "Numberとして読み出してintValueを呼ぶだけなので、実行時キャスト失敗は起きません。"),
         ],
         explanationRef: "explain-gold-generics-005",
         designIntent: "`? extends` は『読み取り側Producer』で使う原則を確認する。"
@@ -4138,7 +4139,7 @@ public class Test {
             Choice(id: "a", text: "1", correct: false, misconception: "引数がフィールドに反映されないと誤解", explanation: "this.valueでフィールド更新しています。"),
             Choice(id: "b", text: "10", correct: true, misconception: nil, explanation: "this.valueでインスタンスフィールドに10を代入しています。"),
             Choice(id: "c", text: "0", correct: false, misconception: nil, explanation: "初期値1が10に更新されます。"),
-            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "構文は正しいです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "static初期化ブロックの書き方が不正だと誤解", explanation: "staticフィールド宣言、static初期化ブロック、mainメソッドはいずれも正しい構文です。"),
         ],
         explanationRef: "explain-silver-classes-007",
         designIntent: "同名引数とフィールドの区別にthisを使う基本を確認する。"
@@ -4164,10 +4165,10 @@ public class Test {
 """,
         question: "このコードを実行したとき、出力されるのはどれか？",
         choices: [
-            Choice(id: "a", text: "0", correct: false, misconception: nil, explanation: "Bが1件残ります。"),
+            Choice(id: "a", text: "0", correct: false, misconception: "remove後に全要素が消えると誤解", explanation: "`remove(\"A\")` はAだけを削除します。Bが1件残るためsizeは0ではなく1です。"),
             Choice(id: "b", text: "1", correct: true, misconception: nil, explanation: "Aを削除後、Bのみ残るためサイズ1です。"),
             Choice(id: "c", text: "2", correct: false, misconception: "removeが効かないと誤解", explanation: "remove(\"A\") でAは削除されます。"),
-            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "APIの使い方は正しいです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "ArrayListのadd/remove/size呼び出しが不正だと誤解", explanation: "Listのadd、remove(Object)、sizeはいずれも有効なAPI呼び出しです。"),
         ],
         explanationRef: "explain-silver-collections-006",
         designIntent: "Listの追加・削除・サイズ取得の基本動作を確認する。"
@@ -4193,7 +4194,7 @@ public class Test {
             Choice(id: "a", text: "true", correct: true, misconception: nil, explanation: "3 < 5 はtrueです。"),
             Choice(id: "b", text: "false", correct: false, misconception: nil, explanation: "比較結果はtrueです。"),
             Choice(id: "c", text: "1", correct: false, misconception: "booleanを数値と混同", explanation: "Javaはbooleanを1/0で出力しません。"),
-            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "正しい比較式です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "比較結果をbooleanへ代入できないと誤解", explanation: "`a < b` はboolean値を返す正しい比較式なので、boolean変数rへ代入できます。"),
         ],
         explanationRef: "explain-silver-data-types-007",
         designIntent: "比較演算子の基礎評価結果を確認する。"
@@ -4220,8 +4221,8 @@ public class Test {
         choices: [
             Choice(id: "a", text: "1", correct: false, misconception: nil, explanation: "bbとcccの2件が条件一致です。"),
             Choice(id: "b", text: "2", correct: true, misconception: nil, explanation: "長さ2以上は bb と ccc の2件です。"),
-            Choice(id: "c", text: "3", correct: false, misconception: "filter条件を見落とし", explanation: "aは条件外です。"),
-            Choice(id: "d", text: "0", correct: false, misconception: nil, explanation: "一致要素があります。"),
+            Choice(id: "c", text: "3", correct: false, misconception: "filter条件を見落とし", explanation: "`a` は長さ1なので `s.length() >= 2` を満たさず、count対象から外れます。"),
+            Choice(id: "d", text: "0", correct: false, misconception: "filterですべて除外されると誤解", explanation: "`bb` と `ccc` は条件を満たすため、少なくとも2件は残ります。"),
         ],
         explanationRef: "explain-gold-stream-011",
         designIntent: "filter後の要素数をcountで求める基本パターンを確認する。"
@@ -4247,7 +4248,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "null", correct: false, misconception: nil, explanation: "orElseでデフォルト値が使われます。"),
             Choice(id: "b", text: "default", correct: true, misconception: nil, explanation: "ofNullable(null)は空OptionalとなるためorElse値が返ります。"),
-            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: nil, explanation: "文法は正しいです。"),
+            Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "Optional.ofNullableにnullを渡せないと誤解", explanation: "`Optional.ofNullable(s)` はnullを受け取れるAPIなので、構文・型ともに問題なくコンパイルできます。"),
             Choice(id: "d", text: "NullPointerException", correct: false, misconception: "ofNullableとofを混同", explanation: "ofNullableはnullを許容します。"),
         ],
         explanationRef: "explain-gold-optional-007",

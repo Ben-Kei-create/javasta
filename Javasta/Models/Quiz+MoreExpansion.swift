@@ -388,7 +388,7 @@ public class Test {
                 Choice(id: "a", text: "Gold", correct: true, misconception: nil, explanation: "ArrayList::new は Supplier の get() が呼ばれた際に new ArrayList() を実行します。"),
                 Choice(id: "b", text: "コンパイルエラー（ArrayList::new は引数が必要）", correct: false, misconception: nil, explanation: "ArrayListには無引数コンストラクタがあるため、Supplierと適合します。"),
                 Choice(id: "c", text: "空の文字列", correct: false, misconception: nil, explanation: "リストに追加した \"Gold\" が正常に取得されます。"),
-                Choice(id: "d", text: "実行時例外", correct: false, misconception: nil, explanation: "正常に動作します。")
+                Choice(id: "d", text: "実行時例外", correct: false, misconception: "コンストラクタ参照がget時に失敗すると誤解", explanation: "`s.get()` で空のArrayListが生成され、その後Goldを追加して取り出すだけなので例外は発生しません。")
             ],
             explanationRef: "explain-gold-lambda-constructor-ref-001",
             designIntent: "コンストラクタ参照 `クラス名::new` がどのようにインスタンス生成を遅延実行させるかを理解させる。"
@@ -1214,7 +1214,7 @@ public class Test {
         question: "このコードを実行したとき、出力されるのはどれか？",
         choices: [
             Choice(id: "a", text: "42", correct: true, misconception: nil, explanation: "LongBinaryOperatorは2つのlongを受け取りlongを返します。6L * 7Lで42です。"),
-            Choice(id: "b", text: "42.0", correct: false, misconception: "longをdouble表示すると誤解", explanation: "戻り値はlongです。"),
+            Choice(id: "b", text: "42.0", correct: false, misconception: "longをdouble表示すると誤解", explanation: "`applyAsLong` の戻り値はlongです。printlnは小数点を付けずに整数の42として表示します。"),
             Choice(id: "c", text: "13", correct: false, misconception: "乗算ではなく加算している", explanation: "ラムダ本体はa * bです。"),
             Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "L付きリテラルを渡せないと誤解", explanation: "applyAsLongはlongを受け取ります。"),
         ],
@@ -1561,7 +1561,7 @@ public class Test {
         question: "このコードを実行したとき、出力されるのはどれか？",
         choices: [
             Choice(id: "a", text: "3", correct: true, misconception: nil, explanation: "Supplier.getは引数なしで値を返します。ブロックラムダではreturnが必要で、1+2の結果3が返ります。"),
-            Choice(id: "b", text: "1 + 2", correct: false, misconception: "式が文字列として出ると誤解", explanation: "式は数値計算されます。"),
+            Choice(id: "b", text: "1 + 2", correct: false, misconception: "式が文字列として出ると誤解", explanation: "ラムダ本体の `return 1 + 2;` は整数の加算式なので、文字列ではなく計算結果3を返します。"),
             Choice(id: "c", text: "コンパイルエラー", correct: false, misconception: "ブロックラムダでreturnできないと誤解", explanation: "戻り値のある関数型インターフェースでは、ブロック内でreturnできます。"),
             Choice(id: "d", text: "何も出力されない", correct: false, misconception: "get()を呼んでいないと見落としている", explanation: "s.get()がprintlnに渡されています。"),
         ],
@@ -3363,7 +3363,7 @@ public class Test {
                    explanation: "サイズ変更は不可ですが、既存要素のsetは可能です。"),
             Choice(id: "d", text: "コンパイルエラー",
                    correct: false, misconception: nil,
-                   explanation: "配列からListを作り、setするコードとして有効です。"),
+                   explanation: "`Arrays.asList(array)` の戻り値はListとして扱え、固定サイズでも既存要素のset呼び出しはコンパイルできます。"),
         ],
         explanationRef: "explain-silver-collections-006",
         designIntent: "Arrays.asListのリストは固定サイズで、元配列と要素を共有することを確認する。"
@@ -4068,7 +4068,7 @@ public class Test {
                    explanation: "yの宣言はstaticブロックの後にあるため、xが3になった後で初期化されます。"),
             Choice(id: "d", text: "コンパイルエラー",
                    correct: false, misconception: nil,
-                   explanation: "staticフィールドとstatic初期化ブロックの組み合わせとして有効です。"),
+                   explanation: "staticフィールド宣言、static初期化ブロック、mainメソッドはいずれも正しい構文で、初期化順を実行時に追えます。"),
         ],
         explanationRef: "explain-silver-classes-007",
         designIntent: "staticフィールド初期化とstatic初期化ブロックが宣言順に実行されることを確認する。"
@@ -5962,7 +5962,7 @@ public class Test {
         choices: [
             Choice(id: "a", text: "3", correct: true, misconception: nil, explanation: "複合代入のb += 2は暗黙のキャストを含むため、byteへ戻して代入できます。"),
             Choice(id: "b", text: "コンパイルエラー", correct: false, misconception: "b = b + 2 と完全に同じ扱いだと誤解", explanation: "b = b + 2ならintからbyteへの代入でエラーですが、b += 2は暗黙キャストされます。"),
-            Choice(id: "c", text: "1", correct: false, misconception: "複合代入が値を変更しないと誤解", explanation: "bへ2が加算されます。"),
+            Choice(id: "c", text: "1", correct: false, misconception: "複合代入が値を変更しないと誤解", explanation: "`b += 2` は現在値1に2を加え、その結果3をbyteへ戻してbに代入します。"),
             Choice(id: "d", text: "実行時にClassCastException", correct: false, misconception: "プリミティブの変換を実行時キャストと混同", explanation: "これはコンパイル時に扱われる数値変換です。"),
         ],
         explanationRef: "explain-silver-data-types-013",
@@ -7140,7 +7140,7 @@ public class Test {
             Choice(id: "a", text: "false と true", correct: true, misconception: nil, explanation: "==は参照比較でfalse、equalsは内容比較でtrueです。"),
             Choice(id: "b", text: "true と true", correct: false, misconception: "Stringは常に同一参照と誤解", explanation: "new Stringで別オブジェクトです。"),
             Choice(id: "c", text: "false と false", correct: false, misconception: "equalsも参照比較と誤解", explanation: "String.equalsは文字列内容を比較します。"),
-            Choice(id: "d", text: "true と false", correct: false, misconception: "==とequalsの意味を逆に誤解", explanation: "意味が逆です。"),
+            Choice(id: "d", text: "true と false", correct: false, misconception: "==とequalsの意味を逆に誤解", explanation: "`==` は参照比較なのでfalse、`equals` は内容比較なのでtrueです。この選択肢は両方逆です。"),
         ],
         explanationRef: "explain-silver-string-009",
         designIntent: "Stringの参照比較と内容比較を明確に区別させる。"
@@ -7217,7 +7217,7 @@ public class Test {
             Choice(id: "a", text: "1", correct: true, misconception: nil, explanation: "Setは重複要素を保持しないため、Aは1件だけです。"),
             Choice(id: "b", text: "2", correct: false, misconception: "add回数で増えると誤解", explanation: "同値要素の再追加は無視されます。"),
             Choice(id: "c", text: "0", correct: false, misconception: "重複で両方消えると誤解", explanation: "最初のAは保持されます。"),
-            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Setにaddできないと誤解", explanation: "addは有効です。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "Setにaddできないと誤解", explanation: "`HashSet` は `add` をサポートします。同じAの2回目が無視されるだけで、コンパイルエラーではありません。"),
         ],
         explanationRef: "explain-silver-collections-012",
         designIntent: "Setの重複排除とsizeの結果を確認する。"
@@ -7541,9 +7541,9 @@ public class Test {
         question: "このコードの出力はどれか？",
         choices: [
             Choice(id: "a", text: "false:0", correct: true, misconception: nil, explanation: "左辺x>0がfalseなので右辺は評価されず、xは増えません。"),
-            Choice(id: "b", text: "false:1", correct: false, misconception: "右辺も常に評価されると誤解", explanation: "&&は短絡評価です。"),
+            Choice(id: "b", text: "false:1", correct: false, misconception: "右辺も常に評価されると誤解", explanation: "`&&` は左辺がfalseなら右辺を評価しません。そのため `++x` は実行されずxは0のままです。"),
             Choice(id: "c", text: "true:1", correct: false, misconception: "式全体がtrueになると誤解", explanation: "左辺false時点でfalseです。"),
-            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "boolean式が不正と誤解", explanation: "構文は正しいです。"),
+            Choice(id: "d", text: "コンパイルエラー", correct: false, misconception: "boolean式が不正と誤解", explanation: "`(x > 0) && (++x > 0)` はboolean同士の論理積なので、構文として正しくコンパイルできます。"),
         ],
         explanationRef: "explain-silver-operators-003",
         designIntent: "&&の短絡評価で副作用式が実行されないケースを確認する。"
