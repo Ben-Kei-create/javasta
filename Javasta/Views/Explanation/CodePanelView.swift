@@ -8,7 +8,11 @@ struct CodeToken {
     let kind: Kind
 }
 
+@MainActor
 enum JavaTokenizer {
+    private static var tokenCache: [String: [[CodeToken]]] = [:]
+    private static let maxCachedEntries = 80
+
     private static let keywords: Set<String> = [
         "public", "private", "protected", "static", "final", "abstract",
         "class", "interface", "enum", "extends", "implements",
@@ -31,7 +35,16 @@ enum JavaTokenizer {
     ]
 
     static func tokenize(_ code: String) -> [[CodeToken]] {
-        code.components(separatedBy: "\n").map { tokenizeLine($0) }
+        if let cached = tokenCache[code] {
+            return cached
+        }
+
+        let tokenized = code.components(separatedBy: "\n").map { tokenizeLine($0) }
+        if tokenCache.count >= maxCachedEntries {
+            tokenCache.removeAll(keepingCapacity: true)
+        }
+        tokenCache[code] = tokenized
+        return tokenized
     }
 
     private static func tokenizeLine(_ line: String) -> [CodeToken] {
