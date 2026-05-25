@@ -14,6 +14,7 @@ struct LaunchReadinessView: View {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
                     summaryCard
                     contentMetrics
+                    coverageCard
                     checklist
                     marketingCopyCard
                 }
@@ -102,11 +103,51 @@ struct LaunchReadinessView: View {
                 )
                 Divider().background(Color.jbBorder).padding(.horizontal, Spacing.md)
                 LaunchReadinessCheckRow(
+                    title: "出題範囲カバレッジ",
+                    detail: "SE / 級ごとの試験範囲に通常問題があるか",
+                    value: "\(snapshot.coverageIssueCount)件",
+                    isPassing: snapshot.coverageIssueCount == 0
+                )
+                Divider().background(Color.jbBorder).padding(.horizontal, Spacing.md)
+                LaunchReadinessCheckRow(
                     title: "模試専用問題",
                     detail: "Silver / Gold それぞれ100問を目安",
                     value: "\(min(snapshot.silverMockOnlyCount, snapshot.goldMockOnlyCount))/100",
                     isPassing: snapshot.silverMockOnlyCount >= 100 && snapshot.goldMockOnlyCount >= 100
                 )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: Radius.md))
+            .overlay(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .stroke(Color.jbBorder, lineWidth: 1)
+            )
+        }
+    }
+
+    private var coverageCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                Text("出題範囲カバレッジ")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(Color.jbText)
+                Spacer()
+                Text(snapshot.coverageIssueCount == 0 ? "ALL COVERED" : "\(snapshot.coverageIssueCount) OPEN")
+                    .font(.system(size: 10, weight: .heavy).monospaced())
+                    .foregroundStyle(snapshot.coverageIssueCount == 0 ? Color.jbSuccess : Color.jbWarning)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule().fill((snapshot.coverageIssueCount == 0 ? Color.jbSuccess : Color.jbWarning).opacity(0.12))
+                    )
+            }
+
+            VStack(spacing: 0) {
+                ForEach(Array(snapshot.coverageGroups.enumerated()), id: \.element.id) { index, group in
+                    LaunchCoverageGroupRow(group: group)
+                    if index < snapshot.coverageGroups.count - 1 {
+                        Divider().background(Color.jbBorder).padding(.leading, Spacing.md)
+                    }
+                }
             }
             .clipShape(RoundedRectangle(cornerRadius: Radius.md))
             .overlay(
@@ -151,6 +192,7 @@ private struct LaunchReadinessSnapshot {
     let explanationIssueCount: Int
     let contentQualityIssueCount: Int
     let validationIssueCount: Int
+    let coverageGroups: [LaunchReadinessCoverageGroup]
 
     init() {
         let explanationReport = QuestionBank.explanationAuditReport()
@@ -163,14 +205,90 @@ private struct LaunchReadinessSnapshot {
         explanationIssueCount = explanationReport.needsAttentionCount
         contentQualityIssueCount = QuestionBank.contentQualityIssues().count
         validationIssueCount = QuestionBank.validationIssues().count
+        coverageGroups = JavaExamVersion.allCases.flatMap { version in
+            JavaLevel.allCases.compactMap { level in
+                let objectives = QuestionBank.coverage(version: version, level: level)
+                guard !objectives.isEmpty else { return nil }
+                let items = objectives.map {
+                    LaunchReadinessObjectiveCoverage(
+                        objective: $0.objective,
+                        count: $0.count
+                    )
+                }
+                return LaunchReadinessCoverageGroup(
+                    version: version,
+                    level: level,
+                    practiceCount: QuestionBank.quizzes(version: version, level: level).count,
+                    objectives: items
+                )
+            }
+        }
     }
 
     var isReadyForStoreReview: Bool {
         explanationIssueCount == 0 &&
         contentQualityIssueCount == 0 &&
         validationIssueCount == 0 &&
+        coverageIssueCount == 0 &&
         silverMockOnlyCount >= 100 &&
         goldMockOnlyCount >= 100
+    }
+
+    var coverageIssueCount: Int {
+        coverageGroups.reduce(0) { $0 + $1.uncoveredCount }
+    }
+}
+
+private struct LaunchReadinessCoverageGroup: Identifiable {
+    let version: JavaExamVersion
+    let level: JavaLevel
+    let practiceCount: Int
+    let objectives: [LaunchReadinessObjectiveCoverage]
+
+    var id: String {
+        "\(version.rawValue)-\(level.rawValue)"
+    }
+
+    var title: String {
+        "\(version.displayName) / \(level.displayName)"
+    }
+
+    var coveredCount: Int {
+        objectives.filter { $0.count > 0 }.count
+    }
+
+    var totalObjectiveCount: Int {
+        objectives.count
+    }
+
+    var uncoveredCount: Int {
+        totalObjectiveCount - coveredCount
+    }
+
+    var minimumCount: Int {
+        objectives.map(\.count).min() ?? 0
+    }
+
+    var progress: Double {
+        guard totalObjectiveCount > 0 else { return 0 }
+        return Double(coveredCount) / Double(totalObjectiveCount)
+    }
+
+    var uncoveredTitles: String {
+        objectives
+            .filter { $0.count == 0 }
+            .map { $0.objective.title }
+            .prefix(2)
+            .joined(separator: "、")
+    }
+}
+
+private struct LaunchReadinessObjectiveCoverage: Identifiable {
+    let objective: ExamObjective
+    let count: Int
+
+    var id: String {
+        objective.id
     }
 }
 
@@ -201,6 +319,48 @@ private struct LaunchReadinessMetric: View {
                         .stroke(Color.jbBorder, lineWidth: 1)
                 )
         )
+    }
+}
+
+private struct LaunchCoverageGroupRow: View {
+    let group: LaunchReadinessCoverageGroup
+
+    private var isPassing: Bool {
+        group.uncoveredCount == 0
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(group.title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.jbText)
+                    Text("\(group.practiceCount)問 / 最少 \(group.minimumCount)問")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.jbSubtext)
+                }
+
+                Spacer(minLength: Spacing.sm)
+
+                Text("\(group.coveredCount)/\(group.totalObjectiveCount)")
+                    .font(.system(size: 14, weight: .bold).monospacedDigit())
+                    .foregroundStyle(isPassing ? Color.jbSuccess : Color.jbWarning)
+            }
+
+            ProgressView(value: group.progress)
+                .tint(isPassing ? Color.jbSuccess : Color.jbWarning)
+                .scaleEffect(x: 1, y: 1.2)
+
+            if !isPassing {
+                Text("未カバー: \(group.uncoveredTitles)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.jbWarning)
+                    .lineLimit(2)
+            }
+        }
+        .padding(Spacing.md)
+        .background(Color.jbCard)
     }
 }
 
