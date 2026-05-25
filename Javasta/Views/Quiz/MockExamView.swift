@@ -259,6 +259,7 @@ struct MockExamView: View {
             }
             .disabled(currentIndex == 0)
             .buttonStyle(.plain)
+            .accessibilityIdentifier("mock-exam-previous")
 
             Button(action: nextOrSubmit) {
                 HStack(spacing: 6) {
@@ -275,6 +276,7 @@ struct MockExamView: View {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(currentIndex == session.quizzes.count - 1 ? "mock-exam-submit" : "mock-exam-next")
         }
         .padding(.horizontal, Spacing.md)
         .padding(.top, Spacing.sm)
@@ -518,6 +520,8 @@ private struct MockExamChoiceButton: View {
         }
         .buttonStyle(.plain)
         .animation(.snappy(duration: 0.18, extraBounce: 0.02), value: isSelected)
+        .accessibilityLabel("模試選択肢 \(choice.id): \(choice.text)")
+        .accessibilityIdentifier("mock-choice-\(choice.id)")
     }
 }
 

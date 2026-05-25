@@ -144,6 +144,7 @@ struct ExplanationView: View {
                     .frame(width: 32, height: 32)
                     .background(Circle().fill(Color.jbCard))
             }
+            .accessibilityIdentifier("explanation-close")
 
             Spacer()
 
@@ -222,6 +223,7 @@ struct ExplanationView: View {
                 )
             }
             .disabled(!vm.canGoBack)
+            .accessibilityIdentifier("explanation-back")
 
             Button(action: {
                 if vm.isComplete { onDismiss() } else { vm.goForward() }
@@ -244,6 +246,7 @@ struct ExplanationView: View {
                 )
             }
             .disabled(vm.isPredictBlocking)
+            .accessibilityIdentifier(vm.isComplete ? "explanation-finish" : "explanation-forward")
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)
@@ -551,5 +554,7 @@ private struct PredictChoiceRow: View {
         }
         .disabled(isAnswered)
         .animation(.jbFast, value: isAnswered)
+        .accessibilityLabel("予測選択肢 \(index + 1): \(text)")
+        .accessibilityIdentifier("predict-choice-\(index)")
     }
 }

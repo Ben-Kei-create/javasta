@@ -211,6 +211,7 @@ struct QuizView: View {
                     )
             }
             .disabled(explanationTraceStatus == .missing)
+            .accessibilityIdentifier("quiz-show-explanation")
 
             if let onNextQuiz {
                 Button(action: onNextQuiz) {
@@ -228,6 +229,7 @@ struct QuizView: View {
                             .fill(Color.jbAccent)
                     )
                 }
+                .accessibilityIdentifier("quiz-next")
             }
         }
     }
@@ -252,6 +254,7 @@ struct QuizView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("問題の不備を報告")
+        .accessibilityIdentifier("quiz-report-issue")
     }
 
     private var explanationTraceStatus: ExplanationTraceStatus {
@@ -476,5 +479,7 @@ struct QuizChoiceButton: View {
         }
         .disabled(isAnswered)
         .animation(.jbFast, value: isAnswered)
+        .accessibilityLabel("選択肢 \(choice.id): \(choice.text)")
+        .accessibilityIdentifier("quiz-choice-\(choice.id)")
     }
 }

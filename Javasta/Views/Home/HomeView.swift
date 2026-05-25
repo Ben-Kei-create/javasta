@@ -87,6 +87,7 @@ struct HomeView: View {
                     .frame(width: 34, height: 34)
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("home-settings")
         }
         .padding(.horizontal, Spacing.md)
         .padding(.top, Spacing.sm)
@@ -218,6 +219,7 @@ struct HomeView: View {
                 }
                 .buttonStyle(.jbScaled)
                 .sensoryFeedback(.selection, trigger: selectedLevelRaw)
+                .accessibilityIdentifier("home-level-\(level.rawValue)")
             }
         }
     }
@@ -641,6 +643,7 @@ private struct PracticeModeCard: View {
             )
         }
         .buttonStyle(.jbScaled)
+        .accessibilityIdentifier("home-practice-\(mode.rawValue)")
     }
 }
 
