@@ -59,6 +59,29 @@ final class ContentQualityTests: XCTestCase {
         }
     }
 
+    func testMockExamSessionsAvoidRepeatedVariantGroups() {
+        for version in JavaExamVersion.allCases {
+            for level in JavaLevel.allCases {
+                for variant in MockExamVariant.allCases {
+                    guard let session = QuestionBank.makeMockExamSession(
+                        variant: variant,
+                        version: version,
+                        level: level
+                    ) else {
+                        continue
+                    }
+
+                    let variantGroups = session.quizzes.compactMap(\.variantGroupId)
+                    XCTAssertEqual(
+                        Set(variantGroups).count,
+                        variantGroups.count,
+                        "\(version.displayName) \(level.displayName) \(variant.displayName)"
+                    )
+                }
+            }
+        }
+    }
+
     private func formattedExplanationIssues(_ issues: [ExplanationAuditIssue]) -> String {
         issues
             .prefix(20)

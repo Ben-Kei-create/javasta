@@ -528,15 +528,31 @@ enum QuestionBank {
     ) -> [Quiz] {
         guard limit > 0 else { return [] }
         guard !exclusivePool.isEmpty else {
-            return Array(practicePool.shuffled().prefix(min(limit, practicePool.count)))
+            return balancedMockExamSelection(from: practicePool, limit: min(limit, practicePool.count)).shuffled()
         }
 
         let exclusiveTarget = min(exclusivePool.count, max(1, Int((Double(limit) * 0.25).rounded(.down))))
-        let exclusive = Array(exclusivePool.shuffled().prefix(exclusiveTarget))
+        let exclusive = balancedMockExamSelection(from: exclusivePool, limit: exclusiveTarget)
         let practiceTarget = max(0, limit - exclusive.count)
-        let practice = Array(practicePool.shuffled().prefix(min(practiceTarget, practicePool.count)))
+        let practice = balancedMockExamSelection(
+            from: practicePool,
+            limit: min(practiceTarget, practicePool.count),
+            excludingIds: Set(exclusive.map(\.id)),
+            excludingVariantGroups: variantGroups(in: exclusive)
+        )
 
         var selected = deduplicated(exclusive + practice)
+        if selected.count < limit {
+            let selectedIds = Set(selected.map(\.id))
+            let fill = balancedMockExamSelection(
+                from: deduplicated(practicePool + exclusivePool),
+                limit: limit - selected.count,
+                excludingIds: selectedIds,
+                excludingVariantGroups: variantGroups(in: selected)
+            )
+            selected.append(contentsOf: fill)
+        }
+
         if selected.count < limit {
             let selectedIds = Set(selected.map(\.id))
             let fill = deduplicated(practicePool + exclusivePool)
@@ -547,6 +563,78 @@ enum QuestionBank {
         }
 
         return Array(selected.shuffled().prefix(limit))
+    }
+
+    private static func balancedMockExamSelection(
+        from candidates: [Quiz],
+        limit: Int,
+        excludingIds: Set<String> = [],
+        excludingVariantGroups: Set<String> = []
+    ) -> [Quiz] {
+        guard limit > 0 else { return [] }
+
+        var usedIds = excludingIds
+        var usedVariantGroups = excludingVariantGroups
+        let grouped = Dictionary(
+            grouping: candidates
+                .shuffled()
+                .filter { !usedIds.contains($0.id) },
+            by: { mockExamBalanceKey(for: $0) }
+        )
+        let orderedKeys = grouped.keys.sorted { lhs, rhs in
+            let lhsCount = grouped[lhs]?.count ?? 0
+            let rhsCount = grouped[rhs]?.count ?? 0
+            if lhsCount == rhsCount { return lhs < rhs }
+            return lhsCount > rhsCount
+        }
+        var cursors = Dictionary(uniqueKeysWithValues: orderedKeys.map { ($0, 0) })
+        var result: [Quiz] = []
+
+        while result.count < min(limit, candidates.count) {
+            var addedThisRound = false
+
+            for key in orderedKeys {
+                guard let items = grouped[key] else { continue }
+                var cursor = cursors[key] ?? 0
+
+                while cursor < items.count {
+                    let quiz = items[cursor]
+                    cursor += 1
+
+                    guard !usedIds.contains(quiz.id) else { continue }
+                    if let variantGroupId = quiz.variantGroupId,
+                       usedVariantGroups.contains(variantGroupId) {
+                        continue
+                    }
+
+                    result.append(quiz)
+                    usedIds.insert(quiz.id)
+                    if let variantGroupId = quiz.variantGroupId {
+                        usedVariantGroups.insert(variantGroupId)
+                    }
+                    addedThisRound = true
+                    break
+                }
+
+                cursors[key] = cursor
+                if result.count >= limit { break }
+            }
+
+            if !addedThisRound { break }
+        }
+
+        return result
+    }
+
+    private static func mockExamBalanceKey(for quiz: Quiz) -> String {
+        if quiz.examObjectiveId != "unmapped" {
+            return quiz.examObjectiveId
+        }
+        return quiz.canonicalCategoryRawValue
+    }
+
+    private static func variantGroups(in quizzes: [Quiz]) -> Set<String> {
+        Set(quizzes.compactMap(\.variantGroupId))
     }
 
     private static func deduplicated(_ quizzes: [Quiz]) -> [Quiz] {
