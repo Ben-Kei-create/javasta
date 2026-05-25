@@ -162,14 +162,21 @@ enum QuestionBank {
     }
 
     static func coverage(version: JavaExamVersion, level: JavaLevel) -> [(objective: ExamObjective, count: Int)] {
-        ExamObjectiveCatalog.objectives(for: version, level: level).map { objective in
-            let categories = coverageCategories(for: objective.category)
-            let count = quizzes(version: version, level: level)
-                .filter { quiz in
-                    guard let category = quiz.canonicalCategory else { return false }
-                    return categories.contains(category)
-                }
-                .count
+        let pool = quizzes(version: version, level: level)
+        return ExamObjectiveCatalog.objectives(for: version, level: level).map { objective in
+            let directObjectiveCount = pool.filter { $0.examObjectiveId == objective.id }.count
+            let count: Int
+            if directObjectiveCount > 0 {
+                count = directObjectiveCount
+            } else {
+                let categories = coverageCategories(for: objective.category)
+                count = pool
+                    .filter { quiz in
+                        guard let category = quiz.canonicalCategory else { return false }
+                        return categories.contains(category)
+                    }
+                    .count
+            }
             return (objective, count)
         }
     }

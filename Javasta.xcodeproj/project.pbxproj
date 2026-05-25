@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		A5998C5A2F94392A006A312D /* Javasta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Javasta.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000012F94392D006A312D /* JavastaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JavastaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +17,22 @@
 			path = Javasta;
 			sourceTree = "<group>";
 		};
+		B10000022F94392D006A312D /* JavastaTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = JavastaTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A5998C572F94392A006A312D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10000032F94392D006A312D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +46,7 @@
 			isa = PBXGroup;
 			children = (
 				A5998C5C2F94392A006A312D /* Javasta */,
+				B10000022F94392D006A312D /* JavastaTests */,
 				A5998C5B2F94392A006A312D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				A5998C5A2F94392A006A312D /* Javasta.app */,
+				B10000012F94392D006A312D /* JavastaTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,7 +85,40 @@
 			productReference = A5998C5A2F94392A006A312D /* Javasta.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B10000042F94392D006A312D /* JavastaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B10000092F94392D006A312D /* Build configuration list for PBXNativeTarget "JavastaTests" */;
+			buildPhases = (
+				B10000052F94392D006A312D /* Sources */,
+				B10000032F94392D006A312D /* Frameworks */,
+				B10000062F94392D006A312D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B10000072F94392D006A312D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B10000022F94392D006A312D /* JavastaTests */,
+			);
+			name = JavastaTests;
+			packageProductDependencies = (
+			);
+			productName = JavastaTests;
+			productReference = B10000012F94392D006A312D /* JavastaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		B10000082F94392D006A312D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A5998C522F94392A006A312D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5998C592F94392A006A312D;
+			remoteInfo = Javasta;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXProject section */
 		A5998C522F94392A006A312D /* Project object */ = {
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					A5998C592F94392A006A312D = {
 						CreatedOnToolsVersion = 26.4;
+					};
+					B10000042F94392D006A312D = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = A5998C592F94392A006A312D;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				A5998C592F94392A006A312D /* Javasta */,
+				B10000042F94392D006A312D /* JavastaTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A5998C582F94392A006A312D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10000062F94392D006A312D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B10000052F94392D006A312D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B10000072F94392D006A312D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5998C592F94392A006A312D /* Javasta */;
+			targetProxy = B10000082F94392D006A312D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A5998C632F94392C006A312D /* Debug */ = {
@@ -310,6 +385,62 @@
 			};
 			name = Release;
 		};
+		B100000A2F94392D006A312D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R927F3U4V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fumiakiMogi777.JavastaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Javasta.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Javasta";
+			};
+			name = Debug;
+		};
+		B100000B2F94392D006A312D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R927F3U4V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fumiakiMogi777.JavastaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Javasta.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Javasta";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +458,15 @@
 			buildConfigurations = (
 				A5998C662F94392C006A312D /* Debug */,
 				A5998C672F94392C006A312D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B10000092F94392D006A312D /* Build configuration list for PBXNativeTarget "JavastaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B100000A2F94392D006A312D /* Debug */,
+				B100000B2F94392D006A312D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
