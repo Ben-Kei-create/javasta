@@ -19,7 +19,7 @@ enum JavaLevel: String, Codable, CaseIterable, Equatable {
     }
 }
 
-enum QuizCategory: String, Codable {
+enum QuizCategory: String, Codable, CaseIterable {
     case javaBasics         = "java-basics"
     case classes            = "classes"
     case overloadResolution = "overload-resolution"

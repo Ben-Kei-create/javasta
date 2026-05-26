@@ -77,6 +77,103 @@ final class ProgressStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.dailyGoal, 20)
     }
 
+    func testAccuracyPercentIsZeroWhenNoAnswerRecorded() {
+        let store = ProgressStore(defaults: makeIsolatedDefaults())
+        XCTAssertEqual(store.accuracyPercent, 0)
+    }
+
+    func testAccuracyPercentIsHundredWhenAllCorrect() {
+        let defaults = makeIsolatedDefaults()
+        let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!
+        let correctChoice = quiz.choices.first { $0.correct }!
+
+        let store = ProgressStore(defaults: defaults)
+        store.recordAnswer(quiz: quiz, choice: correctChoice, elapsedSeconds: 10)
+
+        XCTAssertEqual(store.accuracyPercent, 100)
+    }
+
+    func testWeakTagsSurfaceMostMissedTopics() {
+        let defaults = makeIsolatedDefaults()
+        let store = ProgressStore(defaults: defaults)
+
+        // タグが付いた問題を選んで複数回誤答
+        let taggedQuizzes = QuestionBank.quizzes(version: .se17, level: .silver)
+            .filter { !$0.tags.isEmpty }
+            .prefix(3)
+        for quiz in taggedQuizzes {
+            let wrong = quiz.choices.first { !$0.correct }!
+            store.recordAnswer(quiz: quiz, choice: wrong, elapsedSeconds: 20)
+        }
+
+        let weak = store.weakTags(limit: 5)
+        // 誤答があるので必ず1件以上
+        XCTAssertFalse(weak.isEmpty)
+        // ミス率降順になっていること
+        let missRates = weak.map(\.missRate)
+        XCTAssertEqual(missRates, missRates.sorted(by: >))
+        // 全エントリのmissRate > 0
+        XCTAssertTrue(weak.allSatisfy { $0.misses > 0 })
+    }
+
+    func testMockExamAttemptPersistsAndPrunesOldestOver10() {
+        let defaults = makeIsolatedDefaults()
+        let store = ProgressStore(defaults: defaults)
+        let quizzes = Array(QuestionBank.quizzes(version: .se17, level: .gold).prefix(5))
+
+        // 11件記録 → 古い1件が刈り取られ10件になる
+        let baseDate = Date()
+        for i in 0..<11 {
+            let answers: [MockExamAnswer] = quizzes.map { quiz in
+                MockExamAnswer(
+                    quizId: quiz.id,
+                    category: quiz.canonicalCategoryRawValue,
+                    tags: quiz.tags,
+                    selectedChoiceId: quiz.choices.first?.id,
+                    correctChoiceId: quiz.choices.first(where: \.correct)?.id ?? "",
+                    correct: i % 2 == 0,
+                    elapsedSeconds: 30
+                )
+            }
+            let completedAt = baseDate.addingTimeInterval(Double(i) * 60)
+            let attempt = MockExamAttempt(
+                version: .se17,
+                level: .gold,
+                variant: .full,
+                startedAt: completedAt.addingTimeInterval(-300),
+                completedAt: completedAt,
+                timeLimitSeconds: 9000,
+                elapsedSeconds: 300,
+                questionCount: answers.count,
+                correctCount: answers.filter(\.correct).count,
+                passingScorePercent: 65,
+                answers: answers
+            )
+            store.recordMockExamAttempt(attempt, quizzes: quizzes)
+        }
+
+        let stored = store.mockExamAttempts(version: .se17, level: .gold, variant: .full)
+        XCTAssertEqual(stored.count, 10, "最大10件でプルーニングされる")
+        // 古い順で並んでいることを確認
+        let dates = stored.map(\.completedAt)
+        XCTAssertEqual(dates, dates.sorted())
+    }
+
+    func testReviewQueueHasNoDuplicatesAfterRepeatedWrongAnswers() {
+        let defaults = makeIsolatedDefaults()
+        let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!
+        let wrong = quiz.choices.first { !$0.correct }!
+
+        let store = ProgressStore(defaults: defaults)
+        // 同じ問題を3回連続で誤答
+        store.recordAnswer(quiz: quiz, choice: wrong, elapsedSeconds: 5)
+        store.recordAnswer(quiz: quiz, choice: wrong, elapsedSeconds: 5)
+        store.recordAnswer(quiz: quiz, choice: wrong, elapsedSeconds: 5)
+
+        let occurrences = store.reviewQueueQuizIds.filter { $0 == quiz.id }
+        XCTAssertEqual(occurrences.count, 1, "同じ問題IDは復習キューに重複しない")
+    }
+
     private func makeIsolatedDefaults() -> UserDefaults {
         let suiteName = "ProgressStoreTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

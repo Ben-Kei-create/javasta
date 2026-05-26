@@ -784,10 +784,11 @@ enum QuestionBank {
     }
 
     private static func normalizedContentKey(_ text: String) -> String {
+        // \s は \n, \r, \t, スペースをすべて含むので重複指定は不要
         text
             .replacingOccurrences(of: "`", with: "")
             .replacingOccurrences(of: "　", with: " ")
-            .replacingOccurrences(of: #"[\s\n\r\t]+"#, with: " ", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 

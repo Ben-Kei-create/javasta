@@ -136,6 +136,41 @@ final class ContentQualityTests: XCTestCase {
         XCTAssertEqual(weakest?.correct, 0)
     }
 
+    func testContentBalanceHasSufficientDepthForCoveredCategories() {
+        // 出題されているカテゴリは最低3問の通常問題があることを確認する。
+        // 1〜2問しかない場合、弱点克服モードやバランス選択で
+        // 同じ問題が繰り返し出題され学習効果が下がる。
+        let minimumPracticeCount = 3
+        for version in JavaExamVersion.allCases {
+            for level in JavaLevel.allCases {
+                let issues = QuestionBank.contentBalanceIssues(
+                    version: version,
+                    level: level,
+                    minimumPracticeCount: minimumPracticeCount
+                )
+                XCTAssertTrue(
+                    issues.isEmpty,
+                    "\(version.displayName) \(level.displayName) で問題数が少ないカテゴリがあります:\n"
+                        + issues.joined(separator: "\n")
+                )
+            }
+        }
+    }
+
+    func testAllQuizCategoriesAreRecognized() {
+        // QuizCategory が CaseIterable になったことで全カテゴリを列挙できる。
+        // rawValue が canonical() で解決できないカテゴリが混入していないことを確認。
+        let unknownCategories = QuestionBank.allQuizzes
+            .filter { $0.canonicalCategory == nil }
+            .map { "\($0.id): '\($0.category)'" }
+
+        XCTAssertTrue(
+            unknownCategories.isEmpty,
+            "カテゴリ名が canonical に解決できない問題があります:\n"
+                + unknownCategories.prefix(20).joined(separator: "\n")
+        )
+    }
+
     private func formattedExplanationIssues(_ issues: [ExplanationAuditIssue]) -> String {
         issues
             .prefix(20)

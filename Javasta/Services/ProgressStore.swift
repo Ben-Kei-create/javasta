@@ -94,11 +94,9 @@ final class ProgressStore {
         defaults.set(dailyHistory,   forKey: Key.dailyHistory)
 
         if !quizId.isEmpty {
-            reviewQueueQuizIds = Self.deduplicated(reviewQueueQuizIds)
-            if correct {
-                reviewQueueQuizIds.removeAll { $0 == quizId }
-            } else {
-                reviewQueueQuizIds.removeAll { $0 == quizId }
+            // removeAll で既存エントリを除いてから必要なら末尾へ追加するため重複は生じない
+            reviewQueueQuizIds.removeAll { $0 == quizId }
+            if !correct {
                 reviewQueueQuizIds.append(quizId)
             }
             defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
@@ -363,9 +361,8 @@ final class ProgressStore {
         let lastStudy = defaults.string(forKey: Key.lastStudyDateKey)
         if lastStudy == Self.yesterdayKey() {
             streakDays += 1
-        } else if lastStudy == nil {
-            streakDays = 1
         } else {
+            // 初回、または連続が途切れた場合はどちらも 1 からリセット
             streakDays = 1
         }
         defaults.set(streakDays, forKey: Key.streakDays)

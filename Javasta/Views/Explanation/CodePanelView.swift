@@ -120,8 +120,38 @@ enum JavaTokenizer {
                 i = text.index(after: i)
             } else if c.isNumber && word.isEmpty {
                 var n = ""
-                while i < text.endIndex && (text[i].isNumber || text[i] == "." || text[i] == "L" || text[i] == "f") {
-                    n.append(text[i]); i = text.index(after: i)
+                let afterFirst = text.index(after: i)
+                if c == "0", afterFirst < text.endIndex,
+                   text[afterFirst] == "x" || text[afterFirst] == "X" {
+                    // 16進数リテラル: 0x1A, 0xDEAD_BEEF
+                    n.append(text[i]); i = text.index(after: i)   // '0'
+                    n.append(text[i]); i = text.index(after: i)   // 'x'/'X'
+                    while i < text.endIndex && (text[i].isHexDigit || text[i] == "_") {
+                        n.append(text[i]); i = text.index(after: i)
+                    }
+                    if i < text.endIndex, text[i] == "L" || text[i] == "l" {
+                        n.append(text[i]); i = text.index(after: i)
+                    }
+                } else if c == "0", afterFirst < text.endIndex,
+                          text[afterFirst] == "b" || text[afterFirst] == "B" {
+                    // 2進数リテラル: 0b1010, 0b1010_0110
+                    n.append(text[i]); i = text.index(after: i)   // '0'
+                    n.append(text[i]); i = text.index(after: i)   // 'b'/'B'
+                    while i < text.endIndex && (text[i] == "0" || text[i] == "1" || text[i] == "_") {
+                        n.append(text[i]); i = text.index(after: i)
+                    }
+                    if i < text.endIndex, text[i] == "L" || text[i] == "l" {
+                        n.append(text[i]); i = text.index(after: i)
+                    }
+                } else {
+                    // 10進数・浮動小数点: 1_000_000, 3.14f, 2.5e10, 100L
+                    while i < text.endIndex &&
+                            (text[i].isNumber || text[i] == "." || text[i] == "_" ||
+                             text[i] == "L" || text[i] == "l" ||
+                             text[i] == "f" || text[i] == "F" ||
+                             text[i] == "e" || text[i] == "E") {
+                        n.append(text[i]); i = text.index(after: i)
+                    }
                 }
                 tokens.append(CodeToken(text: n, kind: .number))
             } else {
