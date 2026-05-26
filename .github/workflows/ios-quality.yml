@@ -1,0 +1,58 @@
+name: iOS Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+
+      - name: Select Simulator
+        run: |
+          set -euo pipefail
+          SIMULATOR_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ { print $2; exit }')"
+          if [ -z "$SIMULATOR_ID" ]; then
+            echo "No available iPhone simulator found" >&2
+            exit 1
+          fi
+          echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
+          echo "Using simulator $SIMULATOR_ID"
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project Javasta.xcodeproj \
+            -scheme Javasta \
+            -destination "platform=iOS Simulator,id=${SIMULATOR_ID}" \
+            -quiet
+
+      - name: Content Quality Tests
+        run: |
+          xcodebuild test \
+            -project Javasta.xcodeproj \
+            -scheme Javasta \
+            -destination "platform=iOS Simulator,id=${SIMULATOR_ID}" \
+            -only-testing:JavastaTests \
+            -quiet
+
+      - name: UI Smoke Tests
+        run: |
+          xcodebuild test \
+            -project Javasta.xcodeproj \
+            -scheme Javasta \
+            -destination "platform=iOS Simulator,id=${SIMULATOR_ID}" \
+            -only-testing:JavastaUITests \
+            -quiet
