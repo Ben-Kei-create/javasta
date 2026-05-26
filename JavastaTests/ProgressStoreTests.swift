@@ -51,6 +51,32 @@ final class ProgressStoreTests: XCTestCase {
         XCTAssertFalse(reloaded.bookmarkedQuizIds.contains(quiz.id))
     }
 
+    func testResetAllClearsProgressButKeepsDailyGoalSetting() {
+        let defaults = makeIsolatedDefaults()
+        let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!
+        let wrongChoice = quiz.choices.first { !$0.correct }!
+
+        let store = ProgressStore(defaults: defaults)
+        store.setDailyGoal(20)
+        store.toggleBookmark(quizId: quiz.id)
+        store.recordAnswer(quiz: quiz, choice: wrongChoice, elapsedSeconds: 12)
+
+        store.resetAll()
+
+        XCTAssertEqual(store.totalAnswered, 0)
+        XCTAssertEqual(store.totalCorrect, 0)
+        XCTAssertEqual(store.todayAnswered, 0)
+        XCTAssertTrue(store.answerHistory.isEmpty)
+        XCTAssertTrue(store.reviewQueueQuizIds.isEmpty)
+        XCTAssertTrue(store.bookmarkedQuizIds.isEmpty)
+        XCTAssertEqual(store.dailyGoal, 20)
+
+        let reloaded = ProgressStore(defaults: defaults)
+        XCTAssertEqual(reloaded.totalAnswered, 0)
+        XCTAssertTrue(reloaded.answerHistory.isEmpty)
+        XCTAssertEqual(reloaded.dailyGoal, 20)
+    }
+
     private func makeIsolatedDefaults() -> UserDefaults {
         let suiteName = "ProgressStoreTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
