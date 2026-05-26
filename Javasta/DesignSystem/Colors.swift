@@ -3,6 +3,8 @@ import SwiftUI
 extension Color {
     static let jbBackground    = Color(hex: "0D1117")
     static let jbCard          = Color(hex: "161B22")
+    /// jbCard 内にネストされた小コンテナ向け（jbBackground より少し明るい）
+    static let jbSurface       = Color(hex: "1C2128")
     static let jbBorder        = Color(hex: "30363D")
     static let jbText          = Color(hex: "E6EDF3")
     static let jbSubtext       = Color(hex: "7D8590")

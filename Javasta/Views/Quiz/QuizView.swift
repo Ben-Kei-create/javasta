@@ -5,6 +5,9 @@ struct QuizView: View {
     @State var vm: QuizViewModel
     @State private var activeIssueReport: QuizIssueReport?
     var codeZoom: Double = 1.0
+    /// セッションの最後の問題かどうか。ボタンアイコンとラベルの切り替えに使う。
+    /// 文字列比較の代わりに明示的な Bool で管理することで、翻訳や文言変更の影響を受けない。
+    var isLastQuiz: Bool = false
     var onShowExplanation: () -> Void
     var onNextQuiz: (() -> Void)? = nil
     var nextButtonTitle: String = "次の問題"
@@ -219,7 +222,8 @@ struct QuizView: View {
                     HStack(spacing: 6) {
                         Text(nextButtonTitle)
                             .font(.system(size: 14, weight: .bold))
-                        Image(systemName: nextButtonTitle == "完了" ? "checkmark" : "arrow.right")
+                        // isLastQuiz を使うことで文字列比較を回避し、文言変更に強くする
+                        Image(systemName: isLastQuiz ? "checkmark" : "arrow.right")
                             .font(.system(size: 13, weight: .bold))
                     }
                     .foregroundStyle(.white)

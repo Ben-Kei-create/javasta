@@ -123,6 +123,7 @@ struct HomeView: View {
             }
 
             levelPicker
+            examVersionPicker
 
             HStack(spacing: Spacing.sm) {
                 CommandMetric(
@@ -160,32 +161,18 @@ struct HomeView: View {
             .animation(.easeInOut(duration: 0.18), value: expandedMetric)
         }
         .padding(Spacing.sm)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
+        .jbCard()
         .padding(.horizontal, Spacing.md)
     }
 
     private var reviewQueueSection: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            HStack(spacing: Spacing.xs) {
-                Image(systemName: "arrow.counterclockwise")
-                    .foregroundStyle(Color.jbWarning)
-                    .font(.system(size: 12, weight: .bold))
-                Text("復習")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.jbText)
-                Text("\(reviewQueueQuizzes.count)問")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.jbSubtext)
-                Spacer()
-            }
-            .padding(.horizontal, Spacing.md)
+            SectionHeader(
+                icon: "arrow.counterclockwise",
+                title: "復習",
+                tint: Color.jbWarning,
+                subtitle: "\(reviewQueueQuizzes.count)問"
+            )
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Spacing.xs) {
@@ -224,21 +211,63 @@ struct HomeView: View {
         }
     }
 
+    /// SE 11 / SE 17 の試験バージョン切り替えピッカー。
+    /// 試験バージョンはホーム画面で視認しにくかったため、Level ピッカーの直下に追加。
+    private var examVersionPicker: some View {
+        HStack(spacing: Spacing.xs) {
+            ForEach(JavaExamVersion.allCases, id: \.self) { version in
+                Button(action: {
+                    withAnimation(.jbSpring) {
+                        selectedExamVersionRaw = version.rawValue
+                    }
+                }) {
+                    Text(version.displayName.replacingOccurrences(of: "Java ", with: ""))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(selectedVersion == version ? Color.jbAccent : Color.jbSubtext)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 24)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.sm)
+                                .fill(selectedVersion == version
+                                      ? Color.jbAccent.opacity(0.12)
+                                      : Color.clear)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.sm)
+                                        .stroke(
+                                            selectedVersion == version
+                                                ? Color.jbAccent.opacity(0.6)
+                                                : Color.jbBorder.opacity(0.4),
+                                            lineWidth: 1
+                                        )
+                                )
+                        )
+                }
+                .buttonStyle(.jbScaled)
+                .sensoryFeedback(.selection, trigger: selectedExamVersionRaw)
+                .accessibilityIdentifier("home-version-\(version.rawValue)")
+            }
+        }
+    }
+
     // MARK: Practice modes
 
     private var practiceModesSection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Spacing.sm) {
-                ForEach(QuizPracticeMode.homeModes) { mode in
-                    PracticeModeCard(
-                        mode: mode,
-                        isPrimary: mode == .daily,
-                        onTap: { start(mode) }
-                    )
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            SectionHeader(icon: "play.fill", title: "練習を開始", tint: Color.jbAccent)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.sm) {
+                    ForEach(QuizPracticeMode.homeModes) { mode in
+                        PracticeModeCard(
+                            mode: mode,
+                            isPrimary: mode == .daily,
+                            onTap: { start(mode) }
+                        )
+                    }
                 }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, 2)
             }
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, 2)
         }
     }
 
@@ -344,6 +373,37 @@ struct HomeView: View {
         if p >= 70 { return Color.jbSuccess }
         if p >= 40 { return Color.jbWarning }
         return Color.jbError
+    }
+}
+
+// MARK: - SectionHeader
+
+/// ホーム画面内の各セクションに共通スタイルのヘッダーを提供する。
+/// アイコン・タイトル・サブテキストを一行で表示し、
+/// 視覚的な一貫性とアクセシビリティを両立する。
+private struct SectionHeader: View {
+    let icon: String
+    let title: String
+    let tint: Color
+    var subtitle: String? = nil
+
+    var body: some View {
+        HStack(spacing: Spacing.xs) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(tint)
+            Text(title)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Color.jbText)
+            if let subtitle {
+                Text(subtitle)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.jbSubtext)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, Spacing.md)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -493,19 +553,46 @@ private struct TodayStudyCounterView: View {
     let answered: Int
     let dailyGoal: Int
 
-    private var reachedGoal: Bool {
-        answered >= dailyGoal
+    private var reachedGoal: Bool { answered >= dailyGoal }
+    private var ringProgress: Double {
+        guard dailyGoal > 0 else { return 0 }
+        return min(1.0, Double(answered) / Double(dailyGoal))
     }
+    private var activeColor: Color { reachedGoal ? Color.jbSuccess : Color.jbAccent }
+
+    private let ringSize: CGFloat = 54
+    private let lineWidth: CGFloat = 3
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 2) {
-            Text("\(answered)")
-                .font(.system(size: 28, weight: .bold).monospacedDigit())
-                .foregroundStyle(reachedGoal ? Color.jbSuccess : Color.jbAccent)
-            Text("/\(dailyGoal)")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(Color.jbSubtext)
+        ZStack {
+            // トラック（背景リング）
+            Circle()
+                .stroke(Color.jbBorder, lineWidth: lineWidth)
+                .frame(width: ringSize, height: ringSize)
+
+            // 進捗リング
+            Circle()
+                .trim(from: 0, to: ringProgress)
+                .stroke(
+                    activeColor,
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                )
+                .frame(width: ringSize, height: ringSize)
+                .rotationEffect(.degrees(-90))
+                .animation(.jbSmooth, value: ringProgress)
+
+            // 中央のテキスト
+            VStack(spacing: 0) {
+                Text("\(answered)")
+                    .font(.system(size: 16, weight: .bold).monospacedDigit())
+                    .foregroundStyle(activeColor)
+                Text("/\(dailyGoal)")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(Color.jbSubtext)
+            }
         }
+        .accessibilityLabel("今日の達成: \(answered)問 / 目標\(dailyGoal)問")
+        .accessibilityValue(reachedGoal ? "達成済み" : "\(Int(ringProgress * 100))%")
     }
 }
 
@@ -540,14 +627,7 @@ private struct MetricDetailTray: View {
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, 7)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.sm)
-                .fill(Color.jbBackground)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.sm)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
+        .jbCard(radius: Radius.sm, fill: Color.jbBackground)
     }
 }
 
@@ -591,6 +671,7 @@ private struct CommandMetric: View {
         }
         .buttonStyle(.jbScaled)
         .sensoryFeedback(.selection, trigger: isSelected)
+        .accessibilityLabel("\(title): \(value)")
     }
 }
 
@@ -740,14 +821,7 @@ struct QuizCardView: View {
             }
             .padding(Spacing.md)
             .frame(width: 210, height: 118)
-            .background(
-                RoundedRectangle(cornerRadius: Radius.md)
-                    .fill(Color.jbCard)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.md)
-                            .stroke(Color.jbBorder, lineWidth: 1)
-                    )
-            )
+            .jbCard()
         }
         .buttonStyle(.jbScaled)
     }
@@ -848,6 +922,7 @@ struct QuizSheetView: View {
                         QuizView(
                             vm: quizVM,
                             codeZoom: codeZoom,
+                            isLastQuiz: isLastQuiz,
                             onShowExplanation: {
                                 activeExplanation = Explanation.sample(for: currentQuiz.explanationRef)
                             },
@@ -940,8 +1015,11 @@ struct QuizSheetView: View {
     private func goToNextQuiz() {
         captureCurrentScore()
         guard !isLastQuiz else {
-            if session.mode == .mockExam {
-                withAnimation(.jbSpring) {
+            // MockExamView は内部で結果を管理するため、ここには到達しない。
+            // それ以外で複数問セッションが終わったときは結果画面を表示する。
+            // 単問チャレンジ（quizzes.count == 1）はそのまま閉じる。
+            if session.quizzes.count > 1 {
+                withAnimation(.jbSmooth) {
                     showSessionResult = true
                 }
             } else {
@@ -1019,13 +1097,10 @@ private struct QuizSessionResultView: View {
                     }
                 }
                 .padding(Spacing.lg)
-                .background(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .fill(Color.jbCard)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Radius.md)
-                                .stroke(isPassing ? Color.jbSuccess.opacity(0.35) : Color.jbWarning.opacity(0.35), lineWidth: 1.5)
-                        )
+                .jbCard(
+                    radius: Radius.xl,
+                    border: isPassing ? Color.jbSuccess.opacity(0.35) : Color.jbWarning.opacity(0.35),
+                    borderWidth: 1.5
                 )
 
                 ShareLink(
@@ -1043,14 +1118,7 @@ private struct QuizSessionResultView: View {
                         .foregroundStyle(Color.jbText)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: Radius.md)
-                                .fill(Color.jbCard)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Radius.md)
-                                        .stroke(Color.jbBorder, lineWidth: 1)
-                                )
-                        )
+                        .jbCard()
                 }
                 .buttonStyle(.plain)
 
@@ -1096,13 +1164,6 @@ private struct ResultMetric: View {
         }
         .padding(Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.sm)
-                .fill(Color.jbBackground)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.sm)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
+        .jbCard(radius: Radius.sm, fill: Color.jbBackground)
     }
 }
