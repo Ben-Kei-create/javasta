@@ -48,9 +48,9 @@ enum JavaTokenizer {
     }
 
     private static func tokenizeLine(_ line: String) -> [CodeToken] {
-        if let range = line.range(of: "//") {
-            let before = String(line[..<range.lowerBound])
-            let comment = String(line[range.lowerBound...])
+        if let commentStart = lineCommentStart(in: line) {
+            let before = String(line[..<commentStart])
+            let comment = String(line[commentStart...])
             return tokenizeSegment(before) + [CodeToken(text: comment, kind: .comment)]
         }
         if line.trimmingCharacters(in: .whitespaces).hasPrefix("/*") ||
@@ -58,6 +58,37 @@ enum JavaTokenizer {
             return [CodeToken(text: line, kind: .comment)]
         }
         return tokenizeSegment(line)
+    }
+
+    private static func lineCommentStart(in line: String) -> String.Index? {
+        var i = line.startIndex
+        var activeQuote: Character?
+        var escaped = false
+
+        while i < line.endIndex {
+            let c = line[i]
+
+            if let quote = activeQuote {
+                if escaped {
+                    escaped = false
+                } else if c == "\\" {
+                    escaped = true
+                } else if c == quote {
+                    activeQuote = nil
+                }
+            } else if c == "\"" || c == "'" {
+                activeQuote = c
+            } else if c == "/" {
+                let next = line.index(after: i)
+                if next < line.endIndex, line[next] == "/" {
+                    return i
+                }
+            }
+
+            i = line.index(after: i)
+        }
+
+        return nil
     }
 
     private static func tokenizeSegment(_ text: String) -> [CodeToken] {
