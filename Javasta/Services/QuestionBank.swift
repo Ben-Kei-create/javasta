@@ -74,10 +74,14 @@ struct ContentQualityIssue: Identifiable {
 }
 
 enum QuestionBank {
-    static var practiceQuizzes: [Quiz] { Quiz.samples.filter { !$0.isMockExamOnly } }
+    static var practiceQuizzes: [Quiz] {
+        Quiz.samples
+            .filter { !$0.isMockExamOnly }
+            .map { $0.contextualizedForPresentation() }
+    }
     static var mockExamOnlyQuizzes: [Quiz] { QuizExpansion.mockExamOnlyExpansion.map { $0.contextualizedForPresentation() } }
     static var allQuizzes: [Quiz] {
-        deduplicated(Quiz.samples + mockExamOnlyQuizzes)
+        deduplicated(practiceQuizzes + mockExamOnlyQuizzes)
     }
     static var lessons: [Lesson] { Lesson.samples }
 

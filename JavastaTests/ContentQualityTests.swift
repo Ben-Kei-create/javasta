@@ -39,6 +39,26 @@ final class ContentQualityTests: XCTestCase {
         }
     }
 
+    func testPracticeQuestionsAreContextualizedForPresentation() {
+        let genericStems: Set<String> = [
+            "このコードを実行したとき、出力されるのはどれか？",
+            "このコードをコンパイルしたときの結果として正しいものはどれか？",
+            "このコードを実行したとき、出力される結果はどれか？",
+            "このコードの出力はどれか？",
+            "このコードについて正しい説明はどれか？",
+            "このコードの出力として正しいものはどれか？"
+        ]
+
+        let genericQuestions = QuestionBank.practiceQuizzes
+            .filter { genericStems.contains($0.question) }
+            .map { "\($0.id): \($0.question)" }
+
+        XCTAssertTrue(
+            genericQuestions.isEmpty,
+            genericQuestions.prefix(20).joined(separator: "\n")
+        )
+    }
+
     func testMockExamSessionsAreConstructibleWithoutDuplicates() {
         for version in JavaExamVersion.allCases {
             for level in JavaLevel.allCases {
