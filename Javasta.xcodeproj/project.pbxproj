@@ -9,6 +9,7 @@
 /* Begin PBXFileReference section */
 		A5998C5A2F94392A006A312D /* Javasta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Javasta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000012F94392D006A312D /* JavastaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JavastaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20000012F94392E006A312D /* JavastaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JavastaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -20,6 +21,11 @@
 		B10000022F94392D006A312D /* JavastaTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = JavastaTests;
+			sourceTree = "<group>";
+		};
+		B20000022F94392E006A312D /* JavastaUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = JavastaUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -39,6 +45,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B20000032F94392E006A312D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -47,6 +60,7 @@
 			children = (
 				A5998C5C2F94392A006A312D /* Javasta */,
 				B10000022F94392D006A312D /* JavastaTests */,
+				B20000022F94392E006A312D /* JavastaUITests */,
 				A5998C5B2F94392A006A312D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +70,7 @@
 			children = (
 				A5998C5A2F94392A006A312D /* Javasta.app */,
 				B10000012F94392D006A312D /* JavastaTests.xctest */,
+				B20000012F94392E006A312D /* JavastaUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,10 +123,40 @@
 			productReference = B10000012F94392D006A312D /* JavastaTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		B20000042F94392E006A312D /* JavastaUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B20000092F94392E006A312D /* Build configuration list for PBXNativeTarget "JavastaUITests" */;
+			buildPhases = (
+				B20000052F94392E006A312D /* Sources */,
+				B20000032F94392E006A312D /* Frameworks */,
+				B20000062F94392E006A312D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B20000072F94392E006A312D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B20000022F94392E006A312D /* JavastaUITests */,
+			);
+			name = JavastaUITests;
+			packageProductDependencies = (
+			);
+			productName = JavastaUITests;
+			productReference = B20000012F94392E006A312D /* JavastaUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXContainerItemProxy section */
 		B10000082F94392D006A312D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A5998C522F94392A006A312D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5998C592F94392A006A312D;
+			remoteInfo = Javasta;
+		};
+		B20000082F94392E006A312D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A5998C522F94392A006A312D /* Project object */;
 			proxyType = 1;
@@ -135,6 +180,10 @@
 						CreatedOnToolsVersion = 26.4;
 						TestTargetID = A5998C592F94392A006A312D;
 					};
+					B20000042F94392E006A312D = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = A5998C592F94392A006A312D;
+					};
 				};
 			};
 			buildConfigurationList = A5998C552F94392A006A312D /* Build configuration list for PBXProject "Javasta" */;
@@ -153,6 +202,7 @@
 			targets = (
 				A5998C592F94392A006A312D /* Javasta */,
 				B10000042F94392D006A312D /* JavastaTests */,
+				B20000042F94392E006A312D /* JavastaUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -166,6 +216,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		B10000062F94392D006A312D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B20000062F94392E006A312D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -189,6 +246,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B20000052F94392E006A312D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -196,6 +260,11 @@
 			isa = PBXTargetDependency;
 			target = A5998C592F94392A006A312D /* Javasta */;
 			targetProxy = B10000082F94392D006A312D /* PBXContainerItemProxy */;
+		};
+		B20000072F94392E006A312D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5998C592F94392A006A312D /* Javasta */;
+			targetProxy = B20000082F94392E006A312D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -441,6 +510,60 @@
 			};
 			name = Release;
 		};
+		B200000A2F94392E006A312D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R927F3U4V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fumiakiMogi777.JavastaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Javasta;
+			};
+			name = Debug;
+		};
+		B200000B2F94392E006A312D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7R927F3U4V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fumiakiMogi777.JavastaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Javasta;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -467,6 +590,15 @@
 			buildConfigurations = (
 				B100000A2F94392D006A312D /* Debug */,
 				B100000B2F94392D006A312D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B20000092F94392E006A312D /* Build configuration list for PBXNativeTarget "JavastaUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B200000A2F94392E006A312D /* Debug */,
+				B200000B2F94392E006A312D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

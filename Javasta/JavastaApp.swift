@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct JavastaApp: App {
-    @State private var splashFinished = false
+    @State private var splashFinished = ProcessInfo.processInfo.arguments.contains("-ui-testing")
 
     var body: some Scene {
         WindowGroup {
