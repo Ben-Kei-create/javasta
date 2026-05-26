@@ -42,7 +42,7 @@ final class JavastaUITests: XCTestCase {
 
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing"]
+        app.launchArguments = ["-ui-testing", "-reset-app-state"]
         app.launch()
         return app
     }

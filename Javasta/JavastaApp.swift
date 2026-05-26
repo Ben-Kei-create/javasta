@@ -9,7 +9,19 @@ import SwiftUI
 
 @main
 struct JavastaApp: App {
-    @State private var splashFinished = ProcessInfo.processInfo.arguments.contains("-ui-testing")
+    private static let uiTestingArgument = "-ui-testing"
+    private static let resetAppStateArgument = "-reset-app-state"
+
+    @State private var splashFinished: Bool
+
+    init() {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains(Self.resetAppStateArgument) {
+            Self.resetPersistentState()
+        }
+
+        _splashFinished = State(initialValue: arguments.contains(Self.uiTestingArgument))
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -27,5 +39,10 @@ struct JavastaApp: App {
                 }
             }
         }
+    }
+
+    private static func resetPersistentState() {
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
+        UserDefaults.standard.removePersistentDomain(forName: bundleIdentifier)
     }
 }
