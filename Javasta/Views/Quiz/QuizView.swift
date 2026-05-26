@@ -444,7 +444,7 @@ private struct QuizIssueReportSheet: View {
     private func openMail(subject: String, body: String) {
         var components = URLComponents()
         components.scheme = "mailto"
-        components.path = "fsmall.worldm@gmail.com"
+        components.path = AppConfig.supportEmail
         components.queryItems = [
             URLQueryItem(name: "subject", value: subject),
             URLQueryItem(name: "body", value: body),

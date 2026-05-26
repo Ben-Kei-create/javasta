@@ -182,9 +182,31 @@ struct SettingsView: View {
                                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                     let subject = "Javasta フィードバック v\(appVersion)"
                                     let encoded = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-                                    if let url = URL(string: "mailto:fsmall.worldm@gmail.com?subject=\(encoded)") {
+                                    if let url = URL(string: "mailto:\(AppConfig.supportEmail)?subject=\(encoded)") {
                                         openURL(url)
                                     }
+                                }
+                            )
+                            Divider()
+                                .background(Color.jbBorder)
+                                .padding(.horizontal, Spacing.md)
+                            SettingRow(
+                                icon: "hand.raised",
+                                title: "プライバシーポリシー",
+                                onTap: {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    openURL(AppConfig.privacyPolicyURL)
+                                }
+                            )
+                            Divider()
+                                .background(Color.jbBorder)
+                                .padding(.horizontal, Spacing.md)
+                            SettingRow(
+                                icon: "questionmark.circle",
+                                title: "サポート",
+                                onTap: {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    openURL(AppConfig.supportURL)
                                 }
                             )
                         }
@@ -223,9 +245,12 @@ struct SettingsView: View {
 
 #if DEBUG
     private var launchReadinessSummary: String {
-        let issueCount = QuestionBank.explanationAuditReport().needsAttentionCount +
+        var issueCount = QuestionBank.explanationAuditReport().needsAttentionCount +
             QuestionBank.contentQualityIssues().count +
             QuestionBank.validationIssues().count
+        // App Store submission checks
+        if Bundle.main.url(forResource: "PrivacyInfo", withExtension: "xcprivacy") == nil { issueCount += 1 }
+        if AppConfig.appStoreID == "0000000000" { issueCount += 1 }
         return issueCount == 0 ? "OK" : "\(issueCount)件"
     }
 #endif

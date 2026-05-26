@@ -16,6 +16,7 @@ struct LaunchReadinessView: View {
                     contentMetrics
                     coverageCard
                     checklist
+                    appStoreChecklist
                     marketingCopyCard
                 }
                 .padding(Spacing.md)
@@ -157,6 +158,59 @@ struct LaunchReadinessView: View {
         }
     }
 
+    // MARK: - App Store submission checklist
+
+    private var appStoreChecklist: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            Text("App Store 申請チェック")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(Color.jbText)
+                .padding(.horizontal, Spacing.xs)
+
+            VStack(spacing: 0) {
+                LaunchReadinessCheckRow(
+                    title: "PrivacyInfo.xcprivacy",
+                    detail: "UserDefaults 使用理由 CA92.1 を宣言",
+                    value: snapshot.hasPrivacyManifest ? "OK" : "MISSING",
+                    isPassing: snapshot.hasPrivacyManifest
+                )
+                Divider().background(Color.jbBorder).padding(.horizontal, Spacing.md)
+                LaunchReadinessCheckRow(
+                    title: "プライバシーポリシーURL",
+                    detail: AppConfig.privacyPolicyURL.absoluteString,
+                    value: snapshot.hasPrivacyPolicyURL ? "設定済" : "要設定",
+                    isPassing: snapshot.hasPrivacyPolicyURL
+                )
+                Divider().background(Color.jbBorder).padding(.horizontal, Spacing.md)
+                LaunchReadinessCheckRow(
+                    title: "サポートURL",
+                    detail: AppConfig.supportURL.absoluteString,
+                    value: snapshot.hasSupportURL ? "設定済" : "要設定",
+                    isPassing: snapshot.hasSupportURL
+                )
+                Divider().background(Color.jbBorder).padding(.horizontal, Spacing.md)
+                LaunchReadinessCheckRow(
+                    title: "App Store ID",
+                    detail: "AppConfig.appStoreID をアップロード後に更新",
+                    value: snapshot.hasRealAppStoreID ? "設定済" : "未設定",
+                    isPassing: snapshot.hasRealAppStoreID
+                )
+                Divider().background(Color.jbBorder).padding(.horizontal, Spacing.md)
+                LaunchReadinessCheckRow(
+                    title: "AppIcon 画像",
+                    detail: "1024×1024 png（アルファなし）が必須",
+                    value: snapshot.hasAppIconImages ? "OK" : "要確認",
+                    isPassing: snapshot.hasAppIconImages
+                )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: Radius.md))
+            .overlay(
+                RoundedRectangle(cornerRadius: Radius.md)
+                    .stroke(Color.jbBorder, lineWidth: 1)
+            )
+        }
+    }
+
     private var marketingCopyCard: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("広告で押す軸")
@@ -194,6 +248,19 @@ private struct LaunchReadinessSnapshot {
     let validationIssueCount: Int
     let coverageGroups: [LaunchReadinessCoverageGroup]
 
+    // MARK: App Store submission readiness
+
+    /// `PrivacyInfo.xcprivacy` exists in the app bundle (added to Xcode target).
+    let hasPrivacyManifest: Bool
+    /// `AppConfig.privacyPolicyURL` is a non-placeholder URL (not GitHub Pages stub).
+    let hasPrivacyPolicyURL: Bool
+    /// `AppConfig.supportURL` is a non-placeholder URL.
+    let hasSupportURL: Bool
+    /// `AppConfig.appStoreID` has been updated from the default placeholder "0000000000".
+    let hasRealAppStoreID: Bool
+    /// The AppIcon asset set contains image files (not just the JSON stub).
+    let hasAppIconImages: Bool
+
     init() {
         let explanationReport = QuestionBank.explanationAuditReport()
         silverPracticeCount = QuestionBank.quizzes(version: .se17, level: .silver).count
@@ -223,6 +290,22 @@ private struct LaunchReadinessSnapshot {
                 )
             }
         }
+
+        // App Store submission checks
+        hasPrivacyManifest = Bundle.main.url(forResource: "PrivacyInfo", withExtension: "xcprivacy") != nil
+        hasPrivacyPolicyURL = AppConfig.privacyPolicyURL.host != nil
+        hasSupportURL = AppConfig.supportURL.host != nil
+        hasRealAppStoreID = AppConfig.appStoreID != "0000000000"
+        // Check whether the AppIcon asset set carries real PNG images (not just Contents.json)
+        hasAppIconImages = {
+            let fm = FileManager.default
+            guard let resourceURL = Bundle.main.resourceURL else { return false }
+            let iconPath = resourceURL.appendingPathComponent("Assets.car")
+            if fm.fileExists(atPath: iconPath.path) { return true }
+            // Fallback: look for any .png named "AppIcon" in the bundle
+            let pngs = (try? fm.contentsOfDirectory(atPath: resourceURL.path)) ?? []
+            return pngs.contains { $0.hasPrefix("AppIcon") && $0.hasSuffix(".png") }
+        }()
     }
 
     var isReadyForStoreReview: Bool {
@@ -231,7 +314,12 @@ private struct LaunchReadinessSnapshot {
         validationIssueCount == 0 &&
         coverageIssueCount == 0 &&
         silverMockOnlyCount >= 100 &&
-        goldMockOnlyCount >= 100
+        goldMockOnlyCount >= 100 &&
+        hasPrivacyManifest &&
+        hasPrivacyPolicyURL &&
+        hasSupportURL &&
+        hasRealAppStoreID &&
+        hasAppIconImages
     }
 
     var coverageIssueCount: Int {

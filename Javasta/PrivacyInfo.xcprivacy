@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+    Privacy Nutrition Label — required for all apps submitted to the App Store
+    since spring 2024 (Xcode 15 / iOS 17 era).
+
+    Javasta collects NO personal data and does NOT use advertising or
+    third-party analytics SDKs.  The only Required Reason API in use is
+    UserDefaults (NSUserDefaults) which is used solely to store on-device
+    learning progress and user preferences.
+-->
+<dict>
+    <!-- The app does NOT engage in tracking as defined by Apple. -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- No data types are collected or linked to the user's identity. -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <!-- Required Reason APIs in use -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <dict>
+            <!--
+                UserDefaults / NSUserDefaults
+                Used to persist: daily goal, exam date, code zoom level,
+                syntax theme, learning streak, review queue, and mock exam history.
+                All data remains on-device and is never transmitted.
+
+                Approved reason: CA92.1
+                  "Declare this reason to access the defaults system to
+                   store or retrieve app settings and user data to or from
+                   the local device only."
+            -->
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>
