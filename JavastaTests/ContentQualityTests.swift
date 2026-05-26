@@ -39,6 +39,21 @@ final class ContentQualityTests: XCTestCase {
         }
     }
 
+    func testSE11GoldObjectivesHaveDirectPracticeCoverage() {
+        let quizzes = QuestionBank.quizzes(version: .se11, level: .gold)
+        let uncovered = ExamObjectiveCatalog.objectives(for: .se11, level: .gold)
+            .filter { objective in
+                !quizzes.contains { $0.examObjectiveId == objective.id }
+            }
+
+        XCTAssertTrue(
+            uncovered.isEmpty,
+            uncovered
+                .map { "\($0.id): \($0.title)" }
+                .joined(separator: "\n")
+        )
+    }
+
     func testPracticeQuestionsAreContextualizedForPresentation() {
         let genericStems: Set<String> = [
             "このコードを実行したとき、出力されるのはどれか？",
