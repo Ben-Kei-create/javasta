@@ -7,6 +7,7 @@ struct StatsView: View {
     @State private var progress = ProgressStore.shared
     @State private var selectedLevel: JavaLevel = .silver
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 
     private var level: JavaLevel {
         JavaLevel(rawValue: selectedLevelRaw) ?? .silver
@@ -30,6 +31,8 @@ struct StatsView: View {
                         Spacer(minLength: Spacing.xxl)
                     }
                     .padding(Spacing.md)
+                    .frame(maxWidth: hSizeClass == .regular ? 768 : .infinity)
+                    .frame(maxWidth: .infinity)
                 }
             }
             .navigationTitle("統計")

@@ -5,6 +5,7 @@ struct LessonDetailView: View {
     var onSelectQuiz: ((String) -> Void)? = nil
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var progress = ProgressStore.shared
 
     @State private var glossaryRoot: GlossaryRoot? = nil
@@ -36,6 +37,8 @@ struct LessonDetailView: View {
                     Spacer(minLength: Spacing.xxl)
                 }
                 .padding(Spacing.md)
+                .frame(maxWidth: hSizeClass == .regular ? 720 : .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
             }
         }
         .navigationTitle(lesson.categoryDisplayName)
