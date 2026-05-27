@@ -30,9 +30,8 @@ enum AppConfig {
     // MARK: - Legal / Privacy
 
     /// Public-facing privacy policy URL.
-    /// Host a Markdown / HTML page (e.g. GitHub Pages) before submitting to the store.
-    static let privacyPolicyURL = URL(string: "https://ben-kei-create.github.io/javasta/privacy")!
+    static let privacyPolicyURL = URL(string: "https://ben-kei-create.github.io/javasta/privacy.html")!
 
     /// App support page URL — shown in App Store listing and required by Apple.
-    static let supportURL = URL(string: "https://ben-kei-create.github.io/javasta/support")!
+    static let supportURL = URL(string: "https://ben-kei-create.github.io/javasta/support.html")!
 }
