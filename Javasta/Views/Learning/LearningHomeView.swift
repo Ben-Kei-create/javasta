@@ -156,15 +156,14 @@ struct LearningHomeView: View {
 
     private func levelSection(level: JavaLevel) -> some View {
         let lessons = Lesson.samples.filter { $0.level == level }
-        return VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack(spacing: Spacing.sm) {
-                Text(level.displayName)
-                    .font(.system(size: 19, weight: .bold))
-                    .foregroundStyle(Color.jbText)
-                LevelBadgeView(level: level)
-                Spacer()
-            }
-            .padding(.horizontal, Spacing.md)
+        let completedCount = lessons.filter { progress.completedLessons.contains($0.id) }.count
+        let total = lessons.count
+        let progressRatio = total > 0 ? Double(completedCount) / Double(total) : 0
+
+        return VStack(alignment: .leading, spacing: Spacing.md) {
+            // 対象者説明カード
+            levelContextCard(for: level, completed: completedCount, total: total, progress: progressRatio)
+                .padding(.horizontal, Spacing.md)
 
             VStack(spacing: Spacing.sm) {
                 ForEach(lessons) { lesson in
@@ -177,6 +176,51 @@ struct LearningHomeView: View {
             }
             .padding(.horizontal, Spacing.md)
         }
+    }
+
+    private func levelContextCard(
+        for level: JavaLevel,
+        completed: Int,
+        total: Int,
+        progress: Double
+    ) -> some View {
+        let (icon, audience, detail, tint): (String, String, String, Color) = {
+            switch level {
+            case .silver:
+                return ("graduationcap.fill",
+                        "Java初学者向け",
+                        "オブジェクト指向・例外・コレクションなど、Silver試験に必要な基礎を体系的に学べます。",
+                        Color.jbSuccess)
+            case .gold:
+                return ("briefcase.fill",
+                        "Silver取得者・Javaエンジニア向け",
+                        "ラムダ・Stream API・並行処理・モジュールなど、実務と試験で問われる応用知識を扱います。",
+                        Color.jbAccent)
+            }
+        }()
+        return VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(tint)
+                Text(audience)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(tint)
+                Spacer()
+                Text("\(completed) / \(total) 完了")
+                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Color.jbSubtext)
+            }
+            Text(detail)
+                .font(.system(size: 13))
+                .foregroundStyle(Color.jbSubtext)
+                .lineSpacing(4)
+            ProgressView(value: progress)
+                .tint(progress >= 1.0 ? Color.jbSuccess : tint)
+                .scaleEffect(x: 1, y: 1.4)
+        }
+        .padding(Spacing.md)
+        .jbCard()
     }
 }
 

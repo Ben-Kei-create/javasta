@@ -193,7 +193,7 @@ struct GlossaryDetailView: View {
     // MARK: Header
 
     private var headerCard: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack(spacing: Spacing.xs) {
                 Image(systemName: "character.book.closed.fill")
                     .font(.system(size: 11))
@@ -205,37 +205,40 @@ struct GlossaryDetailView: View {
                 Spacer()
                 if let i = currentIndex {
                     Text("\(i + 1) / \(allTerms.count)")
-                        .font(.system(size: 10, weight: .semibold).monospacedDigit())
+                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
                         .foregroundStyle(Color.jbSubtext)
                 }
             }
 
             Text(displayedTerm.term)
-                .font(.system(size: 26, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(Color.jbText)
 
             if !displayedTerm.aliases.isEmpty {
-                Text(displayedTerm.aliases.joined(separator: " · "))
-                    .font(.codeFont(11))
-                    .foregroundStyle(Color.jbSubtext)
+                HStack(spacing: Spacing.xs) {
+                    ForEach(displayedTerm.aliases, id: \.self) { alias in
+                        Text(alias)
+                            .font(.codeFont(12))
+                            .foregroundStyle(Color.jbSubtext)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Color.jbSurface)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.sm))
+                    }
+                }
             }
 
+            // サマリー：一番目立つテキスト
             markdown(displayedTerm.summary)
-                .font(.system(size: 14))
+                .font(.system(size: 15))
                 .foregroundStyle(Color.jbText)
-                .lineSpacing(4)
+                .lineSpacing(6)
                 .tint(Color.jbAccent)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Spacing.md)
+        .padding(Spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
+        .jbCard(radius: Radius.lg)
     }
 
     // MARK: Body
@@ -243,21 +246,14 @@ struct GlossaryDetailView: View {
     private var bodyCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             markdown(displayedTerm.body, full: true)
-                .font(.system(size: 14))
+                .font(.system(size: 15))
                 .foregroundStyle(Color.jbText)
-                .lineSpacing(5)
+                .lineSpacing(8)
                 .tint(Color.jbAccent)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.md)
-                .fill(Color.jbCard)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbBorder, lineWidth: 1)
-                )
-        )
+        .padding(Spacing.lg)
+        .jbCard(radius: Radius.lg)
         .environment(\.openURL, OpenURLAction { url in
             if let id = GlossaryTerm.parse(url: url) {
                 navigate(to: id)
@@ -440,10 +436,10 @@ struct GlossaryDetailView: View {
     // MARK: Helpers
 
     private func sectionLabel(_ text: String) -> some View {
-        Text(text.uppercased())
-            .font(.system(size: 11, weight: .semibold))
+        Text(text)
+            .font(.system(size: 13, weight: .bold))
             .foregroundStyle(Color.jbSubtext)
-            .tracking(0.5)
+            .padding(.horizontal, Spacing.xs)
     }
 
     private func markdown(_ source: String, full: Bool = false) -> Text {
