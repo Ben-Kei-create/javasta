@@ -183,6 +183,8 @@ struct OnboardingView: View {
 
     // MARK: - Page 4: Ready
 
+    @State private var notifications = NotificationManager.shared
+
     private var readyPage: some View {
         VStack(spacing: Spacing.xxl) {
             Spacer()
@@ -201,7 +203,7 @@ struct OnboardingView: View {
                     Text("準備完了！")
                         .font(.system(size: 34, weight: .heavy))
                         .foregroundStyle(Color.jbText)
-                    Text("設定をいつでも変更できます")
+                    Text("設定はいつでも変更できます")
                         .font(.system(size: 14))
                         .foregroundStyle(Color.jbSubtext)
                 }
@@ -218,6 +220,11 @@ struct OnboardingView: View {
             .jbCard(radius: Radius.lg)
             .padding(.horizontal, Spacing.lg)
 
+            // 通知オプトインバナー（未決定の場合のみ表示）
+            if notifications.authorizationStatus == .notDetermined {
+                notificationOptInBanner
+            }
+
             Spacer()
 
             nextButton(label: "学習をはじめる 🚀", tint: Color.jbSuccess) {
@@ -228,6 +235,45 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, Spacing.lg)
         .padding(.bottom, Spacing.xxl)
+        .task { await notifications.refreshStatus() }
+    }
+
+    private var notificationOptInBanner: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: "bell.badge.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(Color.jbAccent)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("毎日リマインダー")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.jbText)
+                Text("学習習慣をサポートします")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.jbSubtext)
+            }
+
+            Spacer()
+
+            Button(action: {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                Task { await notifications.requestPermissionAndEnable() }
+            }) {
+                Text("オン")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 7)
+                    .background(Color.jbAccent)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(JBScaledButtonStyle())
+        }
+        .padding(Spacing.md)
+        .jbCard(radius: Radius.lg)
+        .padding(.horizontal, Spacing.lg)
+        .transition(.opacity.combined(with: .move(edge: .bottom)))
     }
 
     // MARK: - Sub-components

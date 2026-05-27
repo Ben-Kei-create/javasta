@@ -3,13 +3,16 @@ import SwiftUI
 
 struct SettingsView: View {
     @State private var progress = ProgressStore.shared
+    @State private var notifications = NotificationManager.shared
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @AppStorage(CodeSyntaxTheme.storageKey) private var codeSyntaxThemeRaw: String = CodeSyntaxTheme.classic.rawValue
     @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
     @State private var showResetConfirm = false
     @State private var showExamDatePicker = false
     @State private var showExamClearConfirm = false
+    @State private var showNotificationTimePicker = false
     @State private var pickerDate: Date = Date().addingTimeInterval(60 * 60 * 24 * 30)
+    @State private var notificationPickerTime: Date = NotificationManager.shared.defaultPickerDate
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
@@ -118,6 +121,11 @@ struct SettingsView: View {
                         }
                     }
 
+                    // MARK: 通知
+                    section(title: "通知") {
+                        notificationSection
+                    }
+
                     // MARK: データ
                     section(title: "データ") {
                         SettingRow(
@@ -220,8 +228,12 @@ struct SettingsView: View {
         .navigationTitle("設定")
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.dark)
+        .task { await notifications.refreshStatus() }
         .sheet(isPresented: $showExamDatePicker) {
             examDatePickerSheet
+        }
+        .sheet(isPresented: $showNotificationTimePicker) {
+            notificationTimePickerSheet
         }
         .alert("受験日をクリア", isPresented: $showExamClearConfirm) {
             Button("キャンセル", role: .cancel) {}
@@ -241,6 +253,179 @@ struct SettingsView: View {
         } message: {
             Text("正答数・連続日数・完了レッスンがすべて消去されます。")
         }
+    }
+
+    // MARK: - Notification section
+
+    @ViewBuilder
+    private var notificationSection: some View {
+        VStack(spacing: 0) {
+            // パーミッション拒否バナー
+            if notifications.authorizationStatus == .denied {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "bell.slash.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.jbWarning)
+                        .frame(width: 24)
+                    Text("設定アプリで通知を許可してください")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.jbWarning)
+                    Spacer()
+                    Button("開く") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.jbAccent)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, 10)
+                .background(Color.jbWarning.opacity(0.08))
+
+                Divider()
+                    .background(Color.jbBorder)
+                    .padding(.horizontal, Spacing.md)
+            }
+
+            // トグル行
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "bell.badge")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.jbAccent)
+                    .frame(width: 24)
+                Text("毎日リマインダー")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.jbText)
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { notifications.isEnabled },
+                    set: { newValue in
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        if newValue && notifications.authorizationStatus == .notDetermined {
+                            Task { await notifications.requestPermissionAndEnable() }
+                        } else {
+                            notifications.isEnabled = newValue
+                        }
+                    }
+                ))
+                .labelsHidden()
+                .tint(Color.jbAccent)
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, 12)
+            .background(Color.jbCard)
+
+            // 時刻行（有効時のみ表示）
+            if notifications.isEnabled && notifications.authorizationStatus == .authorized {
+                Divider()
+                    .background(Color.jbBorder)
+                    .padding(.horizontal, Spacing.md)
+
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    notificationPickerTime = notifications.defaultPickerDate
+                    showNotificationTimePicker = true
+                }) {
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.jbAccent)
+                            .frame(width: 24)
+                        Text("通知時刻")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.jbText)
+                        Spacer()
+                        Text(notifications.reminderTimeDisplay)
+                            .font(.system(size: 14, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(Color.jbAccent)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.jbSubtext)
+                    }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, 12)
+                    .background(Color.jbCard)
+                }
+                .buttonStyle(JBScaledButtonStyle(scaleAmount: 0.97))
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: notifications.isEnabled)
+        .animation(.easeInOut(duration: 0.2), value: notifications.authorizationStatus)
+    }
+
+    // MARK: - Notification time picker sheet
+
+    private var notificationTimePickerSheet: some View {
+        NavigationStack {
+            VStack(spacing: Spacing.lg) {
+                DatePicker(
+                    "通知時刻",
+                    selection: $notificationPickerTime,
+                    displayedComponents: .hourAndMinute
+                )
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .tint(Color.jbAccent)
+                .padding(.top, Spacing.md)
+
+                // Quick time chips
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("クイック選択")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.jbSubtext)
+                        .tracking(0.4)
+                        .padding(.horizontal, Spacing.sm)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: Spacing.sm) {
+                            ForEach([(7, 0, "朝 7:00"), (12, 0, "昼 12:00"), (19, 0, "夜 19:00"), (21, 0, "夜 21:00")],
+                                    id: \.2) { h, m, label in
+                                Button(action: {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+                                    comps.hour = h; comps.minute = m
+                                    notificationPickerTime = Calendar.current.date(from: comps) ?? Date()
+                                }) {
+                                    Text(label)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundStyle(Color.jbText)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(Color.jbCard)
+                                        .clipShape(Capsule())
+                                        .overlay(Capsule().stroke(Color.jbBorder, lineWidth: 1))
+                                }
+                                .buttonStyle(JBScaledButtonStyle())
+                            }
+                        }
+                        .padding(.horizontal, Spacing.md)
+                    }
+                }
+                Spacer()
+            }
+            .background(Color.jbBackground.ignoresSafeArea())
+            .navigationTitle("通知時刻を設定")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("キャンセル") { showNotificationTimePicker = false }
+                        .foregroundStyle(Color.jbSubtext)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("保存") {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        let comps = Calendar.current.dateComponents([.hour, .minute], from: notificationPickerTime)
+                        notifications.reminderHour   = comps.hour   ?? 20
+                        notifications.reminderMinute = comps.minute ?? 0
+                        showNotificationTimePicker = false
+                    }
+                    .foregroundStyle(Color.jbAccent)
+                    .bold()
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 
 #if DEBUG

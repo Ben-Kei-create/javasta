@@ -46,6 +46,9 @@ struct JavastaApp: App {
                     .transition(.opacity)
                 }
             }
+            .task {
+                await NotificationManager.shared.syncOnLaunch()
+            }
         }
     }
 
