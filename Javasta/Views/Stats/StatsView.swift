@@ -533,34 +533,6 @@ struct StatsView: View {
     }
 }
 
-// MARK: - QuizCategory display name extension
-
-private extension QuizCategory {
-    var displayName: String {
-        switch self {
-        case .javaBasics:         return "基礎"
-        case .classes:            return "クラス"
-        case .overloadResolution: return "オーバーロード"
-        case .exceptionHandling:  return "例外処理"
-        case .collections:        return "コレクション"
-        case .generics:           return "ジェネリクス"
-        case .lambdaStreams:       return "ラムダ/Stream"
-        case .inheritance:        return "継承"
-        case .moduleSystem:       return "モジュール"
-        case .concurrency:        return "並行処理"
-        case .io:                 return "入出力"
-        case .secureCoding:       return "セキュリティ"
-        case .jdbc:               return "JDBC"
-        case .localization:       return "国際化"
-        case .annotations:        return "アノテーション"
-        case .dataTypes:          return "データ型"
-        case .controlFlow:        return "制御フロー"
-        case .string:             return "文字列"
-        case .optionalApi:        return "Optional"
-        case .dateTime:           return "日時"
-        }
-    }
-}
 
 #Preview {
     StatsView()

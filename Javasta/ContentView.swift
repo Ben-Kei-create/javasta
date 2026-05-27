@@ -49,10 +49,30 @@ struct ContentView: View {
     private var iPadLayout: some View {
         NavigationSplitView {
             // サイドバー
-            List(selection: $selectedTab) {
-                Label("学習", systemImage: "book.fill").tag(Tab.learning)
-                Label("問題", systemImage: "pencil.and.list.clipboard").tag(Tab.quiz)
-                Label("統計", systemImage: "chart.bar.fill").tag(Tab.stats)
+            List {
+                Button {
+                    selectedTab = .learning
+                } label: {
+                    Label("学習", systemImage: "book.fill")
+                        .foregroundStyle(selectedTab == .learning ? Color.jbAccent : Color.jbText)
+                }
+                .listRowBackground(selectedTab == .learning ? Color.jbAccent.opacity(0.12) : Color.clear)
+
+                Button {
+                    selectedTab = .quiz
+                } label: {
+                    Label("問題", systemImage: "pencil.and.list.clipboard")
+                        .foregroundStyle(selectedTab == .quiz ? Color.jbAccent : Color.jbText)
+                }
+                .listRowBackground(selectedTab == .quiz ? Color.jbAccent.opacity(0.12) : Color.clear)
+
+                Button {
+                    selectedTab = .stats
+                } label: {
+                    Label("統計", systemImage: "chart.bar.fill")
+                        .foregroundStyle(selectedTab == .stats ? Color.jbAccent : Color.jbText)
+                }
+                .listRowBackground(selectedTab == .stats ? Color.jbAccent.opacity(0.12) : Color.clear)
             }
             .navigationTitle("Javasta")
             .listStyle(.sidebar)
