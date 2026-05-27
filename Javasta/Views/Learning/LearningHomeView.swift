@@ -6,6 +6,9 @@ struct LearningHomeView: View {
     @State private var activeQuiz: Quiz?
     @State private var progress = ProgressStore.shared
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
+    @AppStorage("spotlight.pendingTermId") private var pendingTermId: String = ""
+    @AppStorage("spotlight.pendingLessonId") private var pendingLessonId: String = ""
+    @State private var navigationPath = NavigationPath()
 
     private var selectedLevel: JavaLevel {
         JavaLevel(rawValue: selectedLevelRaw) ?? .silver

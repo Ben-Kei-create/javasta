@@ -14,6 +14,8 @@ struct JavastaApp: App {
 
     @State private var splashFinished: Bool
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("spotlight.pendingTermId") private var pendingTermId: String = ""
+    @AppStorage("spotlight.pendingLessonId") private var pendingLessonId: String = ""
 
     init() {
         let arguments = ProcessInfo.processInfo.arguments
@@ -48,6 +50,18 @@ struct JavastaApp: App {
             }
             .task {
                 await NotificationManager.shared.syncOnLaunch()
+                await CloudSyncManager.shared.syncOnLaunch()
+                SpotlightIndexer.shared.indexAll()
+            }
+            .onContinueUserActivity(SpotlightIndexer.glossaryActivityType) { activity in
+                if let termId = activity.userInfo?["id"] as? String {
+                    pendingTermId = termId
+                }
+            }
+            .onContinueUserActivity(SpotlightIndexer.lessonActivityType) { activity in
+                if let lessonId = activity.userInfo?["id"] as? String {
+                    pendingLessonId = lessonId
+                }
             }
         }
     }

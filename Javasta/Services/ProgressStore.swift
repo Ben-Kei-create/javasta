@@ -110,6 +110,7 @@ final class ProgressStore {
             }
             defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
         }
+        CloudSyncManager.shared.schedulePush()
     }
 
     /// 既存呼び出し向け互換API。問題IDのない場面では復習キューは更新しない。
@@ -138,6 +139,7 @@ final class ProgressStore {
             answerHistory = Array(answerHistory.suffix(2_000))
         }
         saveAnswerHistory()
+        CloudSyncManager.shared.schedulePush()
     }
 
     func recordMockExamAttempt(_ attempt: MockExamAttempt, quizzes: [Quiz]) {
@@ -188,11 +190,13 @@ final class ProgressStore {
         defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
         saveAnswerHistory()
         saveMockExamAttempts()
+        CloudSyncManager.shared.schedulePush()
     }
 
     func markLessonCompleted(_ lessonId: String) {
         completedLessons.insert(lessonId)
         defaults.set(Array(completedLessons), forKey: Key.completedLessons)
+        CloudSyncManager.shared.schedulePush()
     }
 
     func toggleBookmark(quizId: String) {
@@ -202,11 +206,13 @@ final class ProgressStore {
             bookmarkedQuizIds.insert(quizId)
         }
         defaults.set(Array(bookmarkedQuizIds), forKey: Key.bookmarkedQuizzes)
+        CloudSyncManager.shared.schedulePush()
     }
 
     func setDailyGoal(_ value: Int) {
         dailyGoal = max(1, value)
         defaults.set(dailyGoal, forKey: Key.dailyGoal)
+        CloudSyncManager.shared.schedulePush()
     }
 
     func stats(for quizId: String) -> QuizAttemptStats {
@@ -350,6 +356,14 @@ final class ProgressStore {
         defaults.removeObject(forKey: Key.answerHistory)
         defaults.removeObject(forKey: Key.bookmarkedQuizzes)
         defaults.removeObject(forKey: Key.mockExamAttempts)
+        // iCloud KVS もクリア
+        let kvs = NSUbiquitousKeyValueStore.default
+        let kvsKeys = ["progress.totalAnswered","progress.totalCorrect","progress.streakDays",
+                       "progress.dailyGoal","progress.completedLessons","progress.bookmarkedQuizzes",
+                       "progress.reviewQueueQuizIds","progress.dailyHistory",
+                       "progress.answerHistory","progress.mockExamAttempts"]
+        kvsKeys.forEach { kvs.removeObject(forKey: $0) }
+        kvs.synchronize()
     }
 
     // MARK: 内部
