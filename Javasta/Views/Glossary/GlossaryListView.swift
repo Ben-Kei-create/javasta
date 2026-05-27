@@ -86,7 +86,6 @@ struct GlossaryListView: View {
         }
         .navigationTitle("用語集")
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - Search bar

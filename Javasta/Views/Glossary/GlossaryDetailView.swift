@@ -103,7 +103,6 @@ struct GlossaryDetailView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
     }
 
     // MARK: History back bar

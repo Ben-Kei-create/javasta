@@ -1,50 +1,38 @@
-import XCTest
+import Testing
 @testable import Javasta
 
-final class ContentQualityTests: XCTestCase {
-    func testReleaseContentQualityGatesAreClean() {
+@Suite("コンテンツ品質") struct ContentQualityTests {
+    @Test("リリース品質ゲートがクリーンであること") func testReleaseContentQualityGatesAreClean() {
         let explanationReport = QuestionBank.explanationAuditReport()
-        XCTAssertEqual(
-            explanationReport.needsAttentionCount,
-            0,
-            formattedExplanationIssues(explanationReport.issues)
-        )
+        #expect(explanationReport.needsAttentionCount == 0, "\(formattedExplanationIssues(explanationReport.issues))")
 
         let contentIssues = QuestionBank.contentQualityIssues()
-        XCTAssertTrue(
-            contentIssues.isEmpty,
-            formattedContentIssues(contentIssues)
-        )
+        #expect(contentIssues.isEmpty, "\(formattedContentIssues(contentIssues))")
 
         let validationIssues = QuestionBank.validationIssues()
-        XCTAssertTrue(
-            validationIssues.isEmpty,
-            validationIssues.joined(separator: "\n")
-        )
+        #expect(validationIssues.isEmpty, "\(validationIssues.joined(separator: "\n"))")
     }
 
-    func testExamObjectivesHavePracticeCoverage() {
+    @Test("試験目標に練習問題カバレッジがあること") func testExamObjectivesHavePracticeCoverage() {
         // SE11 は UI から廃止し SE17 に統一。SE17 のみカバレッジをチェック。
         for level in JavaLevel.allCases {
             let uncovered = QuestionBank.coverage(version: .se17, level: level)
                 .filter { $0.count == 0 }
 
-            XCTAssertTrue(
+            #expect(
                 uncovered.isEmpty,
-                uncovered
-                    .map { "SE17 \(level.displayName) \($0.objective.title)" }
-                    .joined(separator: "\n")
+                "\(uncovered.map { "SE17 \(level.displayName) \($0.objective.title)" }.joined(separator: "\n"))"
             )
         }
     }
 
     /// SE11 は UI から廃止し SE17 に統一。
     /// データモデルはそのまま保持するが、SE11 カバレッジは CI ゲート対象外とする。
-    func testSE11GoldObjectivesHaveDirectPracticeCoverage() throws {
-        throw XCTSkip("SE11 は SE17 に統一済み。データは保持するが CI ゲートから除外。")
+    @Test("SE11 Gold 目標に直接練習カバレッジがあること", .disabled("SE11 は SE17 に統一済み。データは保持するが CI ゲートから除外。"))
+    func testSE11GoldObjectivesHaveDirectPracticeCoverage() {
     }
 
-    func testPracticeQuestionsAreContextualizedForPresentation() {
+    @Test("練習問題がプレゼンテーション用にコンテキスト化されていること") func testPracticeQuestionsAreContextualizedForPresentation() {
         let genericStems: Set<String> = [
             "このコードを実行したとき、出力されるのはどれか？",
             "このコードをコンパイルしたときの結果として正しいものはどれか？",
@@ -58,13 +46,10 @@ final class ContentQualityTests: XCTestCase {
             .filter { genericStems.contains($0.question) }
             .map { "\($0.id): \($0.question)" }
 
-        XCTAssertTrue(
-            genericQuestions.isEmpty,
-            genericQuestions.prefix(20).joined(separator: "\n")
-        )
+        #expect(genericQuestions.isEmpty, "\(genericQuestions.prefix(20).joined(separator: "\n"))")
     }
 
-    func testMockExamSessionsAreConstructibleWithoutDuplicates() {
+    @Test("模試セッションが重複なしで構築できること") func testMockExamSessionsAreConstructibleWithoutDuplicates() {
         for version in JavaExamVersion.allCases {
             for level in JavaLevel.allCases {
                 for variant in MockExamVariant.allCases {
@@ -77,14 +62,14 @@ final class ContentQualityTests: XCTestCase {
                     }
 
                     let ids = session.quizzes.map(\.id)
-                    XCTAssertEqual(Set(ids).count, ids.count, "\(version.displayName) \(level.displayName) \(variant.displayName)")
-                    XCTAssertFalse(session.quizzes.isEmpty, "\(version.displayName) \(level.displayName) \(variant.displayName)")
+                    #expect(Set(ids).count == ids.count, "\(version.displayName) \(level.displayName) \(variant.displayName)")
+                    #expect(!session.quizzes.isEmpty, "\(version.displayName) \(level.displayName) \(variant.displayName)")
                 }
             }
         }
     }
 
-    func testMockExamSessionsAvoidRepeatedVariantGroups() {
+    @Test("模試セッションがバリアントグループ重複を避けること") func testMockExamSessionsAvoidRepeatedVariantGroups() {
         for version in JavaExamVersion.allCases {
             for level in JavaLevel.allCases {
                 for variant in MockExamVariant.allCases {
@@ -97,9 +82,8 @@ final class ContentQualityTests: XCTestCase {
                     }
 
                     let variantGroups = session.quizzes.compactMap(\.variantGroupId)
-                    XCTAssertEqual(
-                        Set(variantGroups).count,
-                        variantGroups.count,
+                    #expect(
+                        Set(variantGroups).count == variantGroups.count,
                         "\(version.displayName) \(level.displayName) \(variant.displayName)"
                     )
                 }
@@ -107,7 +91,7 @@ final class ContentQualityTests: XCTestCase {
         }
     }
 
-    func testObjectiveProgressFindsWeakestExamArea() {
+    @Test("目標進捗が最弱試験エリアを見つけること") func testObjectiveProgressFindsWeakestExamArea() {
         let suiteName = "ContentQualityTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer {
@@ -121,12 +105,12 @@ final class ContentQualityTests: XCTestCase {
         store.recordAnswer(quiz: quiz, choice: wrongChoice, elapsedSeconds: 30)
 
         let weakest = store.weakestObjective(version: .se11, level: .gold, minimumAttempts: 1)
-        XCTAssertEqual(weakest?.objective.id, quiz.examObjectiveId)
-        XCTAssertEqual(weakest?.attempts, 1)
-        XCTAssertEqual(weakest?.correct, 0)
+        #expect(weakest?.objective.id == quiz.examObjectiveId)
+        #expect(weakest?.attempts == 1)
+        #expect(weakest?.correct == 0)
     }
 
-    func testContentBalanceHasSufficientDepthForCoveredCategories() {
+    @Test("カバー済みカテゴリのコンテンツバランスに十分な深さがあること") func testContentBalanceHasSufficientDepthForCoveredCategories() {
         // 出題されているカテゴリは最低3問の通常問題があることを確認する。
         // 1〜2問しかない場合、弱点克服モードやバランス選択で
         // 同じ問題が繰り返し出題され学習効果が下がる。
@@ -138,26 +122,24 @@ final class ContentQualityTests: XCTestCase {
                     level: level,
                     minimumPracticeCount: minimumPracticeCount
                 )
-                XCTAssertTrue(
+                #expect(
                     issues.isEmpty,
-                    "\(version.displayName) \(level.displayName) で問題数が少ないカテゴリがあります:\n"
-                        + issues.joined(separator: "\n")
+                    "\(version.displayName) \(level.displayName) で問題数が少ないカテゴリがあります:\n\(issues.joined(separator: "\n"))"
                 )
             }
         }
     }
 
-    func testAllQuizCategoriesAreRecognized() {
+    @Test("全問題カテゴリが認識されること") func testAllQuizCategoriesAreRecognized() {
         // QuizCategory が CaseIterable になったことで全カテゴリを列挙できる。
         // rawValue が canonical() で解決できないカテゴリが混入していないことを確認。
         let unknownCategories = QuestionBank.allQuizzes
             .filter { $0.canonicalCategory == nil }
             .map { "\($0.id): '\($0.category)'" }
 
-        XCTAssertTrue(
+        #expect(
             unknownCategories.isEmpty,
-            "カテゴリ名が canonical に解決できない問題があります:\n"
-                + unknownCategories.prefix(20).joined(separator: "\n")
+            "カテゴリ名が canonical に解決できない問題があります:\n\(unknownCategories.prefix(20).joined(separator: "\n"))"
         )
     }
 

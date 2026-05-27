@@ -45,7 +45,6 @@ struct OnboardingView: View {
                 .animation(.jbSmooth, value: page)
             }
         }
-        .preferredColorScheme(.dark)
         .onAppear {
             // SE17 を既定に固定（SE11 は廃止）
             selectedVersionRaw = JavaExamVersion.se17.rawValue

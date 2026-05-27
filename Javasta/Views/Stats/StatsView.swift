@@ -39,7 +39,6 @@ struct StatsView: View {
                     levelSegmentedPicker
                 }
             }
-            .preferredColorScheme(.dark)
         }
     }
 

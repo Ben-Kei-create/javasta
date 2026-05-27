@@ -24,7 +24,6 @@ struct LaunchReadinessView: View {
         }
         .navigationTitle("販売準備")
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(.dark)
     }
 
     private var summaryCard: some View {

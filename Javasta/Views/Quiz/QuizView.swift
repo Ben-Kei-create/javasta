@@ -25,7 +25,6 @@ struct QuizView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
         .sheet(item: $activeIssueReport) { report in
             QuizIssueReportSheet(report: report)
                 .presentationDetents([.medium, .large])
@@ -436,7 +435,6 @@ private struct QuizIssueReportSheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
     }
 
     private func sendReport() {

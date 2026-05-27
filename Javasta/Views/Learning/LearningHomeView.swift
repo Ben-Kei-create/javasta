@@ -55,7 +55,6 @@ struct LearningHomeView: View {
                     }
                 }
             }
-            .preferredColorScheme(.dark)
         }
         .sheet(item: $activeQuiz) { quiz in
             QuizSheetView(quiz: quiz)
@@ -72,7 +71,6 @@ struct LearningHomeView: View {
             }
             pendingLessonId = ""
         }
-        .preferredColorScheme(.dark)
     }
 
     private func handleSheetDismiss() {

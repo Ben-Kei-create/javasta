@@ -46,7 +46,6 @@ struct SplashView: View {
             }
         }
         .opacity(fadeOut ? 0 : 1)
-        .preferredColorScheme(.dark)
         .sensoryFeedback(.selection, trigger: launchHaptic)
         .task {
             await runAnimation()

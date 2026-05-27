@@ -50,7 +50,6 @@ struct LessonDetailView: View {
             }
         }
         .sensoryFeedback(.selection, trigger: codeZoom)
-        .preferredColorScheme(.dark)
         .environment(\.openURL, OpenURLAction { url in
             if let id = GlossaryTerm.parse(url: url) {
                 glossaryRoot = GlossaryRoot(id: id)
@@ -85,7 +84,6 @@ struct LessonDetailView: View {
                         }
                     }
             }
-            .preferredColorScheme(.dark)
             .environment(\.openURL, OpenURLAction { url in
                 if let id = GlossaryTerm.parse(url: url) {
                     glossaryPath.append(id)

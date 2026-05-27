@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @State private var progress = ProgressStore.shared
     @State private var notifications = NotificationManager.shared
+    @AppStorage("colorScheme") private var colorSchemeRaw: String = "system"  // "system" | "dark" | "light"
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @AppStorage(CodeSyntaxTheme.storageKey) private var codeSyntaxThemeRaw: String = CodeSyntaxTheme.classic.rawValue
     @AppStorage("examDateTimestamp") private var examDateTimestamp: Double = 0
@@ -155,6 +156,30 @@ struct SettingsView: View {
                     }
 #endif
 
+                    // MARK: 外観
+                    section(title: "外観") {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            HStack(spacing: Spacing.sm) {
+                                Image(systemName: "paintbrush.fill")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(Color.jbAccent)
+                                    .frame(width: 24)
+                                Text("カラーモード")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(Color.jbText)
+                            }
+                            Picker("カラーモード", selection: $colorSchemeRaw) {
+                                Text("システムに合わせる").tag("system")
+                                Text("ダーク").tag("dark")
+                                Text("ライト").tag("light")
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, 12)
+                        .background(Color.jbCard)
+                    }
+
                     // MARK: アプリについて
                     section(title: "アプリについて") {
                         VStack(spacing: 0) {
@@ -227,7 +252,6 @@ struct SettingsView: View {
         }
         .navigationTitle("設定")
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(.dark)
         .task { await notifications.refreshStatus() }
         .sheet(isPresented: $showExamDatePicker) {
             examDatePickerSheet
@@ -425,7 +449,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
     }
 
 #if DEBUG
@@ -589,7 +612,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
     }
 
     // MARK: - Goal row

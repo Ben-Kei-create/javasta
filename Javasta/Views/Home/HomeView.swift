@@ -65,7 +65,6 @@ struct HomeView: View {
         } message: {
             Text(emptySessionMessage)
         }
-        .preferredColorScheme(.dark)
     }
 
     // MARK: Header
@@ -1020,7 +1019,6 @@ struct QuizSheetView: View {
                         }
                     }
             }
-            .preferredColorScheme(.dark)
             .environment(\.openURL, OpenURLAction { url in
                 if let id = GlossaryTerm.parse(url: url) {
                     glossaryPath.append(id)

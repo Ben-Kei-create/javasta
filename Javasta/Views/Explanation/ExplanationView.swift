@@ -72,7 +72,6 @@ struct ExplanationView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
         .sensoryFeedback(.selection, trigger: codeZoom)
         .sheet(item: $activeLesson) { lesson in
             NavigationStack {
@@ -84,7 +83,6 @@ struct ExplanationView: View {
                         }
                     }
             }
-            .preferredColorScheme(.dark)
         }
     }
 

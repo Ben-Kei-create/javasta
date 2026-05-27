@@ -16,6 +16,15 @@ struct JavastaApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("spotlight.pendingTermId") private var pendingTermId: String = ""
     @AppStorage("spotlight.pendingLessonId") private var pendingLessonId: String = ""
+    @AppStorage("colorScheme") private var colorSchemeRaw: String = "system"
+
+    private var preferredScheme: ColorScheme? {
+        switch colorSchemeRaw {
+        case "dark":  return .dark
+        case "light": return .light
+        default:      return nil   // system
+        }
+    }
 
     init() {
         let arguments = ProcessInfo.processInfo.arguments
@@ -36,6 +45,7 @@ struct JavastaApp: App {
                 if splashFinished {
                     ContentView()
                         .transition(.opacity)
+                        .preferredColorScheme(preferredScheme)
                         .fullScreenCover(isPresented: .constant(!hasCompletedOnboarding)) {
                             OnboardingView()
                         }

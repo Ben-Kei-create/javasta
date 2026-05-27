@@ -33,7 +33,6 @@ struct ExplanationAuditView: View {
         }
         .navigationTitle("解説チェック")
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(.dark)
     }
 
     private var summaryBand: some View {

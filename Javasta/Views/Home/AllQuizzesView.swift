@@ -102,7 +102,6 @@ struct AllQuizzesView: View {
         }
         .navigationTitle(level.displayName)
         .navigationBarTitleDisplayMode(.inline)
-        .preferredColorScheme(.dark)
     }
 
     private var summaryHeader: some View {

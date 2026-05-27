@@ -99,7 +99,6 @@ struct MockExamView: View {
         .task {
             await monitorTimeLimit()
         }
-        .preferredColorScheme(.dark)
     }
 
     @ToolbarContentBuilder
