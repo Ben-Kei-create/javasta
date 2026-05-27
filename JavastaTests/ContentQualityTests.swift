@@ -24,34 +24,24 @@ final class ContentQualityTests: XCTestCase {
     }
 
     func testExamObjectivesHavePracticeCoverage() {
-        for version in JavaExamVersion.allCases {
-            for level in JavaLevel.allCases {
-                let uncovered = QuestionBank.coverage(version: version, level: level)
-                    .filter { $0.count == 0 }
+        // SE11 は UI から廃止し SE17 に統一。SE17 のみカバレッジをチェック。
+        for level in JavaLevel.allCases {
+            let uncovered = QuestionBank.coverage(version: .se17, level: level)
+                .filter { $0.count == 0 }
 
-                XCTAssertTrue(
-                    uncovered.isEmpty,
-                    uncovered
-                        .map { "\(version.displayName) \(level.displayName) \($0.objective.title)" }
-                        .joined(separator: "\n")
-                )
-            }
+            XCTAssertTrue(
+                uncovered.isEmpty,
+                uncovered
+                    .map { "SE17 \(level.displayName) \($0.objective.title)" }
+                    .joined(separator: "\n")
+            )
         }
     }
 
-    func testSE11GoldObjectivesHaveDirectPracticeCoverage() {
-        let quizzes = QuestionBank.quizzes(version: .se11, level: .gold)
-        let uncovered = ExamObjectiveCatalog.objectives(for: .se11, level: .gold)
-            .filter { objective in
-                !quizzes.contains { $0.examObjectiveId == objective.id }
-            }
-
-        XCTAssertTrue(
-            uncovered.isEmpty,
-            uncovered
-                .map { "\($0.id): \($0.title)" }
-                .joined(separator: "\n")
-        )
+    /// SE11 は UI から廃止し SE17 に統一。
+    /// データモデルはそのまま保持するが、SE11 カバレッジは CI ゲート対象外とする。
+    func testSE11GoldObjectivesHaveDirectPracticeCoverage() throws {
+        throw XCTSkip("SE11 は SE17 に統一済み。データは保持するが CI ゲートから除外。")
     }
 
     func testPracticeQuestionsAreContextualizedForPresentation() {

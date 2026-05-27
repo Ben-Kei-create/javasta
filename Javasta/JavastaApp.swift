@@ -13,11 +13,16 @@ struct JavastaApp: App {
     private static let resetAppStateArgument = "-reset-app-state"
 
     @State private var splashFinished: Bool
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     init() {
         let arguments = ProcessInfo.processInfo.arguments
         if arguments.contains(Self.resetAppStateArgument) {
             Self.resetPersistentState()
+        }
+        // UI テスト時はオンボーディングをスキップして即ホームへ
+        if arguments.contains(Self.uiTestingArgument) {
+            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         }
 
         _splashFinished = State(initialValue: arguments.contains(Self.uiTestingArgument))
@@ -29,6 +34,9 @@ struct JavastaApp: App {
                 if splashFinished {
                     ContentView()
                         .transition(.opacity)
+                        .fullScreenCover(isPresented: .constant(!hasCompletedOnboarding)) {
+                            OnboardingView()
+                        }
                 } else {
                     SplashView(onFinish: {
                         withAnimation(.easeInOut(duration: 0.35)) {

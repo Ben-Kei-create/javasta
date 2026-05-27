@@ -7,12 +7,10 @@ struct HomeView: View {
     @State private var showEmptySessionAlert = false
     @State private var emptySessionMessage = ""
     @State private var expandedMetric: HomeMetric = .accuracy
-    @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
 
-    private var selectedVersion: JavaExamVersion {
-        JavaExamVersion(rawValue: selectedExamVersionRaw) ?? .se17
-    }
+    /// SE17 に統一（SE11 は廃止）
+    private let selectedVersion: JavaExamVersion = .se17
 
     private var selectedLevel: JavaLevel {
         JavaLevel(rawValue: selectedLevelRaw) ?? .silver
@@ -123,7 +121,6 @@ struct HomeView: View {
             }
 
             levelPicker
-            examVersionPicker
 
             HStack(spacing: Spacing.sm) {
                 CommandMetric(
@@ -207,44 +204,6 @@ struct HomeView: View {
                 .buttonStyle(.jbScaled)
                 .sensoryFeedback(.selection, trigger: selectedLevelRaw)
                 .accessibilityIdentifier("home-level-\(level.rawValue)")
-            }
-        }
-    }
-
-    /// SE 11 / SE 17 の試験バージョン切り替えピッカー。
-    /// 試験バージョンはホーム画面で視認しにくかったため、Level ピッカーの直下に追加。
-    private var examVersionPicker: some View {
-        HStack(spacing: Spacing.xs) {
-            ForEach(JavaExamVersion.allCases, id: \.self) { version in
-                Button(action: {
-                    withAnimation(.jbSpring) {
-                        selectedExamVersionRaw = version.rawValue
-                    }
-                }) {
-                    Text(version.displayName.replacingOccurrences(of: "Java ", with: ""))
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(selectedVersion == version ? Color.jbAccent : Color.jbSubtext)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 24)
-                        .background(
-                            RoundedRectangle(cornerRadius: Radius.sm)
-                                .fill(selectedVersion == version
-                                      ? Color.jbAccent.opacity(0.12)
-                                      : Color.clear)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Radius.sm)
-                                        .stroke(
-                                            selectedVersion == version
-                                                ? Color.jbAccent.opacity(0.6)
-                                                : Color.jbBorder.opacity(0.4),
-                                            lineWidth: 1
-                                        )
-                                )
-                        )
-                }
-                .buttonStyle(.jbScaled)
-                .sensoryFeedback(.selection, trigger: selectedExamVersionRaw)
-                .accessibilityIdentifier("home-version-\(version.rawValue)")
             }
         }
     }
