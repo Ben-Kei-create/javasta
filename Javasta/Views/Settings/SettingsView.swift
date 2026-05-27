@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @State private var progress = ProgressStore.shared
     @State private var notifications = NotificationManager.shared
+    @State private var store = PurchaseManager.shared
     @AppStorage("colorScheme") private var colorSchemeRaw: String = "system"  // "system" | "dark" | "light"
     @AppStorage("codeZoom") private var codeZoom: Double = CodeZoom.default
     @AppStorage(CodeSyntaxTheme.storageKey) private var codeSyntaxThemeRaw: String = CodeSyntaxTheme.classic.rawValue
@@ -178,6 +179,37 @@ struct SettingsView: View {
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, 12)
                         .background(Color.jbCard)
+                    }
+
+                    // MARK: プレミアム
+                    section(title: "プレミアム") {
+                        VStack(spacing: 0) {
+                            if store.isPremium {
+                                SettingRow(
+                                    icon: "checkmark.seal.fill",
+                                    title: "プレミアム購入済み",
+                                    value: "ありがとうございます 🎉",
+                                    tint: Color.jbSuccess,
+                                    onTap: nil
+                                )
+                            } else {
+                                SettingRow(
+                                    icon: "bolt.fill",
+                                    title: "プレミアムにアップグレード",
+                                    value: store.product?.displayPrice ?? "¥980",
+                                    tint: Color.jbAccent,
+                                    onTap: { Task { await store.purchase() } }
+                                )
+                                Divider()
+                                    .background(Color.jbBorder)
+                                    .padding(.horizontal, Spacing.md)
+                                SettingRow(
+                                    icon: "arrow.counterclockwise",
+                                    title: "購入を復元する",
+                                    onTap: { Task { await store.restorePurchases() } }
+                                )
+                            }
+                        }
                     }
 
                     // MARK: アプリについて

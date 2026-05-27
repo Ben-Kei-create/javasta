@@ -3,10 +3,12 @@ import SwiftUI
 struct HomeView: View {
     @State private var activeSession: QuizSession?
     @State private var progress = ProgressStore.shared
+    @State private var store = PurchaseManager.shared
     @State private var showSettings = false
     @State private var showEmptySessionAlert = false
     @State private var emptySessionMessage = ""
     @State private var expandedMetric: HomeMetric = .accuracy
+    @State private var showPaywall = false
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
 
     /// SE17 に統一（SE11 は廃止）
@@ -59,6 +61,9 @@ struct HomeView: View {
         }
         .sheet(item: $activeSession) { session in
             QuizSheetView(session: session)
+        }
+        .sheet(isPresented: $showPaywall) {
+            NavigationStack { PremiumPaywallView() }
         }
         .alert("開始できません", isPresented: $showEmptySessionAlert) {
             Button("OK", role: .cancel) {}
@@ -243,20 +248,31 @@ struct HomeView: View {
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
+                let locked = !store.canAccess(level: level)
                 Button(action: {
-                    withAnimation(.jbSpring) {
-                        selectedLevelRaw = level.rawValue
+                    if locked {
+                        showPaywall = true
+                    } else {
+                        withAnimation(.jbSpring) {
+                            selectedLevelRaw = level.rawValue
+                        }
                     }
                 }) {
-                    Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(selectedLevel == level ? .white : Color.jbSubtext)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 30)
-                        .background(
-                            RoundedRectangle(cornerRadius: Radius.sm)
-                                .fill(selectedLevel == level ? Color.jbAccent : Color.jbBackground)
-                        )
+                    HStack(spacing: 4) {
+                        if locked {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundStyle(selectedLevel == level ? .white : (locked ? Color.jbSubtext.opacity(0.5) : Color.jbSubtext))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 30)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .fill(selectedLevel == level ? Color.jbAccent : Color.jbBackground)
+                    )
                 }
                 .buttonStyle(.jbScaled)
                 .sensoryFeedback(.selection, trigger: selectedLevelRaw)
@@ -277,6 +293,7 @@ struct HomeView: View {
                         PracticeModeCard(
                             mode: mode,
                             isPrimary: mode == .daily,
+                            isLocked: mode == .mockExam && !store.canAccessMockExam,
                             onTap: { start(mode) }
                         )
                     }
@@ -288,6 +305,11 @@ struct HomeView: View {
     }
 
     private func start(_ mode: QuizPracticeMode) {
+        // 模擬試験はプレミアム限定
+        if mode == .mockExam && !store.canAccessMockExam {
+            showPaywall = true
+            return
+        }
         if let session = QuestionBank.makeSession(
             mode: mode,
             version: selectedVersion,
@@ -702,14 +724,15 @@ private struct CommandMetric: View {
 private struct PracticeModeCard: View {
     let mode: QuizPracticeMode
     let isPrimary: Bool
+    var isLocked: Bool = false
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: Spacing.sm) {
-                Image(systemName: mode.icon)
+                Image(systemName: isLocked ? "lock.fill" : mode.icon)
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(isPrimary ? .white : Color.jbAccent)
+                    .foregroundStyle(isPrimary ? .white : (isLocked ? Color.jbSubtext.opacity(0.5) : Color.jbAccent))
                     .frame(width: 28, height: 28)
                     .background(
                         Circle().fill(isPrimary ? Color.white.opacity(0.18) : Color.jbAccent.opacity(0.12))
@@ -718,21 +741,21 @@ private struct PracticeModeCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(mode.title)
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(isPrimary ? .white : Color.jbText)
+                        .foregroundStyle(isPrimary ? .white : (isLocked ? Color.jbSubtext : Color.jbText))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                    Text(mode.subtitle)
+                    Text(isLocked ? "プレミアム限定" : mode.subtitle)
                         .font(.system(size: 10))
-                        .foregroundStyle(isPrimary ? .white.opacity(0.76) : Color.jbSubtext)
+                        .foregroundStyle(isPrimary ? .white.opacity(0.76) : (isLocked ? Color.jbAccent.opacity(0.7) : Color.jbSubtext))
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
                 }
 
                 Spacer(minLength: Spacing.xs)
 
-                Image(systemName: "arrow.right")
+                Image(systemName: isLocked ? "lock.fill" : "arrow.right")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(isPrimary ? .white.opacity(0.8) : Color.jbSubtext)
+                    .foregroundStyle(isPrimary ? .white.opacity(0.8) : (isLocked ? Color.jbAccent.opacity(0.6) : Color.jbSubtext))
             }
             .padding(Spacing.sm)
             .frame(width: 200, height: 74, alignment: .leading)
@@ -741,7 +764,7 @@ private struct PracticeModeCard: View {
                     .fill(isPrimary ? Color.jbAccent : Color.jbCard)
                     .overlay(
                         RoundedRectangle(cornerRadius: Radius.md)
-                            .stroke(isPrimary ? Color.jbAccent : Color.jbBorder, lineWidth: 1)
+                            .stroke(isLocked ? Color.jbAccent.opacity(0.4) : (isPrimary ? Color.jbAccent : Color.jbBorder), lineWidth: 1)
                     )
             )
         }

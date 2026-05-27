@@ -61,6 +61,7 @@ struct JavastaApp: App {
             .task {
                 await NotificationManager.shared.syncOnLaunch()
                 await CloudSyncManager.shared.syncOnLaunch()
+                await PurchaseManager.shared.loadOnLaunch()
                 SpotlightIndexer.shared.indexAll()
             }
             .onContinueUserActivity(SpotlightIndexer.glossaryActivityType) { activity in

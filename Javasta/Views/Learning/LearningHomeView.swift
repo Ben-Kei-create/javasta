@@ -5,6 +5,8 @@ struct LearningHomeView: View {
     @State private var pendingQuizId: String?
     @State private var activeQuiz: Quiz?
     @State private var progress = ProgressStore.shared
+    @State private var store = PurchaseManager.shared
+    @State private var showPaywall = false
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
     @AppStorage("spotlight.pendingTermId") private var pendingTermId: String = ""
     @AppStorage("spotlight.pendingLessonId") private var pendingLessonId: String = ""
@@ -58,6 +60,9 @@ struct LearningHomeView: View {
         }
         .sheet(item: $activeQuiz) { quiz in
             QuizSheetView(quiz: quiz)
+        }
+        .sheet(isPresented: $showPaywall) {
+            NavigationStack { PremiumPaywallView() }
         }
         .onChange(of: pendingTermId) { _, newId in
             guard !newId.isEmpty else { return }
@@ -140,24 +145,35 @@ struct LearningHomeView: View {
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
+                let locked = !store.canAccess(level: level)
                 Button(action: {
-                    withAnimation(.jbSpring) {
-                        selectedLevelRaw = level.rawValue
+                    if locked {
+                        showPaywall = true
+                    } else {
+                        withAnimation(.jbSpring) {
+                            selectedLevelRaw = level.rawValue
+                        }
                     }
                 }) {
-                    Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(selectedLevel == level ? .white : Color.jbSubtext)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 34)
-                        .background(
-                            RoundedRectangle(cornerRadius: Radius.sm)
-                                .fill(selectedLevel == level ? Color.jbAccent : Color.jbCard)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Radius.sm)
-                                        .stroke(selectedLevel == level ? Color.jbAccent : Color.jbBorder, lineWidth: 1)
-                                )
-                        )
+                    HStack(spacing: 4) {
+                        if locked {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundStyle(selectedLevel == level ? .white : (locked ? Color.jbSubtext.opacity(0.5) : Color.jbSubtext))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 34)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .fill(selectedLevel == level ? Color.jbAccent : Color.jbCard)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Radius.sm)
+                                    .stroke(selectedLevel == level ? Color.jbAccent : Color.jbBorder, lineWidth: 1)
+                            )
+                    )
                 }
                 .buttonStyle(.plain)
             }
