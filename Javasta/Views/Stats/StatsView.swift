@@ -5,12 +5,18 @@ import SwiftUI
 
 struct StatsView: View {
     @State private var progress = ProgressStore.shared
+    @State private var store = PurchaseManager.shared
     @State private var selectedLevel: JavaLevel = .silver
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @State private var showPaywall = false
 
     private var level: JavaLevel {
         JavaLevel(rawValue: selectedLevelRaw) ?? .silver
+    }
+
+    private var isGoldLocked: Bool {
+        level == .gold && !store.isPremium
     }
 
     var body: some View {
@@ -18,21 +24,25 @@ struct StatsView: View {
             ZStack {
                 Color.jbBackground.ignoresSafeArea()
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Spacing.lg) {
-                        summaryRow
-                        activityCalendar
-                        weeklyAccuracyChart
-                        categoryAccuracyChart
-                        if !progress.mockExamAttempts.isEmpty {
-                            mockExamScoreChart
+                if isGoldLocked {
+                    goldLockedPlaceholder
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: Spacing.lg) {
+                            summaryRow
+                            activityCalendar
+                            weeklyAccuracyChart
+                            categoryAccuracyChart
+                            if !progress.mockExamAttempts.isEmpty {
+                                mockExamScoreChart
+                            }
+                            weakTagsCard
+                            Spacer(minLength: Spacing.xxl)
                         }
-                        weakTagsCard
-                        Spacer(minLength: Spacing.xxl)
+                        .padding(Spacing.md)
+                        .frame(maxWidth: hSizeClass == .regular ? 768 : .infinity)
+                        .frame(maxWidth: .infinity, alignment: .center)
                     }
-                    .padding(Spacing.md)
-                    .frame(maxWidth: hSizeClass == .regular ? 768 : .infinity)
-                    .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             .navigationTitle("統計")
@@ -43,6 +53,9 @@ struct StatsView: View {
                 }
             }
         }
+        .sheet(isPresented: $showPaywall) {
+            PremiumPaywallView()
+        }
     }
 
     // MARK: - Level picker
@@ -50,12 +63,44 @@ struct StatsView: View {
     private var levelSegmentedPicker: some View {
         Picker("レベル", selection: $selectedLevelRaw) {
             ForEach(JavaLevel.allCases, id: \.rawValue) { lv in
-                Text(lv.displayName.replacingOccurrences(of: "Java ", with: ""))
-                    .tag(lv.rawValue)
+                let locked = lv == .gold && !store.isPremium
+                Label(
+                    lv.displayName.replacingOccurrences(of: "Java ", with: ""),
+                    systemImage: locked ? "lock.fill" : ""
+                )
+                .tag(lv.rawValue)
             }
         }
         .pickerStyle(.segmented)
         .frame(width: 160)
+        .onChange(of: selectedLevelRaw) { _, newVal in
+            if newVal == JavaLevel.gold.rawValue && !store.isPremium {
+                showPaywall = true
+                selectedLevelRaw = JavaLevel.silver.rawValue
+            }
+        }
+    }
+
+    // MARK: - Gold locked placeholder
+
+    private var goldLockedPlaceholder: some View {
+        VStack(spacing: Spacing.lg) {
+            Spacer()
+            Image(systemName: "lock.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(Color.jbAccent)
+            Text("Gold 統計はプレミアムプランで利用できます")
+                .font(.headline)
+                .foregroundStyle(Color.jbText)
+                .multilineTextAlignment(.center)
+            Button("プレミアムを見る") {
+                showPaywall = true
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.jbAccent)
+            Spacer()
+        }
+        .padding(Spacing.xl)
     }
 
     // MARK: - Summary row (top KPIs)
