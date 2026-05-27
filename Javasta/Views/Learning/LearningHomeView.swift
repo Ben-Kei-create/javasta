@@ -15,7 +15,7 @@ struct LearningHomeView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 Color.jbBackground.ignoresSafeArea()
 
@@ -59,6 +59,18 @@ struct LearningHomeView: View {
         }
         .sheet(item: $activeQuiz) { quiz in
             QuizSheetView(quiz: quiz)
+        }
+        .onChange(of: pendingTermId) { _, newId in
+            guard !newId.isEmpty else { return }
+            navigationPath.append(newId)
+            pendingTermId = ""
+        }
+        .onChange(of: pendingLessonId) { _, newId in
+            guard !newId.isEmpty else { return }
+            if let lesson = Lesson.sample(for: newId) {
+                selectedLesson = lesson
+            }
+            pendingLessonId = ""
         }
         .preferredColorScheme(.dark)
     }
