@@ -2,9 +2,18 @@ import Foundation
 import Observation
 
 /// 学習進捗の永続化ストア（UserDefaultsベース）。
+/// WidgetKit からもデータを読めるよう App Group を使用する。
+/// App Group ID: group.com.fumiakiMogi777.Javasta
 @Observable
 final class ProgressStore {
     static let shared = ProgressStore()
+
+    /// App Group 対応の UserDefaults。
+    /// Xcode で「Signing & Capabilities → App Groups」に
+    /// `group.com.fumiakiMogi777.Javasta` を追加したうえで使用する。
+    static let appGroupDefaults: UserDefaults = {
+        UserDefaults(suiteName: "group.com.fumiakiMogi777.Javasta") ?? .standard
+    }()
 
     // 永続化キー
     private enum Key {
@@ -47,7 +56,7 @@ final class ProgressStore {
         return Int((Double(totalCorrect) / Double(totalAnswered) * 100).rounded())
     }
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = ProgressStore.appGroupDefaults) {
         self.defaults = defaults
         self.totalAnswered = defaults.integer(forKey: Key.totalAnswered)
         self.totalCorrect  = defaults.integer(forKey: Key.totalCorrect)

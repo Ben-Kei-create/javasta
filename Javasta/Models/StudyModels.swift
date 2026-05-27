@@ -339,6 +339,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
     case mistakes
     case unattempted
     case mockExam
+    case bookmarks
 
     static let allCases: [QuizPracticeMode] = [.daily, .weak, .mistakes, .unattempted, .mockExam]
     static let homeModes: [QuizPracticeMode] = [.daily, .unattempted, .mockExam]
@@ -353,6 +354,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
         case .mistakes: return "ミスだけ復習"
         case .unattempted: return "未回答から"
         case .mockExam: return "模擬試験"
+        case .bookmarks: return "保存済み"
         }
     }
 
@@ -364,6 +366,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
         case .mistakes: return "間違えた問題を再挑戦"
         case .unattempted: return "新しい問題だけ進める"
         case .mockExam: return "最後に合格ゾーンを判定"
+        case .bookmarks: return "保存した問題をまとめて解く"
         }
     }
 
@@ -375,6 +378,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
         case .mistakes: return "arrow.counterclockwise"
         case .unattempted: return "circle.dashed"
         case .mockExam: return "graduationcap.fill"
+        case .bookmarks: return "bookmark.fill"
         }
     }
 
@@ -386,6 +390,7 @@ enum QuizPracticeMode: String, CaseIterable, Identifiable {
         case .mistakes: return 10
         case .unattempted: return 10
         case .mockExam: return 60
+        case .bookmarks: return Int.max  // 全件
         }
     }
 }
@@ -410,6 +415,18 @@ struct QuizSession: Identifiable {
             version: quiz.examVersion,
             quizzes: [quiz],
             customTitle: "単問チャレンジ"
+        )
+    }
+
+    static func bookmarks(_ quizzes: [Quiz]) -> QuizSession {
+        // ブックマーク問題は混在レベルの可能性があるため、先頭問題のメタを使う
+        let first = quizzes.first
+        return QuizSession(
+            mode: .bookmarks,
+            level: first?.level ?? .silver,
+            version: first?.examVersion ?? .se17,
+            quizzes: quizzes,
+            customTitle: "保存済み \(quizzes.count)問"
         )
     }
 }

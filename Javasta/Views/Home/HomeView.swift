@@ -24,6 +24,12 @@ struct HomeView: View {
         }
     }
 
+    private var bookmarkedQuizzes: [Quiz] {
+        progress.bookmarkedQuizIds
+            .compactMap { QuestionBank.quiz(id: $0) }
+            .sorted { $0.id < $1.id }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -183,6 +189,58 @@ struct HomeView: View {
         }
     }
 
+    // MARK: Bookmarks section
+
+    private var bookmarksSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            SectionHeader(
+                icon: "bookmark.fill",
+                title: "保存済み",
+                tint: Color.jbAccent,
+                subtitle: "\(bookmarkedQuizzes.count)問"
+            )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.xs) {
+                    // 全保存問題を一括で解くボタン
+                    Button {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        activeSession = QuizSession.bookmarks(bookmarkedQuizzes.shuffled())
+                    } label: {
+                        VStack(spacing: Spacing.xs) {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(Color.jbAccent)
+                            Text("まとめて\n解く")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.jbAccent)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(width: 72, height: 100)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.md)
+                                .fill(Color.jbAccent.opacity(0.1))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.md)
+                                        .stroke(Color.jbAccent.opacity(0.4), lineWidth: 1.5)
+                                )
+                        )
+                    }
+                    .buttonStyle(.jbScaled)
+
+                    ForEach(bookmarkedQuizzes) { quiz in
+                        ReviewQueueCard(
+                            quiz: quiz,
+                            onTap: { activeSession = QuizSession.single(quiz) }
+                        )
+                    }
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
@@ -293,10 +351,11 @@ struct HomeView: View {
 
     private var visibleSectionOrder: [HomeSectionID] {
         HomeSectionID.fixedOrder.filter { id in
-            if case .reviewQueue = id {
-                return !reviewQueueQuizzes.isEmpty
+            switch id {
+            case .reviewQueue:  return !reviewQueueQuizzes.isEmpty
+            case .bookmarks:    return !bookmarkedQuizzes.isEmpty
+            default:            return true
             }
-            return true
         }
     }
 
@@ -311,6 +370,8 @@ struct HomeView: View {
             )
         case .reviewQueue:
             reviewQueueSection
+        case .bookmarks:
+            bookmarksSection
         case .practiceModes:
             practiceModesSection
         case .levelSection:
@@ -372,6 +433,7 @@ enum HomeSectionID: String, CaseIterable, Hashable {
     case commandCenter
     case heatmap
     case reviewQueue
+    case bookmarks
     case practiceModes
     case levelSection
 
@@ -379,6 +441,7 @@ enum HomeSectionID: String, CaseIterable, Hashable {
         .commandCenter,
         .heatmap,
         .reviewQueue,
+        .bookmarks,
         .practiceModes,
         .levelSection
     ]
@@ -388,6 +451,7 @@ enum HomeSectionID: String, CaseIterable, Hashable {
         case .commandCenter: return "ステータス"
         case .heatmap: return "学習マップ"
         case .reviewQueue: return "復習"
+        case .bookmarks: return "保存済み"
         case .practiceModes: return "練習を開始"
         case .levelSection: return "問題リスト"
         }

@@ -4,6 +4,7 @@ import UIKit
 struct QuizView: View {
     @State var vm: QuizViewModel
     @State private var activeIssueReport: QuizIssueReport?
+    @State private var progress = ProgressStore.shared
     var codeZoom: Double = 1.0
     /// セッションの最後の問題かどうか。ボタンアイコンとラベルの切り替えに使う。
     /// 文字列比較の代わりに明示的な Bool で管理することで、翻訳や文言変更の影響を受けない。
@@ -184,8 +185,7 @@ struct QuizView: View {
                 )
 
             actionButtons
-
-            issueReportButton
+            bookmarkAndReportRow
         }
         .padding(Spacing.md)
         .background(
@@ -239,27 +239,52 @@ struct QuizView: View {
         }
     }
 
-    private var issueReportButton: some View {
-        Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            activeIssueReport = QuizIssueReport(
-                quiz: vm.quiz,
-                selectedChoice: vm.selectedChoice
-            )
-        } label: {
-            HStack(spacing: 5) {
-                Image(systemName: "flag")
-                    .font(.system(size: 11, weight: .semibold))
-                Text("問題の不備を報告")
-                    .font(.system(size: 11, weight: .medium))
+    // MARK: Bookmark + report row
+
+    private var bookmarkAndReportRow: some View {
+        HStack {
+            // ブックマーク切り替え
+            let isBookmarked = progress.bookmarkedQuizIds.contains(vm.quiz.id)
+            Button {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                progress.toggleBookmark(quizId: vm.quiz.id)
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(isBookmarked ? "保存済み" : "保存")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundStyle(isBookmarked ? Color.jbAccent : Color.jbSubtext)
+                .contentTransition(.symbolEffect(.replace))
             }
-            .foregroundStyle(Color.jbSubtext)
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            .padding(.top, 2)
+            .buttonStyle(.plain)
+            .accessibilityLabel(isBookmarked ? "ブックマーク解除" : "ブックマーク追加")
+            .accessibilityIdentifier("quiz-bookmark")
+
+            Spacer()
+
+            // 問題報告
+            Button {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                activeIssueReport = QuizIssueReport(
+                    quiz: vm.quiz,
+                    selectedChoice: vm.selectedChoice
+                )
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "flag")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text("問題の不備を報告")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundStyle(Color.jbSubtext)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("問題の不備を報告")
+            .accessibilityIdentifier("quiz-report-issue")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("問題の不備を報告")
-        .accessibilityIdentifier("quiz-report-issue")
+        .padding(.top, 2)
     }
 
     private var explanationTraceStatus: ExplanationTraceStatus {
