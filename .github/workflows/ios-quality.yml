@@ -8,28 +8,42 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    runs-on: macos-14        # Xcode 15 / iOS 17 シミュレータ同梱
     timeout-minutes: 45
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show Xcode
+      - name: Show Xcode & available runtimes
         run: |
           xcodebuild -version
-          xcodebuild -showsdks
+          xcrun simctl list runtimes
 
       - name: Select Simulator
         run: |
           set -euo pipefail
-          SIMULATOR_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ { print $2; exit }')"
-          if [ -z "$SIMULATOR_ID" ]; then
-            echo "No available iPhone simulator found" >&2
-            exit 1
-          fi
-          echo "SIMULATOR_ID=$SIMULATOR_ID" >> "$GITHUB_ENV"
-          echo "Using simulator $SIMULATOR_ID"
+
+          # JSON で "available" かつ "iPhone" なデバイスを取得
+          SIMULATOR_ID="$(
+            xcrun simctl list devices available --json \
+            | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for runtime, devices in data['devices'].items():
+    if 'iOS' not in runtime:
+        continue
+    for d in devices:
+        if d.get('isAvailable') and 'iPhone' in d['name']:
+            print(d['udid'])
+            sys.exit(0)
+sys.exit(1)
+"
+          )"
+
+          echo "SIMULATOR_ID=${SIMULATOR_ID}" >> "${GITHUB_ENV}"
+          echo "Using simulator: ${SIMULATOR_ID}"
+          xcrun simctl boot "${SIMULATOR_ID}" 2>/dev/null || true
 
       - name: Build
         run: |
