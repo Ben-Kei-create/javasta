@@ -1,8 +1,8 @@
-import XCTest
+import Testing
 @testable import Javasta
 
-final class ProgressStoreTests: XCTestCase {
-    func testAnswerHistoryAndReviewQueuePersist() {
+@Suite("進捗ストア") struct ProgressStoreTests {
+    @Test("回答履歴と復習キューが永続化されること") func testAnswerHistoryAndReviewQueuePersist() {
         let defaults = makeIsolatedDefaults()
         let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!
         let wrongChoice = quiz.choices.first { !$0.correct }!
@@ -11,28 +11,28 @@ final class ProgressStoreTests: XCTestCase {
         let store = ProgressStore(defaults: defaults)
         store.recordAnswer(quiz: quiz, choice: wrongChoice, elapsedSeconds: 42)
 
-        XCTAssertEqual(store.totalAnswered, 1)
-        XCTAssertEqual(store.totalCorrect, 0)
-        XCTAssertEqual(store.reviewQueueQuizIds, [quiz.id])
-        XCTAssertEqual(store.stats(for: quiz.id).attempts, 1)
-        XCTAssertTrue(store.stats(for: quiz.id).needsReview)
+        #expect(store.totalAnswered == 1)
+        #expect(store.totalCorrect == 0)
+        #expect(store.reviewQueueQuizIds == [quiz.id])
+        #expect(store.stats(for: quiz.id).attempts == 1)
+        #expect(store.stats(for: quiz.id).needsReview)
 
         let reloaded = ProgressStore(defaults: defaults)
-        XCTAssertEqual(reloaded.totalAnswered, 1)
-        XCTAssertEqual(reloaded.totalCorrect, 0)
-        XCTAssertEqual(reloaded.reviewQueueQuizIds, [quiz.id])
-        XCTAssertEqual(reloaded.answerHistory.first?.elapsedSeconds, 42)
+        #expect(reloaded.totalAnswered == 1)
+        #expect(reloaded.totalCorrect == 0)
+        #expect(reloaded.reviewQueueQuizIds == [quiz.id])
+        #expect(reloaded.answerHistory.first?.elapsedSeconds == 42)
 
         reloaded.recordAnswer(quiz: quiz, choice: correctChoice, elapsedSeconds: 30)
 
-        XCTAssertEqual(reloaded.totalAnswered, 2)
-        XCTAssertEqual(reloaded.totalCorrect, 1)
-        XCTAssertFalse(reloaded.reviewQueueQuizIds.contains(quiz.id))
-        XCTAssertEqual(reloaded.stats(for: quiz.id).attempts, 2)
-        XCTAssertFalse(reloaded.stats(for: quiz.id).needsReview)
+        #expect(reloaded.totalAnswered == 2)
+        #expect(reloaded.totalCorrect == 1)
+        #expect(!reloaded.reviewQueueQuizIds.contains(quiz.id))
+        #expect(reloaded.stats(for: quiz.id).attempts == 2)
+        #expect(!reloaded.stats(for: quiz.id).needsReview)
     }
 
-    func testBookmarkAndDailyGoalPersist() {
+    @Test("ブックマークと1日目標が永続化されること") func testBookmarkAndDailyGoalPersist() {
         let defaults = makeIsolatedDefaults()
         let quiz = QuestionBank.quizzes(version: .se17, level: .gold).first!
 
@@ -40,18 +40,18 @@ final class ProgressStoreTests: XCTestCase {
         store.toggleBookmark(quizId: quiz.id)
         store.setDailyGoal(0)
 
-        XCTAssertTrue(store.bookmarkedQuizIds.contains(quiz.id))
-        XCTAssertEqual(store.dailyGoal, 1)
+        #expect(store.bookmarkedQuizIds.contains(quiz.id))
+        #expect(store.dailyGoal == 1)
 
         let reloaded = ProgressStore(defaults: defaults)
-        XCTAssertTrue(reloaded.bookmarkedQuizIds.contains(quiz.id))
-        XCTAssertEqual(reloaded.dailyGoal, 1)
+        #expect(reloaded.bookmarkedQuizIds.contains(quiz.id))
+        #expect(reloaded.dailyGoal == 1)
 
         reloaded.toggleBookmark(quizId: quiz.id)
-        XCTAssertFalse(reloaded.bookmarkedQuizIds.contains(quiz.id))
+        #expect(!reloaded.bookmarkedQuizIds.contains(quiz.id))
     }
 
-    func testResetAllClearsProgressButKeepsDailyGoalSetting() {
+    @Test("全リセットが進捗をクリアし1日目標設定は保持されること") func testResetAllClearsProgressButKeepsDailyGoalSetting() {
         let defaults = makeIsolatedDefaults()
         let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!
         let wrongChoice = quiz.choices.first { !$0.correct }!
@@ -63,26 +63,26 @@ final class ProgressStoreTests: XCTestCase {
 
         store.resetAll()
 
-        XCTAssertEqual(store.totalAnswered, 0)
-        XCTAssertEqual(store.totalCorrect, 0)
-        XCTAssertEqual(store.todayAnswered, 0)
-        XCTAssertTrue(store.answerHistory.isEmpty)
-        XCTAssertTrue(store.reviewQueueQuizIds.isEmpty)
-        XCTAssertTrue(store.bookmarkedQuizIds.isEmpty)
-        XCTAssertEqual(store.dailyGoal, 20)
+        #expect(store.totalAnswered == 0)
+        #expect(store.totalCorrect == 0)
+        #expect(store.todayAnswered == 0)
+        #expect(store.answerHistory.isEmpty)
+        #expect(store.reviewQueueQuizIds.isEmpty)
+        #expect(store.bookmarkedQuizIds.isEmpty)
+        #expect(store.dailyGoal == 20)
 
         let reloaded = ProgressStore(defaults: defaults)
-        XCTAssertEqual(reloaded.totalAnswered, 0)
-        XCTAssertTrue(reloaded.answerHistory.isEmpty)
-        XCTAssertEqual(reloaded.dailyGoal, 20)
+        #expect(reloaded.totalAnswered == 0)
+        #expect(reloaded.answerHistory.isEmpty)
+        #expect(reloaded.dailyGoal == 20)
     }
 
-    func testAccuracyPercentIsZeroWhenNoAnswerRecorded() {
+    @Test("回答なしの場合に正答率がゼロであること") func testAccuracyPercentIsZeroWhenNoAnswerRecorded() {
         let store = ProgressStore(defaults: makeIsolatedDefaults())
-        XCTAssertEqual(store.accuracyPercent, 0)
+        #expect(store.accuracyPercent == 0)
     }
 
-    func testAccuracyPercentIsHundredWhenAllCorrect() {
+    @Test("全問正解の場合に正答率が100%であること") func testAccuracyPercentIsHundredWhenAllCorrect() {
         let defaults = makeIsolatedDefaults()
         let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!
         let correctChoice = quiz.choices.first { $0.correct }!
@@ -90,10 +90,10 @@ final class ProgressStoreTests: XCTestCase {
         let store = ProgressStore(defaults: defaults)
         store.recordAnswer(quiz: quiz, choice: correctChoice, elapsedSeconds: 10)
 
-        XCTAssertEqual(store.accuracyPercent, 100)
+        #expect(store.accuracyPercent == 100)
     }
 
-    func testWeakTagsSurfaceMostMissedTopics() {
+    @Test("苦手タグが最も多く誤答したトピックを返すこと") func testWeakTagsSurfaceMostMissedTopics() {
         let defaults = makeIsolatedDefaults()
         let store = ProgressStore(defaults: defaults)
 
@@ -108,15 +108,15 @@ final class ProgressStoreTests: XCTestCase {
 
         let weak = store.weakTags(limit: 5)
         // 誤答があるので必ず1件以上
-        XCTAssertFalse(weak.isEmpty)
+        #expect(!weak.isEmpty)
         // ミス率降順になっていること
         let missRates = weak.map(\.missRate)
-        XCTAssertEqual(missRates, missRates.sorted(by: >))
+        #expect(missRates == missRates.sorted(by: >))
         // 全エントリのmissRate > 0
-        XCTAssertTrue(weak.allSatisfy { $0.misses > 0 })
+        #expect(weak.allSatisfy { $0.misses > 0 })
     }
 
-    func testMockExamAttemptPersistsAndPrunesOldestOver10() {
+    @Test("模試記録が永続化され10件を超えたら古いものが削除されること") func testMockExamAttemptPersistsAndPrunesOldestOver10() {
         let defaults = makeIsolatedDefaults()
         let store = ProgressStore(defaults: defaults)
         let quizzes = Array(QuestionBank.quizzes(version: .se17, level: .gold).prefix(5))
@@ -153,13 +153,13 @@ final class ProgressStoreTests: XCTestCase {
         }
 
         let stored = store.mockExamAttempts(version: .se17, level: .gold, variant: .full)
-        XCTAssertEqual(stored.count, 10, "最大10件でプルーニングされる")
+        #expect(stored.count == 10, "最大10件でプルーニングされる")
         // 古い順で並んでいることを確認
         let dates = stored.map(\.completedAt)
-        XCTAssertEqual(dates, dates.sorted())
+        #expect(dates == dates.sorted())
     }
 
-    func testReviewQueueHasNoDuplicatesAfterRepeatedWrongAnswers() {
+    @Test("繰り返し誤答後に復習キューに重複がないこと") func testReviewQueueHasNoDuplicatesAfterRepeatedWrongAnswers() {
         let defaults = makeIsolatedDefaults()
         let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!
         let wrong = quiz.choices.first { !$0.correct }!
@@ -171,16 +171,13 @@ final class ProgressStoreTests: XCTestCase {
         store.recordAnswer(quiz: quiz, choice: wrong, elapsedSeconds: 5)
 
         let occurrences = store.reviewQueueQuizIds.filter { $0 == quiz.id }
-        XCTAssertEqual(occurrences.count, 1, "同じ問題IDは復習キューに重複しない")
+        #expect(occurrences.count == 1, "同じ問題IDは復習キューに重複しない")
     }
 
     private func makeIsolatedDefaults() -> UserDefaults {
         let suiteName = "ProgressStoreTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
-        addTeardownBlock {
-            defaults.removePersistentDomain(forName: suiteName)
-        }
         return defaults
     }
 }
