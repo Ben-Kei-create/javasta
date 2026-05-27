@@ -44,7 +44,6 @@ struct ContentView: View {
                 }
         }
         .tint(Color.jbAccent)
-        .preferredColorScheme(.dark)  // ← Step 3 でここは残す（rootで管理するので後で消える）
     }
 
     private var iPadLayout: some View {

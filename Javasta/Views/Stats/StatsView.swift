@@ -32,7 +32,7 @@ struct StatsView: View {
                     }
                     .padding(Spacing.md)
                     .frame(maxWidth: hSizeClass == .regular ? 768 : .infinity)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             .navigationTitle("統計")
