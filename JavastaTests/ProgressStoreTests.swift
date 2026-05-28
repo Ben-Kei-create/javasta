@@ -1,7 +1,7 @@
 import Testing
 @testable import Javasta
 
-@Suite("進捗ストア") struct ProgressStoreTests {
+@MainActor @Suite("進捗ストア") struct ProgressStoreTests {
     @Test("回答履歴と復習キューが永続化されること") func testAnswerHistoryAndReviewQueuePersist() {
         let defaults = makeIsolatedDefaults()
         let quiz = QuestionBank.quizzes(version: .se17, level: .silver).first!

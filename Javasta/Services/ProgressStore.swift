@@ -4,7 +4,7 @@ import Observation
 /// 学習進捗の永続化ストア（UserDefaultsベース）。
 /// WidgetKit からもデータを読めるよう App Group を使用する。
 /// App Group ID: group.com.fumiakiMogi777.Javasta
-@Observable
+@MainActor @Observable
 final class ProgressStore {
     static let shared = ProgressStore()
 
@@ -222,6 +222,24 @@ final class ProgressStore {
             correct: records.filter(\.correct).count,
             latest: records.max { $0.answeredAt < $1.answeredAt }
         )
+    }
+
+    /// 複数クイズの stats を一括取得（O(n) 一回スキャン）。
+    /// weak() / mistakes() のソート内で stats(for:) を個別に呼ぶ O(n²) を回避する。
+    func statsIndex(for quizIds: [String]) -> [String: QuizAttemptStats] {
+        let idSet = Set(quizIds)
+        var grouped: [String: [QuizAnswerRecord]] = [:]
+        for record in answerHistory where idSet.contains(record.quizId) {
+            grouped[record.quizId, default: []].append(record)
+        }
+        return Dictionary(uniqueKeysWithValues: quizIds.map { id in
+            let records = grouped[id] ?? []
+            return (id, QuizAttemptStats(
+                attempts: records.count,
+                correct: records.filter(\.correct).count,
+                latest: records.max { $0.answeredAt < $1.answeredAt }
+            ))
+        })
     }
 
     func weakTags(limit: Int = 5) -> [WeakTagSummary] {

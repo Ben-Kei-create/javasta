@@ -32,7 +32,7 @@ extension Explanation {
         )
     }()
 
-    private static var goldSE11ReusableSourceExplanations: [String: Explanation] {
+    private static let goldSE11ReusableSourceExplanations: [String: Explanation] =
         goldSE11CoreSourceExplanations
             .merging(generatedAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(streamApiAuthoredSamples, uniquingKeysWith: { _, new in new })
@@ -43,13 +43,10 @@ extension Explanation {
             .merging(goldNonLambdaAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldNonLambdaFurtherAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
-    }
 
-    private static var goldSE11CoreSourceExplanations: [String: Explanation] {
-        [
-            goldOptional004Explanation.id: goldOptional004Explanation
-        ]
-    }
+    private static let goldSE11CoreSourceExplanations: [String: Explanation] = [
+        goldOptional004Explanation.id: goldOptional004Explanation
+    ]
 
     private static func retargetedSE11Explanation(
         _ source: Explanation,

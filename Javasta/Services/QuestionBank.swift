@@ -804,11 +804,13 @@ enum QuestionBank {
             return mistakes(pool, progress: progress, limit: limit)
         }
         let weakTagSet = Set(weakTags)
+        // statsIndex: O(n) 一括構築で以降の sorted を O(1) lookup に
+        let statsIndex = progress.statsIndex(for: pool.map(\.id))
         return pool
             .filter { quiz in quiz.tags.contains(where: weakTagSet.contains) }
             .sorted { lhs, rhs in
-                let l = progress.stats(for: lhs.id)
-                let r = progress.stats(for: rhs.id)
+                let l = statsIndex[lhs.id] ?? .empty
+                let r = statsIndex[rhs.id] ?? .empty
                 if l.accuracy == r.accuracy { return lhs.id < rhs.id }
                 return l.accuracy < r.accuracy
             }
@@ -817,11 +819,12 @@ enum QuestionBank {
     }
 
     private static func mistakes(_ pool: [Quiz], progress: ProgressStore, limit: Int) -> [Quiz] {
-        pool
-            .filter { progress.stats(for: $0.id).needsReview }
+        let statsIndex = progress.statsIndex(for: pool.map(\.id))
+        return pool
+            .filter { statsIndex[$0.id]?.needsReview ?? false }
             .sorted { lhs, rhs in
-                let lDate = progress.stats(for: lhs.id).latest?.answeredAt ?? .distantPast
-                let rDate = progress.stats(for: rhs.id).latest?.answeredAt ?? .distantPast
+                let lDate = statsIndex[lhs.id]?.latest?.answeredAt ?? .distantPast
+                let rDate = statsIndex[rhs.id]?.latest?.answeredAt ?? .distantPast
                 return lDate < rDate
             }
             .prefix(limit)

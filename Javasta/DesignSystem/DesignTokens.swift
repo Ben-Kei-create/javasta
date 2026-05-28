@@ -79,5 +79,5 @@ struct JBScaledButtonStyle: ButtonStyle {
 }
 
 extension ButtonStyle where Self == JBScaledButtonStyle {
-    static var jbScaled: JBScaledButtonStyle { JBScaledButtonStyle() }
+    static let jbScaled = JBScaledButtonStyle()
 }

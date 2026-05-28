@@ -1,13 +1,11 @@
 import Foundation
 
 enum JavastaShare {
-    static var appInviteText: String {
-        """
+    static let appInviteText: String = """
 JavastaでJava Silver / Goldの対策中。
 コードの流れを追いながら、出力問題と模擬試験を練習できます。
 \(AppConfig.appStoreURL.absoluteString)
 """
-    }
 
     static func practiceResult(
         level: JavaLevel,

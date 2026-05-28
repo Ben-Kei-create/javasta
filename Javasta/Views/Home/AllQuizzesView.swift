@@ -7,22 +7,18 @@ private enum AllQuizzesLayout {
     static let expandAnimation = Animation.snappy(duration: 0.24, extraBounce: 0.04)
     static let stateAnimation = Animation.snappy(duration: 0.22, extraBounce: 0.03)
 
-    static var expandTransition: AnyTransition {
-        .asymmetric(
-            insertion: .opacity
-                .combined(with: .move(edge: .top))
-                .combined(with: .scale(scale: 0.985, anchor: .top)),
-            removal: .opacity
-                .combined(with: .scale(scale: 0.99, anchor: .top))
-        )
-    }
+    static let expandTransition: AnyTransition = .asymmetric(
+        insertion: .opacity
+            .combined(with: .move(edge: .top))
+            .combined(with: .scale(scale: 0.985, anchor: .top)),
+        removal: .opacity
+            .combined(with: .scale(scale: 0.99, anchor: .top))
+    )
 
-    static var stateTransition: AnyTransition {
-        .asymmetric(
-            insertion: .opacity.combined(with: .scale(scale: 0.985)),
-            removal: .opacity.combined(with: .scale(scale: 0.995))
-        )
-    }
+    static let stateTransition: AnyTransition = .asymmetric(
+        insertion: .opacity.combined(with: .scale(scale: 0.985)),
+        removal: .opacity.combined(with: .scale(scale: 0.995))
+    )
 }
 
 struct AllQuizzesView: View {

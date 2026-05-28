@@ -322,13 +322,25 @@ enum ExamObjectiveCatalog {
         ),
     ]
 
-    static func objectives(for version: JavaExamVersion, level: JavaLevel) -> [ExamObjective] {
-        all
-            .filter { $0.version == version && $0.level == level }
-            .sorted {
-                if $0.priority == $1.priority { return $0.title < $1.title }
-                return $0.priority < $1.priority
+    // (version, level) ペアごとにキャッシュ。filter+sort を毎回実行しない
+    private static let objectivesCache: [String: [ExamObjective]] = {
+        var cache: [String: [ExamObjective]] = [:]
+        for version in JavaExamVersion.allCases {
+            for level in JavaLevel.allCases {
+                let key = "\(version.rawValue)-\(level.rawValue)"
+                cache[key] = all
+                    .filter { $0.version == version && $0.level == level }
+                    .sorted {
+                        if $0.priority == $1.priority { return $0.title < $1.title }
+                        return $0.priority < $1.priority
+                    }
             }
+        }
+        return cache
+    }()
+
+    static func objectives(for version: JavaExamVersion, level: JavaLevel) -> [ExamObjective] {
+        objectivesCache["\(version.rawValue)-\(level.rawValue)"] ?? []
     }
 }
 
@@ -469,6 +481,8 @@ struct QuizAttemptStats {
     let attempts: Int
     let correct: Int
     let latest: QuizAnswerRecord?
+
+    static let empty = QuizAttemptStats(attempts: 0, correct: 0, latest: nil)
 
     var accuracy: Double {
         guard attempts > 0 else { return 0 }

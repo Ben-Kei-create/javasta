@@ -74,7 +74,8 @@ struct HomeView: View {
         .onChange(of: progress.streakDays) { _, newStreak in
             // 連続7日・30日達成時にレビューを依頼
             if newStreak == 7 || newStreak == 30 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(0.8))
                     requestReview()
                 }
             }
@@ -527,10 +528,10 @@ private struct HomeTimestampToggle: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
             let isExamToday = Self.isSameDay(examDate, timeline.date)
-            let hasExam = examDate != nil && (examDate! > timeline.date) && !isExamToday
+            let hasExam = examDate.map { $0 > timeline.date } ?? false && !isExamToday
             let displayText: String = {
                 if isExamToday { return "受験頑張ってください！" }
-                if hasExam { return Self.countdown(from: timeline.date, to: examDate!) }
+                if let examDate, hasExam { return Self.countdown(from: timeline.date, to: examDate) }
                 return Self.timestamp(timeline.date)
             }()
             Button(action: {
@@ -953,7 +954,7 @@ struct QuizSheetView: View {
     }
 
     init(session: QuizSession) {
-        let firstQuiz = session.quizzes.first ?? Quiz.samples[0]
+        let firstQuiz = session.quizzes.first ?? Quiz.samples.first!
         self._session = State(initialValue: session)
         self._currentQuiz = State(initialValue: firstQuiz)
         self._quizVM = State(wrappedValue: QuizViewModel(quiz: firstQuiz))
@@ -1202,7 +1203,8 @@ private struct QuizSessionResultView: View {
         .onAppear {
             // 合格 + 累計30問以上回答で自然なタイミングにレビューを依頼
             if isPassing && progress.totalAnswered >= 30 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1.2))
                     requestReview()
                 }
             }
