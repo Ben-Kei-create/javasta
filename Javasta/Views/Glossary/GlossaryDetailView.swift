@@ -338,7 +338,7 @@ struct GlossaryDetailView: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             sectionLabel("関連する問題")
             ForEach(displayedTerm.relatedQuizIds, id: \.self) { id in
-                if let quiz = Quiz.samples.first(where: { $0.id == id }) {
+                if let quiz = QuestionBank.quiz(id: id) {
                     Button(action: { onSelectQuiz?(id) }) {
                         HStack(spacing: Spacing.sm) {
                             Image(systemName: "pencil.and.list.clipboard")

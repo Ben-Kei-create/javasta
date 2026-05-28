@@ -7,8 +7,11 @@ extension Lesson {
         boundedWildcards,
     ] + goldLearningExpansion + quickLessons
     
+    private static let sampleIndex: [String: Lesson] =
+        Dictionary(uniqueKeysWithValues: samples.map { ($0.id, $0) })
+
     static func sample(for id: String) -> Lesson? {
-        samples.first(where: { $0.id == id })
+        sampleIndex[id]
     }
     
     // MARK: - 深掘り教材 (Deep Dive)

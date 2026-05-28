@@ -564,7 +564,8 @@ private struct MockExamResultView: View {
         .onAppear {
             // 模擬試験合格時にレビューを依頼（最も達成感が高いタイミング）
             if attempt.isPassing {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(1.5))
                     requestReview()
                 }
             }
@@ -796,11 +797,15 @@ private struct MockExamResultView: View {
         }
     }
 
-    private static func dateText(_ date: Date) -> String {
+    private static let dateTextFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.dateFormat = "yyyy/MM/dd HH:mm"
-        return formatter.string(from: date)
+        return formatter
+    }()
+
+    private static func dateText(_ date: Date) -> String {
+        dateTextFormatter.string(from: date)
     }
 }
 

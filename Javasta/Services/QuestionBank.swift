@@ -803,8 +803,9 @@ enum QuestionBank {
         guard !weakTags.isEmpty else {
             return mistakes(pool, progress: progress, limit: limit)
         }
+        let weakTagSet = Set(weakTags)
         return pool
-            .filter { quiz in quiz.tags.contains(where: weakTags.contains) }
+            .filter { quiz in quiz.tags.contains(where: weakTagSet.contains) }
             .sorted { lhs, rhs in
                 let l = progress.stats(for: lhs.id)
                 let r = progress.stats(for: rhs.id)

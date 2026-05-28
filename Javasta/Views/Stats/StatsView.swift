@@ -11,6 +11,34 @@ struct StatsView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var showPaywall = false
 
+    // MARK: - Cached DateFormatters
+    private static let parseDateFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return fmt
+    }()
+
+    private static let monthLabelFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ja_JP")
+        fmt.dateFormat = "M月"
+        return fmt
+    }()
+
+    private static let weeklyAccuracyFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ja_JP")
+        fmt.dateFormat = "M/d"
+        return fmt
+    }()
+
+    private static let mockExamScoreFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "ja_JP")
+        fmt.dateFormat = "M/d"
+        return fmt
+    }()
+
     private var level: JavaLevel {
         JavaLevel(rawValue: selectedLevelRaw) ?? .silver
     }
@@ -226,17 +254,12 @@ struct StatsView: View {
     }
 
     private func parseDate(_ key: String) -> Date? {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        return fmt.date(from: key)
+        Self.parseDateFormatter.date(from: key)
     }
 
     private func monthLabel(_ date: Date?) -> String {
         guard let d = date else { return "" }
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "ja_JP")
-        fmt.dateFormat = "M月"
-        return fmt.string(from: d)
+        return Self.monthLabelFormatter.string(from: d)
     }
 
     // MARK: - Weekly accuracy chart
@@ -332,11 +355,8 @@ struct StatsView: View {
             let accuracy = inWeek.isEmpty ? 0.0
                 : Double(inWeek.filter(\.correct).count) / Double(inWeek.count) * 100
 
-            let fmt = DateFormatter()
-            fmt.locale = Locale(identifier: "ja_JP")
-            fmt.dateFormat = "M/d"
             return WeeklyAccuracyPoint(
-                weekLabel: fmt.string(from: weekStart),
+                weekLabel: Self.weeklyAccuracyFormatter.string(from: weekStart),
                 accuracy: accuracy,
                 count: inWeek.count
             )
@@ -425,10 +445,6 @@ struct StatsView: View {
             .sorted { $0.completedAt < $1.completedAt }
             .suffix(10)  // 直近10回
 
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "ja_JP")
-        fmt.dateFormat = "M/d"
-
         return VStack(alignment: .leading, spacing: Spacing.sm) {
             chartHeader(title: "模試スコア推移", subtitle: "直近10回")
 
@@ -438,7 +454,7 @@ struct StatsView: View {
                 let passingLine = attempts.first.map { Double($0.passingScorePercent) } ?? 65.0
                 let points: [(label: String, score: Double, passing: Double)] = attempts.map { a in
                     let score = Double(a.correctCount) / Double(a.questionCount) * 100
-                    return (fmt.string(from: a.completedAt), score, Double(a.passingScorePercent))
+                    return (Self.mockExamScoreFormatter.string(from: a.completedAt), score, Double(a.passingScorePercent))
                 }
 
                 Chart {

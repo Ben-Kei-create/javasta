@@ -25,21 +25,21 @@ struct ActivityHeatmapView: View {
         examDateTimestamp > 0 ? Date(timeIntervalSince1970: examDateTimestamp) : nil
     }
 
-    private static func todayKey() -> String {
+    private static let keyFormatter: DateFormatter = {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
         fmt.calendar = Calendar(identifier: .gregorian)
         fmt.timeZone = TimeZone.current
-        return fmt.string(from: Date())
+        return fmt
+    }()
+
+    private static func todayKey() -> String {
+        keyFormatter.string(from: Date())
     }
 
     private var examDateKey: String? {
         guard let examDate else { return nil }
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        fmt.calendar = Calendar(identifier: .gregorian)
-        fmt.timeZone = TimeZone.current
-        return fmt.string(from: examDate)
+        return Self.keyFormatter.string(from: examDate)
     }
 
     private var daysUntilExam: Int? {

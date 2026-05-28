@@ -6,20 +6,16 @@ extension Explanation {
             return explanation
         }
 
-        if let quiz = Quiz.samples.first(where: { $0.explanationRef == ref }) {
+        if let quiz = quizByExplanationRef[ref] {
             return quickTrace(for: quiz, ref: ref)
         }
 
         return nil
     }
 
-    static var authoredSampleIds: Set<String> {
-        Set(authoredSamples.keys)
-    }
+    static let authoredSampleIds: Set<String> = Set(authoredSamples.keys)
 
-    static var allSampleIds: [String] {
-        authoredSamples.keys.sorted()
-    }
+    static let allSampleIds: [String] = authoredSamples.keys.sorted()
 
     static func isAuthored(ref: String) -> Bool {
         authoredSamples[ref] != nil
@@ -28,6 +24,10 @@ extension Explanation {
     // O(1) lookup: Quiz.samples を毎回線形検索する代わりにSet化して参照
     private static let quizExplanationRefSet: Set<String> =
         Set(Quiz.samples.map { $0.explanationRef })
+
+    // O(1) lookup: explanationRef → Quiz (フォールバック用)
+    private static let quizByExplanationRef: [String: Quiz] =
+        Dictionary(Quiz.samples.map { ($0.explanationRef, $0) }, uniquingKeysWith: { first, _ in first })
 
     static func traceStatus(for ref: String) -> ExplanationTraceStatus {
         if authoredSamples[ref] != nil {

@@ -361,7 +361,7 @@ struct LessonDetailView: View {
                 .foregroundStyle(Color.jbSubtext)
 
             ForEach(lesson.relatedQuizIds, id: \.self) { quizId in
-                if let quiz = Quiz.samples.first(where: { $0.id == quizId }) {
+                if let quiz = QuestionBank.quiz(id: quizId) {
                     Button(action: { onSelectQuiz(quizId) }) {
                         HStack(spacing: Spacing.sm) {
                             Image(systemName: "pencil.and.list.clipboard")

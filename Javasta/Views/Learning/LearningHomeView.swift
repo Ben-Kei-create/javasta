@@ -81,7 +81,7 @@ struct LearningHomeView: View {
     private func handleSheetDismiss() {
         guard let id = pendingQuizId else { return }
         pendingQuizId = nil
-        if let quiz = Quiz.samples.first(where: { $0.id == id }) {
+        if let quiz = QuestionBank.quiz(id: id) {
             activeQuiz = quiz
         }
     }
