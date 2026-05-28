@@ -1,0 +1,50 @@
+{
+  "identifier" : "com.fumiakiMogi777.Javasta.storekit",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "980",
+      "familySharable" : false,
+      "groupID" : "",
+      "internalID" : "com.fumiakiMogi777.Javasta.premium",
+      "introductoryOffer" : null,
+      "localizations" : [
+        {
+          "description" : "Gold レベル全解放 + Silver 模擬試験",
+          "displayName" : "Javasta プレミアム",
+          "locale" : "ja_JP"
+        }
+      ],
+      "productID" : "com.fumiakiMogi777.Javasta.premium",
+      "referenceName" : "Javasta Premium",
+      "subscriptionGroupID" : "",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_continueTransactions" : false,
+    "_customerInfoCacheTime" : 1,
+    "_customReceiptCreation" : false,
+    "_deletedOriginalApplicationVersions" : [],
+    "_enableEntitlementRevocation" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "ja_JP",
+    "_randomizeSimulatedNetworkErrors" : false,
+    "_simulatesAskToBuyInSandbox" : false,
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      }
+    ],
+    "_timeRate" : 1
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
