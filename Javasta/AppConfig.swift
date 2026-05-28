@@ -15,7 +15,7 @@ enum AppConfig {
 
     /// App Store numeric identifier (replace with actual ID after first submission).
     /// Used to build the review URL and the invite share-text.
-    static let appStoreID = "0000000000"          // TODO: replace after first App Store upload
+    static let appStoreID = "6774210909"
 
     /// Deep-link to the App Store product page.
     static let appStoreURL: URL = URL(string: "https://apps.apple.com/app/id\(appStoreID)")!
