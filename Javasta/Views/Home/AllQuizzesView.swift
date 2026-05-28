@@ -317,7 +317,7 @@ private struct MockExamCard: View {
                 .contentTransition(.symbolEffect(.replace))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(isReady ? "タップしてスタート" : "模擬試験")
+                Text(isReady ? "模擬試験開始" : "模擬試験")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(isReady ? Color.jbAccent : Color.jbText)
                     .contentTransition(.opacity)
@@ -360,7 +360,6 @@ private struct MockExamCard: View {
                             selectedVariant = variant
                         }
                     }
-                    .allowsHitTesting(!isReady)
                     .accessibilityLabel("\(variant.displayName) \(questionCount)問")
                 }
             }
