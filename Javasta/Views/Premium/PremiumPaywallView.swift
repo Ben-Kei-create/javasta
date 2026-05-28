@@ -116,17 +116,13 @@ struct PremiumPaywallView: View {
     private var purchaseSection: some View {
         VStack(spacing: Spacing.sm) {
             // Price display
-            if let product = purchase.product {
-                Text(product.displayPrice)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(purchase.product?.displayPrice ?? "¥900")
                     .font(.system(size: 36, weight: .heavy).monospacedDigit())
                     .foregroundStyle(Color.jbAccent)
-                + Text("  買い切り")
+                Text("買い切り")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.jbSubtext)
-            } else {
-                Text("¥900  買い切り")
-                    .font(.system(size: 36, weight: .heavy).monospacedDigit())
-                    .foregroundStyle(Color.jbAccent)
             }
 
             // Purchase button
