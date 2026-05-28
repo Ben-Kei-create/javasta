@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 /// 学習進捗の永続化ストア（UserDefaultsベース）。
-@Observable
+@MainActor @Observable
 final class ProgressStore {
     static let shared = ProgressStore()
 

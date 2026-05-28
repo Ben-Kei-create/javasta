@@ -18,14 +18,10 @@ enum AppConfig {
     static let appStoreID = "0000000000"          // TODO: replace after first App Store upload
 
     /// Deep-link to the App Store product page.
-    static var appStoreURL: URL {
-        URL(string: "https://apps.apple.com/app/id\(appStoreID)")!
-    }
+    static let appStoreURL: URL = URL(string: "https://apps.apple.com/app/id\(appStoreID)")!
 
     /// Deep-link directly to the "Write a Review" sheet.
-    static var appStoreReviewURL: URL {
-        URL(string: "https://apps.apple.com/app/id\(appStoreID)?action=write-review")!
-    }
+    static let appStoreReviewURL: URL = URL(string: "https://apps.apple.com/app/id\(appStoreID)?action=write-review")!
 
     // MARK: - Legal / Privacy
 
