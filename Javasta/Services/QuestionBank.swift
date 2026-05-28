@@ -74,19 +74,25 @@ struct ContentQualityIssue: Identifiable {
 }
 
 enum QuestionBank {
-    static var practiceQuizzes: [Quiz] {
-        Quiz.samples
-            .filter { !$0.isMockExamOnly }
-            .map { $0.contextualizedForPresentation() }
-    }
-    static var mockExamOnlyQuizzes: [Quiz] { QuizExpansion.mockExamOnlyExpansion.map { $0.contextualizedForPresentation() } }
-    static var allQuizzes: [Quiz] {
-        deduplicated(practiceQuizzes + mockExamOnlyQuizzes)
-    }
-    static var lessons: [Lesson] { Lesson.samples }
+    // static let: 起動時に一度だけ計算してキャッシュ。
+    // 問題数が増えても毎回フィルタ・map・dedup しない。
+    // Quiz.samples は既に contextualizedForPresentation() 済み
+    static let practiceQuizzes: [Quiz] =
+        Quiz.samples.filter { !$0.isMockExamOnly }
+
+    static let mockExamOnlyQuizzes: [Quiz] =
+        QuizExpansion.mockExamOnlyExpansion.map { $0.contextualizedForPresentation() }
+
+    static let allQuizzes: [Quiz] = deduplicated(practiceQuizzes + mockExamOnlyQuizzes)
+
+    static let lessons: [Lesson] = Lesson.samples
+
+    // O(1) id → Quiz 検索用インデックス
+    private static let quizIndex: [String: Quiz] =
+        Dictionary(allQuizzes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
     static func quiz(id: String) -> Quiz? {
-        allQuizzes.first { $0.id == id }
+        quizIndex[id]
     }
 
     static func quizzes(

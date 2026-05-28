@@ -25,19 +25,23 @@ extension Explanation {
         authoredSamples[ref] != nil
     }
 
+    // O(1) lookup: Quiz.samples を毎回線形検索する代わりにSet化して参照
+    private static let quizExplanationRefSet: Set<String> =
+        Set(Quiz.samples.map { $0.explanationRef })
+
     static func traceStatus(for ref: String) -> ExplanationTraceStatus {
         if authoredSamples[ref] != nil {
             return .authored
         }
 
-        if Quiz.samples.contains(where: { $0.explanationRef == ref }) {
+        if quizExplanationRefSet.contains(ref) {
             return .placeholder
         }
 
         return .missing
     }
 
-    private static var authoredSamples: [String: Explanation] {
+    private static let authoredSamples: [String: Explanation] = {
         let base: [String: Explanation] = [
             goldLambdaEffectivelyFinal001Explanation.id: goldLambdaEffectivelyFinal001Explanation,
             silverInheritanceException001Explanation.id: silverInheritanceException001Explanation,
@@ -107,9 +111,9 @@ extension Explanation {
             .merging(mockCenturyAuthoredSamples, uniquingKeysWith: { _, new in new })
             .merging(goldMockTopupAuthoredSamplesResolved, uniquingKeysWith: { _, new in new })
             .merging(auditBackfillSamples, uniquingKeysWith: { existing, _ in existing })
-    }
+    }()
 
-    private static var goldMockTopupAuthoredSamplesResolved: [String: Explanation] {
+    private static let goldMockTopupAuthoredSamplesResolved: [String: Explanation] = {
         Dictionary(
             uniqueKeysWithValues: GoldMockTopupQuestionData.specs.map { spec in
                 (
@@ -139,15 +143,15 @@ extension Explanation {
                 )
             }
         )
-    }
+    }()
 
-    static var auditBackfillSamples: [String: Explanation] {
+    static let auditBackfillSamples: [String: Explanation] = {
         var samples: [String: Explanation] = [:]
         for quiz in Quiz.samples where auditBackfillRefs.contains(quiz.explanationRef) {
             samples[quiz.explanationRef] = focusedBackfillTrace(for: quiz, ref: quiz.explanationRef)
         }
         return samples
-    }
+    }()
 
     private static let auditBackfillRefs: Set<String> = [
         "explain-gold-annotations-002",

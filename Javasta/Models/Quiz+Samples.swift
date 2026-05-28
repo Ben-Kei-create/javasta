@@ -88,6 +88,13 @@ extension Quiz {
         goldStream006,
         goldOptional004,
         goldConcurrency005,
+        // ── 問題を追加するには ──────────────────────────────────────────────
+        // 1. Quiz+XxxExpansion.swift を新規作成し QuizExpansion.xxxExpansion を定義
+        // 2. 下の + QuizExpansion.xxxExpansion を1行追加
+        // 3. 解説は Explanation+XxxExpansion.swift を新規作成し
+        //    Explanation+Samples.swift の authoredSamples クロージャ末尾に
+        //    .merging(xxxAuthoredSamples, uniquingKeysWith: { _, new in new }) を追加
+        // ────────────────────────────────────────────────────────────────────
         ] + generatedSilverQueue
             + generatedGoldQueue
             + QuizExpansion.goldExpansion
