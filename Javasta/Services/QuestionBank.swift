@@ -111,6 +111,7 @@ enum QuestionBank {
         mockExamPool(version: version, level: level).count
     }
 
+    @MainActor
     static func makeSession(
         mode: QuizPracticeMode,
         version: JavaExamVersion,
@@ -798,6 +799,7 @@ enum QuestionBank {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    @MainActor
     private static func weak(_ pool: [Quiz], progress: ProgressStore, limit: Int) -> [Quiz] {
         let weakTags = progress.weakTags(limit: 8).map(\.tag)
         guard !weakTags.isEmpty else {
@@ -818,6 +820,7 @@ enum QuestionBank {
             .map { $0 }
     }
 
+    @MainActor
     private static func mistakes(_ pool: [Quiz], progress: ProgressStore, limit: Int) -> [Quiz] {
         let statsIndex = progress.statsIndex(for: pool.map(\.id))
         return pool
@@ -831,6 +834,7 @@ enum QuestionBank {
             .map { $0 }
     }
 
+    @MainActor
     private static func unattempted(_ pool: [Quiz], progress: ProgressStore, limit: Int) -> [Quiz] {
         pool
             .filter { !progress.stats(for: $0.id).isAnswered }
