@@ -143,7 +143,7 @@ final class CloudSyncManager {
         Task { @MainActor [weak self] in
             let notifications = NotificationCenter.default.notifications(
                 named: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-                object: self?.kvs
+                object: nil as AnyObject?
             )
             for await _ in notifications {
                 self?.pullAndMerge()
