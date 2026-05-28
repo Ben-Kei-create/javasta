@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 struct ExplanationAuditView: View {
     @State private var selectedFilter: ExplanationAuditFilter = .needsWork
 
@@ -250,3 +251,4 @@ private extension ExplanationAuditIssue.Kind {
         ExplanationAuditView()
     }
 }
+#endif

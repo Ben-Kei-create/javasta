@@ -292,6 +292,7 @@ struct QuizView: View {
 
     @ViewBuilder
     private var traceStatusBadge: some View {
+#if DEBUG
         switch explanationTraceStatus {
         case .authored:
             EmptyView()
@@ -310,6 +311,7 @@ struct QuizView: View {
                 .padding(.vertical, 2)
                 .background(Capsule().fill(Color.jbError.opacity(0.14)))
         }
+#endif
     }
 }
 
