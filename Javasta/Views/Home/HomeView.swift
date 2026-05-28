@@ -4,7 +4,9 @@ import SwiftUI
 struct HomeView: View {
     @State private var activeSession: QuizSession?
     @State private var progress = ProgressStore.shared
+    @State private var purchase = PurchaseManager.shared
     @State private var showSettings = false
+    @State private var showPaywall = false
     @State private var showEmptySessionAlert = false
     @State private var emptySessionMessage = ""
     @State private var expandedMetric: HomeMetric = .accuracy
@@ -56,6 +58,9 @@ struct HomeView: View {
         }
         .sheet(item: $activeSession) { session in
             QuizSheetView(session: session)
+        }
+        .sheet(isPresented: $showPaywall) {
+            PremiumPaywallView()
         }
         .alert("開始できません", isPresented: $showEmptySessionAlert) {
             Button("OK", role: .cancel) {}
@@ -191,8 +196,10 @@ struct HomeView: View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
                 Button(action: {
-                    withAnimation(.jbSpring) {
-                        selectedLevelRaw = level.rawValue
+                    if purchase.canAccess(level: level) {
+                        withAnimation(.jbSpring) { selectedLevelRaw = level.rawValue }
+                    } else {
+                        showPaywall = true
                     }
                 }) {
                     Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
@@ -273,6 +280,10 @@ struct HomeView: View {
     }
 
     private func start(_ mode: QuizPracticeMode) {
+        if mode == .mockExam && !purchase.canAccessMockExam {
+            showPaywall = true
+            return
+        }
         if let session = QuestionBank.makeSession(
             mode: mode,
             version: selectedVersion,

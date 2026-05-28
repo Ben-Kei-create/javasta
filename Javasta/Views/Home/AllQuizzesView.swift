@@ -34,6 +34,8 @@ struct AllQuizzesView: View {
     @State private var expandedCategories: Set<QuizCategory> = []
     @State private var selectedQuizIds: Set<String> = []
     @State private var progress = ProgressStore.shared
+    @State private var purchase = PurchaseManager.shared
+    @State private var showPaywall = false
 
     private var quizzes: [Quiz] {
         QuestionBank.quizzes(version: version, level: level)
@@ -103,6 +105,9 @@ struct AllQuizzesView: View {
         .navigationTitle(level.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showPaywall) {
+            PremiumPaywallView()
+        }
     }
 
     private var summaryHeader: some View {
@@ -131,6 +136,10 @@ struct AllQuizzesView: View {
                     version: version,
                     count: QuestionBank.mockExamEligibleCount(version: version, level: level),
                     onStart: { variant in
+                        guard purchase.canAccessMockExam else {
+                            showPaywall = true
+                            return
+                        }
                         if let session = QuestionBank.makeMockExamSession(
                             variant: variant,
                             version: version,
