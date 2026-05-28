@@ -532,6 +532,8 @@ private struct MockExamResultView: View {
     let onReviewAll: () -> Void
     let onClose: () -> Void
 
+    @Environment(\.requestReview) private var requestReview
+
     private var wrongCount: Int {
         attempt.questionCount - attempt.correctCount
     }
@@ -559,6 +561,14 @@ private struct MockExamResultView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            // 模擬試験合格時にレビューを依頼（最も達成感が高いタイミング）
+            if attempt.isPassing {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    requestReview()
+                }
+            }
+        }
     }
 
     private var summaryCard: some View {

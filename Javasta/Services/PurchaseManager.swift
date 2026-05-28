@@ -22,6 +22,10 @@ final class PurchaseManager {
 
     private init() {}
 
+#if DEBUG
+    private init(isPremium: Bool) { self.isPremium = isPremium }
+#endif
+
     // MARK: - Accessors
 
     /// Gold レベルへのアクセス可否
@@ -124,4 +128,13 @@ final class PurchaseManager {
     enum StoreError: Error {
         case failedVerification
     }
+
+    // MARK: - Testing
+
+#if DEBUG
+    /// テスト用インスタンス。isPremium を任意の初期値で生成する。
+    @MainActor static func testInstance(isPremium: Bool) -> PurchaseManager {
+        PurchaseManager(isPremium: isPremium)
+    }
+#endif
 }

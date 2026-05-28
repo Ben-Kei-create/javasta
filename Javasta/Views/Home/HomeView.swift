@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var expandedMetric: HomeMetric = .accuracy
     @State private var showPaywall = false
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
+    @Environment(\.requestReview) private var requestReview
 
     /// SE17 に統一（SE11 は廃止）
     private let selectedVersion: JavaExamVersion = .se17
@@ -69,6 +70,14 @@ struct HomeView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(emptySessionMessage)
+        }
+        .onChange(of: progress.streakDays) { _, newStreak in
+            // 連続7日・30日達成時にレビューを依頼
+            if newStreak == 7 || newStreak == 30 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    requestReview()
+                }
+            }
         }
     }
 
@@ -1094,6 +1103,9 @@ private struct QuizSessionResultView: View {
     let correctCount: Int
     let onClose: () -> Void
 
+    @Environment(\.requestReview) private var requestReview
+    @State private var progress = ProgressStore.shared
+
     private var totalCount: Int { max(session.quizzes.count, 1) }
     private var scorePercent: Int {
         Int((Double(correctCount) / Double(totalCount) * 100).rounded())
@@ -1187,6 +1199,14 @@ private struct QuizSessionResultView: View {
             .padding(Spacing.md)
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            // 合格 + 累計30問以上回答で自然なタイミングにレビューを依頼
+            if isPassing && progress.totalAnswered >= 30 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    requestReview()
+                }
+            }
+        }
     }
 }
 
