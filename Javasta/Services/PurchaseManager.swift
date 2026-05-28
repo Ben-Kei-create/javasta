@@ -13,7 +13,7 @@ final class PurchaseManager {
     static let shared = PurchaseManager()
 
     /// App Store Connect で設定するプロダクト ID
-    static let productID = "com.fumiakiMogi777.Javasta.premium"
+    nonisolated static let productID = "com.fumiakiMogi777.Javasta.premium"
 
     private(set) var isPremium: Bool = false
     private(set) var product: Product? = nil
@@ -113,14 +113,13 @@ final class PurchaseManager {
     }
 
     private func listenForTransactions() {
+        let productID = Self.productID  // nonisolated: safe to capture in detached task
         Task.detached(priority: .background) { [weak self] in
             for await result in Transaction.updates {
-                if case .verified(let tx) = result, tx.productID == Self.productID {
-                    await MainActor.run {
-                        self?.isPremium = true
-                    }
-                    await tx.finish()
-                }
+                guard case .verified(let tx) = result, tx.productID == productID else { continue }
+                let s = self  // rebind weak var as let to satisfy Swift 6 sendability check
+                await MainActor.run { s?.isPremium = true }
+                await tx.finish()
             }
         }
     }
