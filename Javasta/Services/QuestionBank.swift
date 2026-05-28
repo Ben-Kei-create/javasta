@@ -133,9 +133,6 @@ enum QuestionBank {
             selected = unattempted(pool, progress: progress, limit: mode.limit)
         case .mockExam:
             return nil
-        case .bookmarks:
-            // ブックマークセッションは QuizSession.bookmarks(_:) で個別生成するため非対応
-            return nil
         }
 
         let fallback = balanced(pool, limit: mode.limit)
