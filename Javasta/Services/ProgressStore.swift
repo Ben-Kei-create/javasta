@@ -6,6 +6,13 @@ import Observation
 final class ProgressStore {
     static let shared = ProgressStore()
 
+    /// App Group 対応の UserDefaults。
+    /// Xcode で「Signing & Capabilities → App Groups」に
+    /// `group.com.fumiakiMogi777.Javasta` を追加したうえで使用する。
+    nonisolated static let appGroupDefaults: UserDefaults = {
+        UserDefaults(suiteName: "group.com.fumiakiMogi777.Javasta") ?? .standard
+    }()
+
     // 永続化キー
     private enum Key {
         static let totalAnswered     = "progress.totalAnswered"
