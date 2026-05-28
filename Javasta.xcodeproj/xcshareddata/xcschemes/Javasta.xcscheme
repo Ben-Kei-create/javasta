@@ -63,7 +63,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
-         identifier = "$(SRCROOT)/Javasta/Premium.storekit">
+         identifier = "Javasta/Premium.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
