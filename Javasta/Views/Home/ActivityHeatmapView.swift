@@ -4,7 +4,19 @@ import SwiftUI
 /// 横方向に「古い週 → 今週」、縦方向に曜日（月〜日）で並ぶコンパクト版。
 struct ActivityHeatmapView: View {
     let counts: [(dateKey: String, count: Int)]
-    private let pastWeeks: Int = 8
+
+    /// カード内側の利用可能幅（GeometryReader で測定）
+    @State private var cardInnerWidth: CGFloat = 0
+
+    /// 利用可能幅を元に past weeks を動的計算（最小 8 週、常に右端まで埋める）
+    private var pastWeeks: Int {
+        guard cardInnerWidth > 0 else { return 8 }
+        let dayLabelW: CGFloat = 14 + cellSpacing
+        let gridW = cardInnerWidth - dayLabelW
+        let colW = cellSize + cellSpacing
+        let total = max(8 + futureWeeks, Int((gridW + cellSpacing) / colW))
+        return max(8, total - futureWeeks)
+    }
 
     private var futureWeeks: Int {
         let cal = Calendar(identifier: .gregorian)
@@ -76,6 +88,12 @@ struct ActivityHeatmapView: View {
                     RoundedRectangle(cornerRadius: Radius.md)
                         .stroke(Color.jbBorder, lineWidth: 1)
                 )
+        )
+        .background(
+            GeometryReader { geo in
+                Color.clear.onAppear { cardInnerWidth = geo.size.width - Spacing.sm * 2 }
+                    .onChange(of: geo.size.width) { _, w in cardInnerWidth = w - Spacing.sm * 2 }
+            }
         )
         .padding(.horizontal, Spacing.md)
         .onAppear {

@@ -9,7 +9,12 @@ final class ExplanationViewModel {
     var predictAnswered = false
     var showPredictHint = false
 
-    var currentStep: Explanation.Step { explanation.steps[currentStepIndex] }
+    var currentStep: Explanation.Step {
+        guard !explanation.steps.isEmpty else {
+            preconditionFailure("Explanation '\(explanation.id)' has no steps")
+        }
+        return explanation.steps[currentStepIndex]
+    }
 
     var previousStep: Explanation.Step? {
         currentStepIndex > 0 ? explanation.steps[currentStepIndex - 1] : nil
@@ -18,7 +23,7 @@ final class ExplanationViewModel {
     var canGoBack: Bool    { currentStepIndex > 0 }
     var canGoForward: Bool { currentStepIndex < explanation.steps.count - 1 }
     var isComplete: Bool   { currentStepIndex == explanation.steps.count - 1 }
-    var progress: Double   { Double(currentStepIndex + 1) / Double(explanation.steps.count) }
+    var progress: Double   { explanation.steps.isEmpty ? 0 : Double(currentStepIndex + 1) / Double(explanation.steps.count) }
 
     var isPredictBlocking: Bool {
         currentStep.predict != nil && !predictAnswered

@@ -2,8 +2,6 @@ import Foundation
 import Observation
 
 /// 学習進捗の永続化ストア（UserDefaultsベース）。
-/// WidgetKit からもデータを読めるよう App Group を使用する。
-/// App Group ID: group.com.fumiakiMogi777.Javasta
 @MainActor @Observable
 final class ProgressStore {
     static let shared = ProgressStore()
@@ -56,7 +54,7 @@ final class ProgressStore {
         return Int((Double(totalCorrect) / Double(totalAnswered) * 100).rounded())
     }
 
-    init(defaults: UserDefaults = ProgressStore.appGroupDefaults) {
+    init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.totalAnswered = defaults.integer(forKey: Key.totalAnswered)
         self.totalCorrect  = defaults.integer(forKey: Key.totalCorrect)
@@ -110,7 +108,6 @@ final class ProgressStore {
             }
             defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
         }
-        CloudSyncManager.shared.schedulePush()
     }
 
     /// 既存呼び出し向け互換API。問題IDのない場面では復習キューは更新しない。
@@ -139,7 +136,6 @@ final class ProgressStore {
             answerHistory = Array(answerHistory.suffix(2_000))
         }
         saveAnswerHistory()
-        CloudSyncManager.shared.schedulePush()
     }
 
     func recordMockExamAttempt(_ attempt: MockExamAttempt, quizzes: [Quiz]) {
@@ -190,13 +186,11 @@ final class ProgressStore {
         defaults.set(reviewQueueQuizIds, forKey: Key.reviewQueueQuizIds)
         saveAnswerHistory()
         saveMockExamAttempts()
-        CloudSyncManager.shared.schedulePush()
     }
 
     func markLessonCompleted(_ lessonId: String) {
         completedLessons.insert(lessonId)
         defaults.set(Array(completedLessons), forKey: Key.completedLessons)
-        CloudSyncManager.shared.schedulePush()
     }
 
     func toggleBookmark(quizId: String) {
@@ -206,13 +200,11 @@ final class ProgressStore {
             bookmarkedQuizIds.insert(quizId)
         }
         defaults.set(Array(bookmarkedQuizIds), forKey: Key.bookmarkedQuizzes)
-        CloudSyncManager.shared.schedulePush()
     }
 
     func setDailyGoal(_ value: Int) {
         dailyGoal = max(1, value)
         defaults.set(dailyGoal, forKey: Key.dailyGoal)
-        CloudSyncManager.shared.schedulePush()
     }
 
     func stats(for quizId: String) -> QuizAttemptStats {
@@ -222,24 +214,6 @@ final class ProgressStore {
             correct: records.filter(\.correct).count,
             latest: records.max { $0.answeredAt < $1.answeredAt }
         )
-    }
-
-    /// 複数クイズの stats を一括取得（O(n) 一回スキャン）。
-    /// weak() / mistakes() のソート内で stats(for:) を個別に呼ぶ O(n²) を回避する。
-    func statsIndex(for quizIds: [String]) -> [String: QuizAttemptStats] {
-        let idSet = Set(quizIds)
-        var grouped: [String: [QuizAnswerRecord]] = [:]
-        for record in answerHistory where idSet.contains(record.quizId) {
-            grouped[record.quizId, default: []].append(record)
-        }
-        return Dictionary(uniqueKeysWithValues: quizIds.map { id in
-            let records = grouped[id] ?? []
-            return (id, QuizAttemptStats(
-                attempts: records.count,
-                correct: records.filter(\.correct).count,
-                latest: records.max { $0.answeredAt < $1.answeredAt }
-            ))
-        })
     }
 
     func weakTags(limit: Int = 5) -> [WeakTagSummary] {
@@ -374,14 +348,6 @@ final class ProgressStore {
         defaults.removeObject(forKey: Key.answerHistory)
         defaults.removeObject(forKey: Key.bookmarkedQuizzes)
         defaults.removeObject(forKey: Key.mockExamAttempts)
-        // iCloud KVS もクリア
-        let kvs = NSUbiquitousKeyValueStore.default
-        let kvsKeys = ["progress.totalAnswered","progress.totalCorrect","progress.streakDays",
-                       "progress.dailyGoal","progress.completedLessons","progress.bookmarkedQuizzes",
-                       "progress.reviewQueueQuizIds","progress.dailyHistory",
-                       "progress.answerHistory","progress.mockExamAttempts"]
-        kvsKeys.forEach { kvs.removeObject(forKey: $0) }
-        kvs.synchronize()
     }
 
     // MARK: 内部

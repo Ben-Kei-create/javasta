@@ -7,18 +7,22 @@ private enum AllQuizzesLayout {
     static let expandAnimation = Animation.snappy(duration: 0.24, extraBounce: 0.04)
     static let stateAnimation = Animation.snappy(duration: 0.22, extraBounce: 0.03)
 
-    static let expandTransition: AnyTransition = .asymmetric(
-        insertion: .opacity
-            .combined(with: .move(edge: .top))
-            .combined(with: .scale(scale: 0.985, anchor: .top)),
-        removal: .opacity
-            .combined(with: .scale(scale: 0.99, anchor: .top))
-    )
+    static var expandTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity
+                .combined(with: .move(edge: .top))
+                .combined(with: .scale(scale: 0.985, anchor: .top)),
+            removal: .opacity
+                .combined(with: .scale(scale: 0.99, anchor: .top))
+        )
+    }
 
-    static let stateTransition: AnyTransition = .asymmetric(
-        insertion: .opacity.combined(with: .scale(scale: 0.985)),
-        removal: .opacity.combined(with: .scale(scale: 0.995))
-    )
+    static var stateTransition: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .scale(scale: 0.985)),
+            removal: .opacity.combined(with: .scale(scale: 0.995))
+        )
+    }
 }
 
 struct AllQuizzesView: View {
@@ -30,6 +34,8 @@ struct AllQuizzesView: View {
     @State private var expandedCategories: Set<QuizCategory> = []
     @State private var selectedQuizIds: Set<String> = []
     @State private var progress = ProgressStore.shared
+    @State private var purchase = PurchaseManager.shared
+    @State private var showPaywall = false
 
     private var quizzes: [Quiz] {
         QuestionBank.quizzes(version: version, level: level)
@@ -98,6 +104,10 @@ struct AllQuizzesView: View {
         }
         .navigationTitle(level.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .preferredColorScheme(.dark)
+        .sheet(isPresented: $showPaywall) {
+            PremiumPaywallView()
+        }
     }
 
     private var summaryHeader: some View {
@@ -126,6 +136,10 @@ struct AllQuizzesView: View {
                     version: version,
                     count: QuestionBank.mockExamEligibleCount(version: version, level: level),
                     onStart: { variant in
+                        guard purchase.canAccessMockExam else {
+                            showPaywall = true
+                            return
+                        }
                         if let session = QuestionBank.makeMockExamSession(
                             variant: variant,
                             version: version,
@@ -300,18 +314,22 @@ private struct MockExamCard: View {
         MockExamSpec.official(version: version, level: level)
     }
 
+    private var isReady: Bool { selectedVariant != nil }
+
     var body: some View {
         HStack(spacing: Spacing.md) {
-            Image(systemName: "graduationcap.fill")
+            Image(systemName: isReady ? "play.circle.fill" : "graduationcap.fill")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: AllQuizzesLayout.topActionIconSize, height: AllQuizzesLayout.topActionIconSize)
                 .background(Circle().fill(Color.jbAccent))
+                .contentTransition(.symbolEffect(.replace))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("模擬試験")
+                Text(isReady ? "模擬試験開始" : "模擬試験")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color.jbText)
+                    .foregroundStyle(isReady ? Color.jbAccent : Color.jbText)
+                    .contentTransition(.opacity)
                 Text("本番形式・解説なし・提出時に採点")
                     .font(.system(size: 12))
                     .foregroundStyle(Color.jbSubtext)
@@ -326,36 +344,31 @@ private struct MockExamCard: View {
                 ForEach(MockExamVariant.allCases) { variant in
                     let questionCount = min(spec.questionCount(for: variant), count)
                     let isSelected = selectedVariant == variant
-                    Button(action: {
-                        withAnimation(.jbFast) {
-                            if isSelected {
-                                onStart(variant)
-                                selectedVariant = nil
-                            } else {
-                                selectedVariant = variant
-                            }
-                        }
-                    }) {
-                        VStack(spacing: 1) {
-                            Text(variant.shortTitle)
-                                .font(.system(size: 12, weight: .bold).monospacedDigit())
-                                .foregroundStyle(isSelected ? .white : Color.jbText)
-                                .lineLimit(1)
-                            Text(spec.durationText(for: variant, questionCount: questionCount))
-                                .font(.system(size: 9, weight: .semibold).monospacedDigit())
-                                .foregroundStyle(isSelected ? .white.opacity(0.82) : Color.jbSubtext)
-                        }
-                        .frame(width: 54, height: 38)
-                        .background(
-                            RoundedRectangle(cornerRadius: Radius.sm)
-                                .fill(isSelected ? Color.jbAccent : Color.jbBackground)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Radius.sm)
-                                        .stroke(isSelected ? Color.jbAccent.opacity(0.45) : Color.jbBorder, lineWidth: 1)
-                                )
-                        )
+                    // バリアントボタンは未選択状態でのみヒットテスト有効
+                    // 選択後はカード全体タップがスタートになるため無効化
+                    VStack(spacing: 1) {
+                        Text(variant.shortTitle)
+                            .font(.system(size: 12, weight: .bold).monospacedDigit())
+                            .foregroundStyle(isSelected ? .white : Color.jbText)
+                            .lineLimit(1)
+                        Text(spec.durationText(for: variant, questionCount: questionCount))
+                            .font(.system(size: 9, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(isSelected ? .white.opacity(0.82) : Color.jbSubtext)
                     }
-                    .buttonStyle(.plain)
+                    .frame(width: 54, height: 38)
+                    .background(
+                        RoundedRectangle(cornerRadius: Radius.sm)
+                            .fill(isSelected ? Color.jbAccent : Color.jbBackground)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Radius.sm)
+                                    .stroke(isSelected ? Color.jbAccent.opacity(0.45) : Color.jbBorder, lineWidth: 1)
+                            )
+                    )
+                    .onTapGesture {
+                        withAnimation(.jbFast) {
+                            selectedVariant = variant
+                        }
+                    }
                     .accessibilityLabel("\(variant.displayName) \(questionCount)問")
                 }
             }
@@ -369,9 +382,20 @@ private struct MockExamCard: View {
                 .fill(Color.jbCard)
                 .overlay(
                     RoundedRectangle(cornerRadius: Radius.md)
-                        .stroke(Color.jbAccent.opacity(0.35), lineWidth: 1.5)
+                        .stroke(
+                            isReady ? Color.jbAccent.opacity(0.8) : Color.jbAccent.opacity(0.35),
+                            lineWidth: isReady ? 2 : 1.5
+                        )
                 )
-            )
+        )
+        .contentShape(RoundedRectangle(cornerRadius: Radius.md))
+        .onTapGesture {
+            guard let variant = selectedVariant else { return }
+            withAnimation(.jbFast) { selectedVariant = nil }
+            onStart(variant)
+        }
+        .animation(.jbFast, value: isReady)
+        .sensoryFeedback(.selection, trigger: selectedVariant)
     }
 }
 

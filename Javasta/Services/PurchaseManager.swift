@@ -49,7 +49,10 @@ final class PurchaseManager {
     // MARK: - Purchase
 
     func purchase() async {
-        guard let product else { return }
+        guard let product else {
+            purchaseError = "商品情報を取得できません。ネットワーク接続を確認してから再試行してください。"
+            return
+        }
         isLoading = true
         purchaseError = nil
         defer { isLoading = false }

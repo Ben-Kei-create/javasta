@@ -4,17 +4,18 @@ import SwiftUI
 struct HomeView: View {
     @State private var activeSession: QuizSession?
     @State private var progress = ProgressStore.shared
-    @State private var store = PurchaseManager.shared
+    @State private var purchase = PurchaseManager.shared
     @State private var showSettings = false
+    @State private var showPaywall = false
     @State private var showEmptySessionAlert = false
     @State private var emptySessionMessage = ""
     @State private var expandedMetric: HomeMetric = .accuracy
-    @State private var showPaywall = false
+    @AppStorage("selectedExamVersion") private var selectedExamVersionRaw = JavaExamVersion.se17.rawValue
     @AppStorage("selectedJavaLevel") private var selectedLevelRaw = JavaLevel.silver.rawValue
-    @Environment(\.requestReview) private var requestReview
 
-    /// SE17 に統一（SE11 は廃止）
-    private let selectedVersion: JavaExamVersion = .se17
+    private var selectedVersion: JavaExamVersion {
+        JavaExamVersion(rawValue: selectedExamVersionRaw) ?? .se17
+    }
 
     private var selectedLevel: JavaLevel {
         JavaLevel(rawValue: selectedLevelRaw) ?? .silver
@@ -26,12 +27,6 @@ struct HomeView: View {
             guard seen.insert(id).inserted else { return nil }
             return QuestionBank.quiz(id: id)
         }
-    }
-
-    private var bookmarkedQuizzes: [Quiz] {
-        progress.bookmarkedQuizIds
-            .compactMap { QuestionBank.quiz(id: $0) }
-            .sorted { $0.id < $1.id }
     }
 
     var body: some View {
@@ -65,22 +60,14 @@ struct HomeView: View {
             QuizSheetView(session: session)
         }
         .sheet(isPresented: $showPaywall) {
-            NavigationStack { PremiumPaywallView() }
+            PremiumPaywallView()
         }
         .alert("開始できません", isPresented: $showEmptySessionAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(emptySessionMessage)
         }
-        .onChange(of: progress.streakDays) { _, newStreak in
-            // 連続7日・30日達成時にレビューを依頼
-            if newStreak == 7 || newStreak == 30 {
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(0.8))
-                    requestReview()
-                }
-            }
-        }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: Header
@@ -142,6 +129,7 @@ struct HomeView: View {
             }
 
             levelPicker
+            examVersionPicker
 
             HStack(spacing: Spacing.sm) {
                 CommandMetric(
@@ -204,90 +192,67 @@ struct HomeView: View {
         }
     }
 
-    // MARK: Bookmarks section
-
-    private var bookmarksSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            SectionHeader(
-                icon: "bookmark.fill",
-                title: "保存済み",
-                tint: Color.jbAccent,
-                subtitle: "\(bookmarkedQuizzes.count)問"
-            )
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Spacing.xs) {
-                    // 全保存問題を一括で解くボタン
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        activeSession = QuizSession.bookmarks(bookmarkedQuizzes.shuffled())
-                    } label: {
-                        VStack(spacing: Spacing.xs) {
-                            Image(systemName: "play.fill")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundStyle(Color.jbAccent)
-                            Text("まとめて\n解く")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(Color.jbAccent)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(width: 72, height: 100)
-                        .background(
-                            RoundedRectangle(cornerRadius: Radius.md)
-                                .fill(Color.jbAccent.opacity(0.1))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Radius.md)
-                                        .stroke(Color.jbAccent.opacity(0.4), lineWidth: 1.5)
-                                )
-                        )
-                    }
-                    .buttonStyle(.jbScaled)
-
-                    ForEach(bookmarkedQuizzes) { quiz in
-                        ReviewQueueCard(
-                            quiz: quiz,
-                            onTap: { activeSession = QuizSession.single(quiz) }
-                        )
-                    }
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, 2)
-            }
-        }
-    }
-
     private var levelPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaLevel.allCases, id: \.self) { level in
-                let locked = !store.canAccess(level: level)
                 Button(action: {
-                    if locked {
-                        showPaywall = true
+                    if purchase.canAccess(level: level) {
+                        withAnimation(.jbSpring) { selectedLevelRaw = level.rawValue }
                     } else {
-                        withAnimation(.jbSpring) {
-                            selectedLevelRaw = level.rawValue
-                        }
+                        showPaywall = true
                     }
                 }) {
-                    HStack(spacing: 4) {
-                        if locked {
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 10, weight: .bold))
-                        }
-                        Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
-                            .font(.system(size: 13, weight: .bold))
-                    }
-                    .foregroundStyle(selectedLevel == level ? .white : (locked ? Color.jbSubtext.opacity(0.5) : Color.jbSubtext))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 30)
-                    .background(
-                        RoundedRectangle(cornerRadius: Radius.sm)
-                            .fill(selectedLevel == level ? Color.jbAccent : Color.jbBackground)
-                    )
+                    Text(level.displayName.replacingOccurrences(of: "Java ", with: ""))
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(selectedLevel == level ? .white : Color.jbSubtext)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 30)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.sm)
+                                .fill(selectedLevel == level ? Color.jbAccent : Color.jbBackground)
+                        )
                 }
                 .buttonStyle(.jbScaled)
                 .sensoryFeedback(.selection, trigger: selectedLevelRaw)
                 .accessibilityIdentifier("home-level-\(level.rawValue)")
+            }
+        }
+    }
+
+    /// SE 11 / SE 17 の試験バージョン切り替えピッカー。
+    /// 試験バージョンはホーム画面で視認しにくかったため、Level ピッカーの直下に追加。
+    private var examVersionPicker: some View {
+        HStack(spacing: Spacing.xs) {
+            ForEach(JavaExamVersion.allCases, id: \.self) { version in
+                Button(action: {
+                    withAnimation(.jbSpring) {
+                        selectedExamVersionRaw = version.rawValue
+                    }
+                }) {
+                    Text(version.displayName.replacingOccurrences(of: "Java ", with: ""))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(selectedVersion == version ? Color.jbAccent : Color.jbSubtext)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 24)
+                        .background(
+                            RoundedRectangle(cornerRadius: Radius.sm)
+                                .fill(selectedVersion == version
+                                      ? Color.jbAccent.opacity(0.12)
+                                      : Color.clear)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Radius.sm)
+                                        .stroke(
+                                            selectedVersion == version
+                                                ? Color.jbAccent.opacity(0.6)
+                                                : Color.jbBorder.opacity(0.4),
+                                            lineWidth: 1
+                                        )
+                                )
+                        )
+                }
+                .buttonStyle(.jbScaled)
+                .sensoryFeedback(.selection, trigger: selectedExamVersionRaw)
+                .accessibilityIdentifier("home-version-\(version.rawValue)")
             }
         }
     }
@@ -304,7 +269,6 @@ struct HomeView: View {
                         PracticeModeCard(
                             mode: mode,
                             isPrimary: mode == .daily,
-                            isLocked: mode == .mockExam && !store.canAccessMockExam,
                             onTap: { start(mode) }
                         )
                     }
@@ -316,8 +280,7 @@ struct HomeView: View {
     }
 
     private func start(_ mode: QuizPracticeMode) {
-        // 模擬試験はプレミアム限定
-        if mode == .mockExam && !store.canAccessMockExam {
+        if mode == .mockExam && !purchase.canAccessMockExam {
             showPaywall = true
             return
         }
@@ -383,11 +346,10 @@ struct HomeView: View {
 
     private var visibleSectionOrder: [HomeSectionID] {
         HomeSectionID.fixedOrder.filter { id in
-            switch id {
-            case .reviewQueue:  return !reviewQueueQuizzes.isEmpty
-            case .bookmarks:    return !bookmarkedQuizzes.isEmpty
-            default:            return true
+            if case .reviewQueue = id {
+                return !reviewQueueQuizzes.isEmpty
             }
+            return true
         }
     }
 
@@ -402,8 +364,6 @@ struct HomeView: View {
             )
         case .reviewQueue:
             reviewQueueSection
-        case .bookmarks:
-            bookmarksSection
         case .practiceModes:
             practiceModesSection
         case .levelSection:
@@ -465,7 +425,6 @@ enum HomeSectionID: String, CaseIterable, Hashable {
     case commandCenter
     case heatmap
     case reviewQueue
-    case bookmarks
     case practiceModes
     case levelSection
 
@@ -473,7 +432,6 @@ enum HomeSectionID: String, CaseIterable, Hashable {
         .commandCenter,
         .heatmap,
         .reviewQueue,
-        .bookmarks,
         .practiceModes,
         .levelSection
     ]
@@ -483,7 +441,6 @@ enum HomeSectionID: String, CaseIterable, Hashable {
         case .commandCenter: return "ステータス"
         case .heatmap: return "学習マップ"
         case .reviewQueue: return "復習"
-        case .bookmarks: return "保存済み"
         case .practiceModes: return "練習を開始"
         case .levelSection: return "問題リスト"
         }
@@ -529,10 +486,10 @@ private struct HomeTimestampToggle: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
             let isExamToday = Self.isSameDay(examDate, timeline.date)
-            let hasExam = examDate.map { $0 > timeline.date } ?? false && !isExamToday
+            let hasExam = examDate != nil && (examDate! > timeline.date) && !isExamToday
             let displayText: String = {
                 if isExamToday { return "受験頑張ってください！" }
-                if let examDate, hasExam { return Self.countdown(from: timeline.date, to: examDate) }
+                if hasExam { return Self.countdown(from: timeline.date, to: examDate!) }
                 return Self.timestamp(timeline.date)
             }()
             Button(action: {
@@ -735,15 +692,14 @@ private struct CommandMetric: View {
 private struct PracticeModeCard: View {
     let mode: QuizPracticeMode
     let isPrimary: Bool
-    var isLocked: Bool = false
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: Spacing.sm) {
-                Image(systemName: isLocked ? "lock.fill" : mode.icon)
+                Image(systemName: mode.icon)
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(isPrimary ? .white : (isLocked ? Color.jbSubtext.opacity(0.5) : Color.jbAccent))
+                    .foregroundStyle(isPrimary ? .white : Color.jbAccent)
                     .frame(width: 28, height: 28)
                     .background(
                         Circle().fill(isPrimary ? Color.white.opacity(0.18) : Color.jbAccent.opacity(0.12))
@@ -752,21 +708,21 @@ private struct PracticeModeCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(mode.title)
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(isPrimary ? .white : (isLocked ? Color.jbSubtext : Color.jbText))
+                        .foregroundStyle(isPrimary ? .white : Color.jbText)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                    Text(isLocked ? "プレミアム限定" : mode.subtitle)
+                    Text(mode.subtitle)
                         .font(.system(size: 10))
-                        .foregroundStyle(isPrimary ? .white.opacity(0.76) : (isLocked ? Color.jbAccent.opacity(0.7) : Color.jbSubtext))
+                        .foregroundStyle(isPrimary ? .white.opacity(0.76) : Color.jbSubtext)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
                 }
 
                 Spacer(minLength: Spacing.xs)
 
-                Image(systemName: isLocked ? "lock.fill" : "arrow.right")
+                Image(systemName: "arrow.right")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(isPrimary ? .white.opacity(0.8) : (isLocked ? Color.jbAccent.opacity(0.6) : Color.jbSubtext))
+                    .foregroundStyle(isPrimary ? .white.opacity(0.8) : Color.jbSubtext)
             }
             .padding(Spacing.sm)
             .frame(width: 200, height: 74, alignment: .leading)
@@ -775,7 +731,7 @@ private struct PracticeModeCard: View {
                     .fill(isPrimary ? Color.jbAccent : Color.jbCard)
                     .overlay(
                         RoundedRectangle(cornerRadius: Radius.md)
-                            .stroke(isLocked ? Color.jbAccent.opacity(0.4) : (isPrimary ? Color.jbAccent : Color.jbBorder), lineWidth: 1)
+                            .stroke(isPrimary ? Color.jbAccent : Color.jbBorder, lineWidth: 1)
                     )
             )
         }
@@ -955,7 +911,7 @@ struct QuizSheetView: View {
     }
 
     init(session: QuizSession) {
-        let firstQuiz = session.quizzes.first ?? Quiz.samples.first!
+        let firstQuiz = session.quizzes.first ?? Quiz.samples[0]
         self._session = State(initialValue: session)
         self._currentQuiz = State(initialValue: firstQuiz)
         self._quizVM = State(wrappedValue: QuizViewModel(quiz: firstQuiz))
@@ -1053,6 +1009,7 @@ struct QuizSheetView: View {
                         }
                     }
             }
+            .preferredColorScheme(.dark)
             .environment(\.openURL, OpenURLAction { url in
                 if let id = GlossaryTerm.parse(url: url) {
                     glossaryPath.append(id)
@@ -1104,9 +1061,6 @@ private struct QuizSessionResultView: View {
     let session: QuizSession
     let correctCount: Int
     let onClose: () -> Void
-
-    @Environment(\.requestReview) private var requestReview
-    @State private var progress = ProgressStore.shared
 
     private var totalCount: Int { max(session.quizzes.count, 1) }
     private var scorePercent: Int {
@@ -1201,15 +1155,6 @@ private struct QuizSessionResultView: View {
             .padding(Spacing.md)
         }
         .navigationBarBackButtonHidden(true)
-        .onAppear {
-            // 合格 + 累計30問以上回答で自然なタイミングにレビューを依頼
-            if isPassing && progress.totalAnswered >= 30 {
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(1.2))
-                    requestReview()
-                }
-            }
-        }
     }
 }
 

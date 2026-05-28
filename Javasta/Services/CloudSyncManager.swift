@@ -137,15 +137,17 @@ final class CloudSyncManager {
     }
 
     private func startObserving() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleExternalChange(_:)),
-            name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-            object: kvs
-        )
-    }
-
-    @objc private func handleExternalChange(_ notification: Notification) {
-        pullAndMerge()
+        // Use async notification stream so the handler always runs on @MainActor,
+        // avoiding the data race that @objc selector callbacks (called on an arbitrary
+        // background thread) would cause with @MainActor @Observable ProgressStore.
+        Task { @MainActor [weak self] in
+            let notifications = NotificationCenter.default.notifications(
+                named: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+                object: nil as AnyObject?
+            )
+            for await _ in notifications {
+                self?.pullAndMerge()
+            }
+        }
     }
 }
