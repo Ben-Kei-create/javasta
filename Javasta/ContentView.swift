@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .quiz
+    @AppStorage("spotlight.pendingTermId") private var pendingTermId: String = ""
+    @AppStorage("spotlight.pendingLessonId") private var pendingLessonId: String = ""
 
     enum Tab: Hashable { case learning, quiz }
 
@@ -28,6 +30,12 @@ struct ContentView: View {
         }
         .tint(Color.jbAccent)
         .preferredColorScheme(.dark)
+        .onChange(of: pendingTermId) { _, newId in
+            if !newId.isEmpty { selectedTab = .learning }
+        }
+        .onChange(of: pendingLessonId) { _, newId in
+            if !newId.isEmpty { selectedTab = .learning }
+        }
     }
 }
 
