@@ -15,7 +15,7 @@ enum AppConfig {
 
     /// App Store numeric identifier (replace with actual ID after first submission).
     /// Used to build the review URL and the invite share-text.
-    static let appStoreID = "6774210909"
+    static let appStoreID = "6774210087"
 
     /// Deep-link to the App Store product page.
     static let appStoreURL: URL = URL(string: "https://apps.apple.com/app/id\(appStoreID)")!
@@ -27,8 +27,8 @@ enum AppConfig {
 
     /// Public-facing privacy policy URL.
     /// Host a Markdown / HTML page (e.g. GitHub Pages) before submitting to the store.
-    static let privacyPolicyURL = URL(string: "https://ben-kei-create.github.io/javasta/privacy")!
+    static let privacyPolicyURL = URL(string: "https://ben-kei-create.github.io/javasta/privacy.html")!
 
     /// App support page URL — shown in App Store listing and required by Apple.
-    static let supportURL = URL(string: "https://ben-kei-create.github.io/javasta/support")!
+    static let supportURL = URL(string: "https://ben-kei-create.github.io/javasta/support.html")!
 }
