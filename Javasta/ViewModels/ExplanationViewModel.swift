@@ -14,7 +14,7 @@ final class ExplanationViewModel {
                 ? explanation.steps[currentStepIndex]
                 : explanation.steps.first else {
             assertionFailure("Explanation '\(explanation.id)' has no steps")
-            return Explanation.Step(title: "", lines: [], predict: nil)
+            return Explanation.Step(index: 0, narration: "", highlightLines: [], variables: [], callStack: [], heap: [], predict: nil)
         }
         return step
     }
