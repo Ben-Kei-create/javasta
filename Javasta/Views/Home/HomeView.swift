@@ -224,6 +224,7 @@ struct HomeView: View {
     private var examVersionPicker: some View {
         HStack(spacing: Spacing.xs) {
             ForEach(JavaExamVersion.allCases, id: \.self) { version in
+                let unavailable = selectedLevel == .silver && version == .se11
                 Button(action: {
                     withAnimation(.jbSpring) {
                         selectedExamVersionRaw = version.rawValue
@@ -231,7 +232,7 @@ struct HomeView: View {
                 }) {
                     Text(version.displayName.replacingOccurrences(of: "Java ", with: ""))
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(selectedVersion == version ? Color.jbAccent : Color.jbSubtext)
+                        .foregroundStyle(unavailable ? Color.clear : (selectedVersion == version ? Color.jbAccent : Color.jbSubtext))
                         .frame(maxWidth: .infinity)
                         .frame(height: 24)
                         .background(
