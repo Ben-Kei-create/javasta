@@ -43,8 +43,9 @@ struct MockExamView: View {
         MockExamSpec.official(version: session.version, level: session.level)
     }
 
-    private var currentQuiz: Quiz {
-        session.quizzes[min(currentIndex, max(session.quizzes.count - 1, 0))]
+    private var currentQuiz: Quiz? {
+        guard !session.quizzes.isEmpty else { return nil }
+        return session.quizzes[min(currentIndex, session.quizzes.count - 1)]
     }
 
     private var timeLimitSeconds: Int {
@@ -168,31 +169,33 @@ struct MockExamView: View {
 
     @ViewBuilder
     private func questionLayout(size: CGSize) -> some View {
-        if shouldUseSplitLayout(size) {
-            HStack(alignment: .top, spacing: Spacing.md) {
-                codeBlock(compactHeight: splitCodeHeight(for: size))
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+        if let quiz = currentQuiz {
+            if shouldUseSplitLayout(size) {
+                HStack(alignment: .top, spacing: Spacing.md) {
+                    codeBlock(quiz: quiz, compactHeight: splitCodeHeight(for: size))
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
 
-                VStack(alignment: .leading, spacing: Spacing.lg) {
-                    questionHeader
-                    choicesSection
-                    Spacer(minLength: Spacing.xl)
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
+                        questionHeader(quiz: quiz)
+                        choicesSection(quiz: quiz)
+                        Spacer(minLength: Spacing.xl)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
-        } else {
-            VStack(alignment: .leading, spacing: Spacing.lg) {
-                codeBlock()
-                questionHeader
-                choicesSection
-                Spacer(minLength: Spacing.xxl)
+            } else {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
+                    codeBlock(quiz: quiz)
+                    questionHeader(quiz: quiz)
+                    choicesSection(quiz: quiz)
+                    Spacer(minLength: Spacing.xxl)
+                }
             }
         }
     }
 
     @ViewBuilder
-    private func codeBlock(compactHeight: CGFloat = 220) -> some View {
-        if let codeTabs = currentQuiz.codeTabs, !codeTabs.isEmpty {
+    private func codeBlock(quiz: Quiz, compactHeight: CGFloat = 220) -> some View {
+        if let codeTabs = quiz.codeTabs, !codeTabs.isEmpty {
             CodeBlockView(
                 tabs: codeTabs.map {
                     CodeBlockView.FileTab(id: $0.id, filename: $0.filename, code: $0.code)
@@ -201,11 +204,11 @@ struct MockExamView: View {
                 compactHeight: compactHeight
             )
         } else {
-            CodeBlockView(code: currentQuiz.code, zoom: codeZoom, compactHeight: compactHeight)
+            CodeBlockView(code: quiz.code, zoom: codeZoom, compactHeight: compactHeight)
         }
     }
 
-    private var questionHeader: some View {
+    private func questionHeader(quiz: Quiz) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(spacing: Spacing.xs) {
                 Text("問 \(currentIndex + 1)")
@@ -215,26 +218,26 @@ struct MockExamView: View {
                     .padding(.vertical, 4)
                     .background(Capsule().fill(Color.jbAccent.opacity(0.12)))
 
-                Text(currentQuiz.categoryDisplayName)
+                Text(quiz.categoryDisplayName)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.jbSubtext)
 
                 Spacer()
             }
 
-            Text(currentQuiz.question)
+            Text(quiz.question)
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(Color.jbText)
                 .lineSpacing(4)
         }
     }
 
-    private var choicesSection: some View {
+    private func choicesSection(quiz: Quiz) -> some View {
         VStack(spacing: Spacing.sm) {
-            ForEach(choiceOrders[currentQuiz.id] ?? currentQuiz.choices) { choice in
+            ForEach(choiceOrders[quiz.id] ?? quiz.choices) { choice in
                 MockExamChoiceButton(
                     choice: choice,
-                    isSelected: selectedChoiceIds[currentQuiz.id] == choice.id,
+                    isSelected: selectedChoiceIds[quiz.id] == choice.id,
                     onTap: { select(choice) }
                 )
             }
@@ -306,9 +309,10 @@ struct MockExamView: View {
     }
 
     private func select(_ choice: Quiz.Choice) {
+        guard let quiz = currentQuiz else { return }
         withAnimation(.snappy(duration: 0.18, extraBounce: 0.02)) {
-            selectedChoiceIds[currentQuiz.id] = choice.id
-            elapsedSecondsByQuizId[currentQuiz.id] = max(1, Int(Date().timeIntervalSince(startedAt).rounded()))
+            selectedChoiceIds[quiz.id] = choice.id
+            elapsedSecondsByQuizId[quiz.id] = max(1, Int(Date().timeIntervalSince(startedAt).rounded()))
         }
     }
 
