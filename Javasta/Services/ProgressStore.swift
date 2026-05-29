@@ -216,6 +216,31 @@ final class ProgressStore {
         )
     }
 
+    func statsIndex(for quizIds: [String]) -> [String: QuizAttemptStats] {
+        let idSet = Set(quizIds)
+        var attemptsMap: [String: Int] = [:]
+        var correctMap: [String: Int] = [:]
+        var latestMap: [String: QuizAnswerRecord] = [:]
+
+        for record in answerHistory where idSet.contains(record.quizId) {
+            attemptsMap[record.quizId, default: 0] += 1
+            if record.correct { correctMap[record.quizId, default: 0] += 1 }
+            if let existing = latestMap[record.quizId] {
+                if record.answeredAt > existing.answeredAt { latestMap[record.quizId] = record }
+            } else {
+                latestMap[record.quizId] = record
+            }
+        }
+
+        return Dictionary(uniqueKeysWithValues: quizIds.map { id in
+            (id, QuizAttemptStats(
+                attempts: attemptsMap[id, default: 0],
+                correct: correctMap[id, default: 0],
+                latest: latestMap[id]
+            ))
+        })
+    }
+
     func weakTags(limit: Int = 5) -> [WeakTagSummary] {
         var attempts: [String: Int] = [:]
         var misses: [String: Int] = [:]
