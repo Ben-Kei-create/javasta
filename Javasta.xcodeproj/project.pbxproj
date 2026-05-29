@@ -6,6 +6,23 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		B10000082F94392D006A312D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A5998C522F94392A006A312D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5998C592F94392A006A312D;
+			remoteInfo = Javasta;
+		};
+		B20000082F94392E006A312D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A5998C522F94392A006A312D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5998C592F94392A006A312D;
+			remoteInfo = Javasta;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		A5998C5A2F94392A006A312D /* Javasta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Javasta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000012F94392D006A312D /* JavastaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JavastaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -147,23 +164,6 @@
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
-
-/* Begin PBXContainerItemProxy section */
-		B10000082F94392D006A312D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A5998C522F94392A006A312D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A5998C592F94392A006A312D;
-			remoteInfo = Javasta;
-		};
-		B20000082F94392E006A312D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A5998C522F94392A006A312D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A5998C592F94392A006A312D;
-			remoteInfo = Javasta;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXProject section */
 		A5998C522F94392A006A312D /* Project object */ = {
@@ -395,6 +395,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Javasta/Javasta.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7R927F3U4V;
@@ -427,6 +428,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Javasta/Javasta.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7R927F3U4V;
