@@ -912,7 +912,7 @@ struct QuizSheetView: View {
     }
 
     init(session: QuizSession) {
-        let firstQuiz = session.quizzes.first ?? Quiz.samples[0]
+        let firstQuiz = session.quizzes.first ?? Quiz.samples.first!
         self._session = State(initialValue: session)
         self._currentQuiz = State(initialValue: firstQuiz)
         self._quizVM = State(wrappedValue: QuizViewModel(quiz: firstQuiz))

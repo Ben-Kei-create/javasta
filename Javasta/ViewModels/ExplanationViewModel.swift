@@ -10,10 +10,13 @@ final class ExplanationViewModel {
     var showPredictHint = false
 
     var currentStep: Explanation.Step {
-        guard !explanation.steps.isEmpty else {
-            preconditionFailure("Explanation '\(explanation.id)' has no steps")
+        guard let step = explanation.steps.indices.contains(currentStepIndex)
+                ? explanation.steps[currentStepIndex]
+                : explanation.steps.first else {
+            assertionFailure("Explanation '\(explanation.id)' has no steps")
+            return Explanation.Step(title: "", lines: [], predict: nil)
         }
-        return explanation.steps[currentStepIndex]
+        return step
     }
 
     var previousStep: Explanation.Step? {

@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		A50BD10F2FC8664000300877 /* Javasta.storekit in Resources */ = {isa = PBXBuildFile; fileRef = A50BD10E2FC8664000300877 /* Javasta.storekit */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		B10000082F94392D006A312D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -28,7 +24,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A50BD10E2FC8664000300877 /* Javasta.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Javasta.storekit; sourceTree = "<group>"; };
 		A5998C5A2F94392A006A312D /* Javasta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Javasta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000012F94392D006A312D /* JavastaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JavastaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000012F94392E006A312D /* JavastaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JavastaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -80,7 +75,6 @@
 		A5998C512F94392A006A312D = {
 			isa = PBXGroup;
 			children = (
-				A50BD10E2FC8664000300877 /* Javasta.storekit */,
 				A5998C5C2F94392A006A312D /* Javasta */,
 				B10000022F94392D006A312D /* JavastaTests */,
 				B20000022F94392E006A312D /* JavastaUITests */,
@@ -218,7 +212,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A50BD10F2FC8664000300877 /* Javasta.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -421,10 +414,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.fumiakiMogi777.Javasta;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -458,10 +447,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.fumiakiMogi777.Javasta;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
